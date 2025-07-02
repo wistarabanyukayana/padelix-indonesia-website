@@ -1,0 +1,30 @@
+{
+  "collectionName": "components_sections_info_sections",
+  "info": {
+    "displayName": "Info Section"
+  },
+  "options": {},
+  "attributes": {
+    "reversed": {
+      "type": "boolean",
+      "default": false
+    },
+    "image": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "title": {
+      "type": "string"
+    },
+    "headline": {
+      "type": "string"
+    },
+    "content": {
+      "type": "richtext"
+    }
+  },
+  "config": {}
+}

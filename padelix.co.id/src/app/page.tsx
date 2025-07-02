@@ -1,25 +1,18 @@
-import { API_URL } from "@/utils/db";
+import { SectionRenderer } from "@/components/SectionRenderer";
+import { getHomePage } from "@/data/loaders";
+import { notFound } from "next/navigation";
 
 async function getData() {
-  const path = `/api/home-page`;
-  const dataURL = new URL(path, API_URL);
+  const data = await getHomePage();
 
-  console.log("[Calling API]:", dataURL.href); // ✅ log here
-
-  const response = await fetch(dataURL.href);
-  const data = await response.json();
+  if (!data) notFound();
 
   return { ...data.data };
 }
 
 export default async function Home() {
   const data = await getData();
-  console.log(data);
+  const sections = data?.sections || [];
 
-  return (
-    <div>
-      <h1>{data.title}</h1>
-      <p>{data.description}</p>
-    </div>
-  );
+  return <SectionRenderer sections={sections} />;
 }
