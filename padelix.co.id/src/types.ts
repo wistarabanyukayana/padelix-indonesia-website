@@ -42,7 +42,7 @@ export interface HeroSectionProps extends Base<"sections.hero-section"> {
 
 export interface InfoSectionProps extends Base<"sections.info-section"> {
   reversed?: boolean;
-  title: string;
+  subheading: string;
   headline: string;
   content: string;
   image: ImageProps;

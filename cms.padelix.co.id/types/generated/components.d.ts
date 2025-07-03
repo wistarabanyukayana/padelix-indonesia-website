@@ -45,7 +45,7 @@ export interface SectionsInfoSection extends Struct.ComponentSchema {
     headline: Schema.Attribute.String;
     image: Schema.Attribute.Media<'images'>;
     reversed: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
-    title: Schema.Attribute.String;
+    subheading: Schema.Attribute.String;
   };
 }
 

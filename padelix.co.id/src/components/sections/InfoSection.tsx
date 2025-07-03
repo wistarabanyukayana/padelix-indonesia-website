@@ -5,23 +5,28 @@ import { InfoSectionProps } from "@/types";
 
 export function InfoSection({
   reversed,
-  title,
+  subheading,
   headline,
   content,
   image,
 }: Readonly<InfoSectionProps>) {
   return (
-    <section className={`${reversed}`}>
+    <section
+      className={`section bg-black items-center justify-between ${
+        !reversed ? "flex-row" : "flex-row-reverse"
+      } gap`}
+    >
       <StrapiImage
         src={image.url}
         alt={image.alternativeText || "No alternative text provided"}
-        height={100}
-        width={100}
+        height={600}
+        width={600}
+        className="w-full object-cover object-center rounded-[30px] max-w-[682px]"
       />
-      <div>
-        <h2>{title}</h2>
-        <h3>{headline}</h3>
-        <div>
+      <div className="relative w-full h-full text-white flex flex-col items-start justify-center gap-6">
+        <h3 className="subheading">{subheading}</h3>
+        <h2 className="h2">{headline}</h2>
+        <div className="max-w-[525px]">
           <ReactMarkdown>{content}</ReactMarkdown>
         </div>
       </div>

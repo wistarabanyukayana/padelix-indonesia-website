@@ -16,7 +16,7 @@
         "images"
       ]
     },
-    "title": {
+    "subheading": {
       "type": "string"
     },
     "headline": {

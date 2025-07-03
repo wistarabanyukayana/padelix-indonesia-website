@@ -12,6 +12,43 @@
   --font-inter: var(--font-inter);
 }
 
+@layer components {
+  .h1 {
+    font-size: 64px;
+    line-height: 70px;
+  }
+
+  .h2 {
+    font-size: 48px;
+    font-weight: 700;
+    text-transform: capitalize;
+    line-height: 54px;
+  }
+
+  .subheading {
+    font-size: 18px;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .nav-link {
+    font-family: var(--font-inter);
+    font-size: 18px;
+    font-weight: 700;
+  }
+
+  .subtitle {
+    font-size: 14px;
+  }
+
+  .section {
+    position: relative;
+    width: 100%;
+    padding: calc(var(--spacing) * 7) calc(var(--spacing) * 13);
+    display: flex;
+  }
+}
+
 /* Prefer light (white) color scheme */
 @media (prefers-color-scheme: dark) {
   :root {
@@ -24,4 +61,7 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-lato), Arial, Helvetica, sans-serif;
+  font-size: 18px;
+  font-weight: 400;
+  line-height: calc(var(--spacing) * 5.5);
 }
