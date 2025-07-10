@@ -1,0 +1,14 @@
+{
+  "collectionName": "components_blocks_contact_form_blocks",
+  "info": {
+    "displayName": "Contact Form Block"
+  },
+  "options": {},
+  "attributes": {
+    "heading": {
+      "type": "string",
+      "required": true
+    }
+  },
+  "config": {}
+}

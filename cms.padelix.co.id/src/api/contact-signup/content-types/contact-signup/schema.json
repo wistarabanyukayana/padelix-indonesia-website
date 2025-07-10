@@ -1,0 +1,24 @@
+{
+  "kind": "collectionType",
+  "collectionName": "contact_signups",
+  "info": {
+    "singularName": "contact-signup",
+    "pluralName": "contact-signups",
+    "displayName": "Contact Signup"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string"
+    },
+    "contact": {
+      "type": "string"
+    },
+    "message": {
+      "type": "text"
+    }
+  }
+}

@@ -12,18 +12,32 @@
     "image": {
       "type": "media",
       "multiple": false,
+      "required": true,
       "allowedTypes": [
         "images"
       ]
     },
+    "heading": {
+      "type": "string",
+      "required": true
+    },
     "subheading": {
       "type": "string"
     },
-    "headline": {
-      "type": "string"
-    },
     "content": {
-      "type": "richtext"
+      "type": "richtext",
+      "required": true
+    },
+    "backgroundColor": {
+      "type": "enumeration",
+      "required": true,
+      "default": "white",
+      "enum": [
+        "white",
+        "black",
+        "green",
+        "red"
+      ]
     }
   },
   "config": {}

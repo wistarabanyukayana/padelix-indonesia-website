@@ -12,16 +12,21 @@
   "pluginOptions": {},
   "attributes": {
     "title": {
-      "type": "string"
+      "type": "string",
+      "required": true
     },
     "description": {
-      "type": "text"
+      "type": "text",
+      "required": true
     },
     "sections": {
       "type": "dynamiczone",
       "components": [
+        "sections.hero-section",
         "sections.info-section",
-        "sections.hero-section"
+        "sections.product-section",
+        "sections.certificate-section",
+        "sections.contact-section"
       ]
     }
   }

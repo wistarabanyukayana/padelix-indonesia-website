@@ -1,0 +1,77 @@
+{
+  "kind": "collectionType",
+  "collectionName": "products",
+  "info": {
+    "singularName": "product",
+    "pluralName": "products",
+    "displayName": "Product"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "code": {
+      "type": "string",
+      "default": "PDLX-[GROUP(3 CHAR)]-[TYPE(3 CHAR)]-(PID(pid)]",
+      "required": true,
+      "unique": true,
+      "regex": "^PDLX-[A-Z]{3}-[A-Z]{3}-\\d{2}[A-Z]$"
+    },
+    "slug": {
+      "type": "uid",
+      "targetField": "code",
+      "required": true,
+      "options": {
+        "decamelize": false,
+        "customReplacements": [
+          [
+            "PDLX",
+            "padelix"
+          ],
+          [
+            "CLS",
+            "classic"
+          ],
+          [
+            "STD",
+            "standard"
+          ],
+          [
+            "PAN",
+            "panorama"
+          ]
+        ]
+      },
+      "regex": "^padelix-[a-z]+-[a-z]+-\\d{2}[a-z]$"
+    },
+    "featured": {
+      "type": "boolean",
+      "default": false
+    },
+    "image": {
+      "type": "media",
+      "multiple": false,
+      "required": true,
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "description": {
+      "type": "richtext",
+      "required": true
+    },
+    "sections": {
+      "type": "dynamiczone",
+      "components": [
+        "sections.product-section",
+        "sections.info-section",
+        "sections.hero-section"
+      ]
+    }
+  }
+}

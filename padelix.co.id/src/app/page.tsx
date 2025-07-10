@@ -1,4 +1,4 @@
-import { SectionRenderer } from "@/components/SectionRenderer";
+import { SectionRenderer } from "@/components/general/SectionRenderer";
 import { getHomePage } from "@/data/loaders";
 import { notFound } from "next/navigation";
 

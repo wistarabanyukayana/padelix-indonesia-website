@@ -1,0 +1,15 @@
+{
+  "collectionName": "components_layouts_headers",
+  "info": {
+    "displayName": "Header"
+  },
+  "options": {},
+  "attributes": {
+    "logo": {
+      "type": "component",
+      "component": "elements.logo",
+      "repeatable": false
+    }
+  },
+  "config": {}
+}

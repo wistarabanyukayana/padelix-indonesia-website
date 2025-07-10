@@ -2,6 +2,8 @@ import qs from "qs";
 import { getStrapiURL } from "@/utils/get-strapi-url";
 import { fetchAPI } from "@/utils/fetch-api";
 
+const BASE_URL = getStrapiURL();
+
 const homePageQuery = qs.stringify({
   populate: {
     sections: {
@@ -20,6 +22,45 @@ const homePageQuery = qs.stringify({
             },
           },
         },
+        "sections.product-section": {
+          populate: "*",
+        },
+        "sections.certificate-section": {
+          populate: {
+            certificates: {
+              populate: {
+                image: {
+                  fields: ["url", "alternativeText"],
+                },
+              },
+            },
+          },
+        },
+        "sections.contact-section": {
+          populate: {
+            contactForm: {
+              populate: "*",
+            },
+            contactInfo: {
+              populate: {
+                logoLink: {
+                  populate: {
+                    logo: {
+                      populate: {
+                        image: {
+                          fields: ["url", "alternativeText"],
+                        },
+                      },
+                    },
+                    link: {
+                      populate: "*",
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
       },
     },
   },
@@ -27,7 +68,6 @@ const homePageQuery = qs.stringify({
 
 export async function getHomePage() {
   const path = `/api/home-page`;
-  const BASE_URL = getStrapiURL();
 
   const pageDataURL = new URL(path, BASE_URL);
 
@@ -36,4 +76,19 @@ export async function getHomePage() {
   return await fetchAPI(pageDataURL.href, {
     method: "GET",
   });
+}
+
+export async function getContent(path: string) {
+  const url = new URL(path, BASE_URL);
+
+  url.search = qs.stringify({
+    sort: ["createdAt:asc"],
+    populate: {
+      image: {
+        fields: ["url", "alternativeText"],
+      },
+    },
+  });
+
+  return fetchAPI(url.href, { method: "GET" });
 }

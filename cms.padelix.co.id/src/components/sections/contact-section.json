@@ -1,0 +1,33 @@
+{
+  "collectionName": "components_sections_contact_sections",
+  "info": {
+    "displayName": "Contact Section"
+  },
+  "options": {},
+  "attributes": {
+    "subheading": {
+      "type": "string",
+      "required": true
+    },
+    "backgroundColor": {
+      "type": "enumeration",
+      "enum": [
+        "white",
+        "black",
+        "green",
+        "red"
+      ]
+    },
+    "contactForm": {
+      "type": "component",
+      "component": "blocks.contact-form-block",
+      "repeatable": false
+    },
+    "contactInfo": {
+      "type": "component",
+      "component": "blocks.contact-info-block",
+      "repeatable": false
+    }
+  },
+  "config": {}
+}

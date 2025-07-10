@@ -5,6 +5,7 @@ interface StrapiImageProps {
   src: string;
   alt: string;
   className?: string;
+  priority?: boolean;
   [key: string]: string | number | boolean | undefined;
 }
 
@@ -12,12 +13,21 @@ export function StrapiImage({
   src,
   alt,
   className,
+  priority = false,
   ...rest
 }: Readonly<StrapiImageProps>) {
   const imageUrl = getStrapiMedia(src);
   if (!imageUrl) return null;
 
-  return <Image src={imageUrl} alt={alt} className={className} {...rest} />;
+  return (
+    <Image
+      priority={priority}
+      src={imageUrl}
+      alt={alt}
+      className={className}
+      {...rest}
+    />
+  );
 }
 
 export function getStrapiMedia(url: string | null) {
