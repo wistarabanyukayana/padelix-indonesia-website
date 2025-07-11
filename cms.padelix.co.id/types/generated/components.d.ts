@@ -40,7 +40,10 @@ export interface ElementsLogo extends Struct.ComponentSchema {
     displayName: 'Logo';
   };
   attributes: {
-    image: Schema.Attribute.Media<'images'>;
+    backgroundColor: Schema.Attribute.Enumeration<
+      ['white', 'black', 'green', 'red']
+    >;
+    image: Schema.Attribute.Media<'images'> & Schema.Attribute.Required;
     logoText: Schema.Attribute.String;
   };
 }

@@ -4,6 +4,7 @@ import { HeroSection } from "@/components/sections/HeroSection";
 import { InfoSection } from "@/components/sections/InfoSection";
 import { ProductSection } from "@/components/sections/ProductSection";
 import { CertificateSection } from "@/components/sections/CertificateSection";
+import { ContactSection } from "@/components/sections/ContactSection";
 
 function sectionRenderer(section: Section, index: number) {
   switch (section.__component) {
@@ -15,6 +16,8 @@ function sectionRenderer(section: Section, index: number) {
       return <ProductSection key={index} {...section} />;
     case "sections.certificate-section":
       return <CertificateSection key={index} {...section} />;
+    case "sections.contact-section":
+      return <ContactSection key={index} {...section} />;
     default:
       return null;
   }

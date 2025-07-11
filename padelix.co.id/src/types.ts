@@ -16,6 +16,7 @@ export interface LogoProps {
   id: number;
   logoText: string;
   image: ImageProps;
+  backgroundColor: "white" | "black" | "green" | "red";
 }
 
 export interface LogoLinkProps {
@@ -102,4 +103,18 @@ export interface ContactSectionProps extends Base<"sections.contact-section"> {
     heading: string;
     logoLink: LogoLinkProps[];
   };
+}
+
+export interface ContactSignupForm {
+  name: FormDataEntryValue | null;
+  contact: FormDataEntryValue | null;
+  message: FormDataEntryValue | null;
+}
+
+export interface ContactSignupState {
+  zodErrors: Record<string, string[]> | null;
+  strapiErrors: Record<string, string> | null;
+  errorMessage: string | null;
+  successMessage: string | null;
+  formData: ContactSignupForm | null;
 }
