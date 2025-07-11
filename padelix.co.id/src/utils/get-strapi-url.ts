@@ -1,5 +1,5 @@
 export function getStrapiURL() {
   return process.env.NODE_ENV === "development"
-    ? process.env.STRAPI_API_URL_LOCAL
-    : process.env.STRAPI_API_URL_PUBLIC;
+    ? process.env.NEXT_PUBLIC_STRAPI_API_URL_LOCAL
+    : process.env.NEXT_PUBLIC_STRAPI_API_URL_PUBLIC;
 }

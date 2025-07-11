@@ -32,14 +32,14 @@ export function Card({
   return (
     <Link
       href={`/${basePath}/${slug}`}
-      className="carrier items-start justify-around xl:h-[450px] w-full"
+      className="carrier items-start justify-around xl:h-[28.125rem] w-full"
     >
       <StrapiImage
         src={image.url}
         alt={image.alternativeText || "No alternative text provided"}
         width={400}
         height={400}
-        className=" object-cover object-center rounded-[30px] xl:w-[470px]"
+        className=" object-cover object-center rounded-[1.875rem] xl:w-[29.375rem]"
       />
       <div className="relative flex flex-col items-start justify-center gap-4">
         <div className="relative flex flex-col items-start justify-start gap-2">
@@ -52,7 +52,7 @@ export function Card({
             {price}
           </p>
         )}
-        <div className="max-w-[550px]">
+        <div className="max-w-[34.375rem]">
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
             rehypePlugins={[rehypeRaw]}

@@ -37,7 +37,7 @@ export function ContactSection({
     <section
       className={`section ${getBackgroundColor(
         backgroundColor
-      )} justify-center py-8 gap-8 items-center flex-col h-[673px]`}
+      )} justify-center py-8 gap-8 items-center flex-col h-[42.063rem]`}
     >
       <h3 className="subheading my-4">{subheading}</h3>
       <div className="carrier items-center justify-center h-full">
@@ -51,7 +51,7 @@ export function ContactSection({
               id="name"
               label="Nama"
               name="name"
-              className="h-14 rounded-[1.875rem] bg-neutral-300 text-neutral-950 text-[18px] font-bold p-4"
+              className="h-14 rounded-[1.875rem] bg-neutral-300 placeholder:text-neutral-950 placeholder:text-[1.125rem] p-4"
               error={zodErrors?.name?.[0]}
               defaultValue={
                 typeof formState?.formData?.name === "string"
@@ -64,7 +64,7 @@ export function ContactSection({
               label="Email/WA"
               name="contact"
               type="text"
-              className="h-14 rounded-[1.875rem] bg-neutral-300 text-neutral-950 text-[18px] font-bold p-4"
+              className="h-14 rounded-[1.875rem] bg-neutral-300 placeholder:text-neutral-950 placeholder:text-[1.125rem] p-4"
               error={zodErrors?.contact?.[0]}
               defaultValue={
                 typeof formState?.formData?.contact === "string"
@@ -77,7 +77,7 @@ export function ContactSection({
               label="Pesan"
               name="message"
               textArea
-              className="h-48 rounded-[1.875rem] bg-neutral-300 text-neutral-950 text-[18px] font-bold p-4"
+              className="h-48 rounded-[1.875rem] bg-neutral-300 placeholder:text-neutral-950 placeholder:text-[1.125rem] p-4"
               error={zodErrors?.message?.[0]}
               defaultValue={
                 typeof formState?.formData?.message === "string"
@@ -93,7 +93,7 @@ export function ContactSection({
             />
             <div className="w-1/3">
               <SubmitButton
-                className="rounded-[1.875rem] uppercase font-bold bg-red-500 text-neutral-950 h-14 w-2/3 text-[18px]"
+                className="rounded-[1.875rem] uppercase font-bold bg-red-500 text-neutral-950 h-14 w-2/3 text-[1.125rem]"
                 text="Kirim"
               />
               {strapiErrors && <p className="text-red-500">{strapiErrors}</p>}

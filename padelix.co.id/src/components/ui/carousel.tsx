@@ -175,9 +175,13 @@ function CarouselPrevious({
   className,
   variant = "outline",
   size = "icon",
-  iconSize = [24, 5],
+  iconSizes = [24, 5],
+  iconClassSize = "1.5rem",
   ...props
-}: React.ComponentProps<typeof Button> & { iconSize?: number[] }) {
+}: React.ComponentProps<typeof Button> & {
+  iconSizes?: number[];
+  iconClassSize?: string;
+}) {
   const { orientation, scrollPrev, canScrollPrev } = useCarousel();
 
   return (
@@ -192,15 +196,15 @@ function CarouselPrevious({
           : "-top-12 left-1/2 -translate-x-1/2 rotate-90",
         className
       )}
-      style={{ width: iconSize[0] + 5, height: iconSize[0] + 5 }}
+      style={{ width: iconSizes[0] + 5, height: iconSizes[0] + 5 }}
       disabled={!canScrollPrev}
       onClick={scrollPrev}
       {...props}
     >
       <ChevronLeft
-        size={iconSize[0]}
-        strokeWidth={iconSize[1]}
-        className={`!size-[${iconSize}px]`}
+        size={iconSizes[0]}
+        strokeWidth={iconSizes[1]}
+        className={`!size-[${iconClassSize}]`}
       />
       <span className="sr-only">Previous slide</span>
     </Button>
@@ -236,7 +240,7 @@ function CarouselNext({
       <ChevronRight
         size={iconSize[0]}
         strokeWidth={iconSize[1]}
-        className={`!size-[${iconSize}px]`}
+        className={`!size-[${iconSize}]`}
       />
       <span className="sr-only">Next slide</span>
     </Button>

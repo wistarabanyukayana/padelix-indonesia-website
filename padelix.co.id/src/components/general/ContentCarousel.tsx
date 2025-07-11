@@ -39,9 +39,10 @@ export async function ContentCarousel({
       opts={{ loop: true }}
     >
       <CarouselPrevious
-        className="left-0 top-1/2 -translate-y-1/2 z-10 text-[60px]"
+        className="left-0 top-1/2 -translate-y-1/2 z-10 text-[3.75rem]"
         variant="link"
-        iconSize={[60, 1]}
+        iconSizes={[60, 1]}
+        iconClassSize="3.75rem"
       />
       <CarouselContent>
         {products.map((product) => (

@@ -7,14 +7,10 @@ const contactSignupSchema = z.object({
   name: z.string().min(1, {
     message: "Mohon masukan nama anda",
   }),
-  contact: z.union([
-    z.email({
-      message: "Mohon masukan email yang benar",
-    }),
-    z.string().regex(/^\+?[0-9]{7,15}$/, {
-      message: "Mohon masukan nomor WA yang benar",
-    }),
-  ]),
+  contact: z.union(
+    [z.email(), z.string().regex(/^\+?[0-9]{7,15}$/)],
+    "Mohon masukan nomor Email/WA yang benar"
+  ),
   message: z.string().min(1, {
     message: "Mohon masukan pesan anda",
   }),

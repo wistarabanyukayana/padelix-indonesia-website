@@ -31,7 +31,10 @@ function TextInput({
           placeholder={error || label}
           name={name}
           id={id}
-          className={cn(className, `${error ? "text-red-500" : ""}`)}
+          className={cn(
+            className,
+            `${error ? "placeholder:text-red-500" : ""}`
+          )}
           defaultValue={defaultValue}
         />
       ) : (
@@ -39,7 +42,10 @@ function TextInput({
           placeholder={error || label}
           name={name}
           id={id}
-          className={cn(className, `${error ? "text-red-500" : ""}`)}
+          className={cn(
+            className,
+            `${error ? "placeholder:text-red-500" : ""}`
+          )}
           defaultValue={defaultValue}
         />
       )}

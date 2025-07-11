@@ -30,7 +30,7 @@ export function CertificateSection({
               }
               height={100}
               width={100}
-              className="w-full object-cover object-center rounded-[30px] max-w-[150px]"
+              className="w-full object-cover object-center rounded-[1.875rem] max-w-[9.375rem]"
             />
             <div className="text-center text-slate-50 mt-4">
               <ReactMarkdown>{certificate.logoText}</ReactMarkdown>

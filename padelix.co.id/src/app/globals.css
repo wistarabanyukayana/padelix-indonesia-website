@@ -37,39 +37,39 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 0.25rem);
+  --radius-md: calc(var(--radius) - 0.125rem);
   --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  --radius-xl: calc(var(--radius) + 0.25rem);
 }
 
 @layer components {
   .h1 {
-    font-size: 64px;
-    line-height: 70px;
+    font-size: 4rem;
+    line-height: 4.375rem;
   }
 
   .h2 {
-    font-size: 48px;
+    font-size: 3rem;
     font-weight: 700;
     text-transform: capitalize;
-    line-height: 54px;
+    line-height: 3.375rem;
   }
 
   .subheading {
-    font-size: 18px;
+    font-size: 1.125rem;
     font-weight: 700;
     text-transform: uppercase;
   }
 
   .nav-link {
     font-family: var(--font-inter);
-    font-size: 18px;
+    font-size: 1.125rem;
     font-weight: 700;
   }
 
   .subtitle {
-    font-size: 14px;
+    font-size: 0.875rem;
   }
 
   .section {
@@ -81,7 +81,7 @@
 
   .carrier {
     position: relative;
-    max-width: 1336px;
+    max-width: 83.5rem;
     width: 100%;
     overflow: hidden;
     display: flex;
@@ -92,7 +92,7 @@
 
 body {
   font-family: var(--font-lato), Arial, Helvetica, sans-serif;
-  font-size: 18px;
+  font-size: 1.125rem;
   font-weight: 400;
   line-height: calc(var(--spacing) * 5.5);
 }
