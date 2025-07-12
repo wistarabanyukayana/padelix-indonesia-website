@@ -6,13 +6,12 @@ export interface ContactSignupProps {
   name: string;
   contact: string;
   message: string;
-  event: {
-    connect: [string];
-  };
 }
 
 export async function contactSignupService(data: ContactSignupProps) {
   const url = new URL("/api/contact-signups", BASE_URL);
+
+  console.log(data);
 
   try {
     const response = await fetch(url, {

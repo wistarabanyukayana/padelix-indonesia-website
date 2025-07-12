@@ -9,14 +9,17 @@ export function CertificateSection({
   certificates,
   backgroundColor,
 }: Readonly<CertificateSectionProps>) {
+  const id = subheading.toLocaleLowerCase().replace(" ", "-");
+
   return (
     <section
+      id={id}
       className={`section ${getBackgroundColor(
         backgroundColor
-      )} justify-center items-center flex-col gap-4`}
+      )} justify-center items-center flex-col gap-4 scroll-mt-[4.75rem] sm:scroll-mt-[6.25rem] `}
     >
       <h3 className="subheading">{subheading}</h3>
-      <div className="carrier flex items-center justify-center gap-6">
+      <div className="carrier grid grid-cols-2 md:flex md:items-center md:justify-center gap-6">
         {certificates.map((certificate) => (
           <div
             key={certificate.id}

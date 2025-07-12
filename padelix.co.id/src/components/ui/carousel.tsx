@@ -215,9 +215,13 @@ function CarouselNext({
   className,
   variant = "outline",
   size = "icon",
-  iconSize = [24, 5],
+  iconSizes = [24, 5],
+  iconClassSize = "1.5rem",
   ...props
-}: React.ComponentProps<typeof Button> & { iconSize?: number[] }) {
+}: React.ComponentProps<typeof Button> & {
+  iconSizes?: number[];
+  iconClassSize?: string;
+}) {
   const { orientation, scrollNext, canScrollNext } = useCarousel();
 
   return (
@@ -232,15 +236,15 @@ function CarouselNext({
           : "-bottom-12 left-1/2 -translate-x-1/2 rotate-90",
         className
       )}
-      style={{ width: iconSize[0] + 5, height: iconSize[0] + 5 }}
+      style={{ width: iconSizes[0] + 5, height: iconSizes[0] + 5 }}
       disabled={!canScrollNext}
       onClick={scrollNext}
       {...props}
     >
       <ChevronRight
-        size={iconSize[0]}
-        strokeWidth={iconSize[1]}
-        className={`!size-[${iconSize}]`}
+        size={iconSizes[0]}
+        strokeWidth={iconSizes[1]}
+        className={`!size-[${iconClassSize}]`}
       />
       <span className="sr-only">Next slide</span>
     </Button>

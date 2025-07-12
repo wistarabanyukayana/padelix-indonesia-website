@@ -16,6 +16,16 @@
     },
     "description": {
       "type": "text"
+    },
+    "header": {
+      "type": "component",
+      "component": "layouts.header",
+      "repeatable": false
+    },
+    "footer": {
+      "type": "component",
+      "component": "layouts.footer",
+      "repeatable": false
     }
   }
 }

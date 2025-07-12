@@ -13,11 +13,11 @@
   "attributes": {
     "title": {
       "type": "string",
-      "required": true
+      "required": false
     },
     "description": {
       "type": "text",
-      "required": true
+      "required": false
     },
     "sections": {
       "type": "dynamiczone",

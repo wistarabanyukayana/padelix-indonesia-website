@@ -1,6 +1,7 @@
 "use client";
 import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface SubmitButtonProps {
   text: string;
@@ -14,9 +15,9 @@ export function SubmitButton({ text, className }: Readonly<SubmitButtonProps>) {
       type="submit"
       aria-disabled={status.pending}
       disabled={status.pending}
-      className={className}
+      className={cn(className, status.pending ? "animate-pulse" : "")}
     >
-      {status.pending ? "Loading..." : text}
+      {status.pending ? "Mengirim" : text}
     </Button>
   );
 }

@@ -4,6 +4,38 @@ import { fetchAPI } from "@/utils/fetch-api";
 
 const BASE_URL = getStrapiURL();
 
+const globalSettingQuery = qs.stringify({
+  populate: {
+    header: {
+      populate: {
+        logo: {
+          populate: {
+            image: {
+              fields: ["url", "alternativeText"],
+            },
+          },
+        },
+        navigation: true,
+        moreOptionIcon: {
+          populate: {
+            image: {
+              fields: ["url", "alternativeText"],
+            },
+          },
+        },
+      },
+    },
+    footer: true,
+  },
+});
+
+export async function getGlobalSettings() {
+  const path = "/api/global";
+  const url = new URL(path, BASE_URL);
+  url.search = globalSettingQuery;
+  return fetchAPI(url.href, { method: "GET" });
+}
+
 const homePageQuery = qs.stringify({
   populate: {
     sections: {
@@ -22,9 +54,7 @@ const homePageQuery = qs.stringify({
             },
           },
         },
-        "sections.product-section": {
-          populate: "*",
-        },
+        "sections.product-section": true,
         "sections.certificate-section": {
           populate: {
             certificates: {
@@ -38,9 +68,7 @@ const homePageQuery = qs.stringify({
         },
         "sections.contact-section": {
           populate: {
-            contactForm: {
-              populate: "*",
-            },
+            contactForm: true,
             contactInfo: {
               populate: {
                 logoLink: {
@@ -52,9 +80,7 @@ const homePageQuery = qs.stringify({
                         },
                       },
                     },
-                    link: {
-                      populate: "*",
-                    },
+                    link: true,
                   },
                 },
               },

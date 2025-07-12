@@ -4,6 +4,11 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1536px;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-lato: var(--font-lato);
@@ -45,19 +50,19 @@
 
 @layer components {
   .h1 {
-    font-size: 4rem;
+    font-size: 2.5rem;
     line-height: 4.375rem;
   }
 
   .h2 {
-    font-size: 3rem;
+    font-size: 1.5rem;
     font-weight: 700;
     text-transform: capitalize;
-    line-height: 3.375rem;
+    line-height: 2.375rem;
   }
 
   .subheading {
-    font-size: 1.125rem;
+    font-size: 0.9rem;
     font-weight: 700;
     text-transform: uppercase;
   }
@@ -75,7 +80,7 @@
   .section {
     position: relative;
     width: 100%;
-    padding: calc(var(--spacing) * 7) calc(var(--spacing) * 13);
+    padding: calc(var(--spacing) * 4) calc(var(--spacing) * 10);
     display: flex;
   }
 
@@ -85,6 +90,77 @@
     width: 100%;
     overflow: hidden;
     display: flex;
+    flex-direction: column;
+  }
+
+  /* push the overlay behind the header */
+  [data-slot="sheet-overlay"] {
+    z-index: 40 !important; /* header is z‑50, so overlay sits under it */
+  }
+
+  /* drop the sheet content down below the header */
+  [data-slot="sheet-content"] {
+    /* your header height is probably around 4rem (h-16) */
+    top: 4.75rem !important;
+    z-index: 45 !important; /* between overlay (40) and header (50) */
+  }
+
+  @variant sm {
+    .h1 {
+      font-size: 3rem;
+    }
+
+    .h2 {
+      font-size: 2rem;
+      line-height: 3.375rem;
+    }
+
+    .section {
+      padding: calc(var(--spacing) * 7) calc(var(--spacing) * 13);
+    }
+
+    [data-slot="sheet-content"] {
+      /* your header height is probably around 4rem (h-16) */
+      top: 6.25rem !important;
+    }
+  }
+
+  @variant md {
+    .h1 {
+      font-size: 3rem;
+    }
+  }
+
+  @variant lg {
+    .h1 {
+      font-size: 4rem;
+    }
+
+    .subheading {
+      font-size: 1rem;
+    }
+
+    body {
+      font-size: 1rem;
+    }
+
+    .carrier {
+      flex-direction: row;
+    }
+  }
+
+  @variant xl {
+    .h2 {
+      font-size: 3rem;
+    }
+
+    .subheading {
+      font-size: 1.125rem;
+    }
+
+    body {
+      font-size: 1.125rem;
+    }
   }
 }
 
@@ -92,7 +168,7 @@
 
 body {
   font-family: var(--font-lato), Arial, Helvetica, sans-serif;
-  font-size: 1.125rem;
+  font-size: 0.9rem;
   font-weight: 400;
   line-height: calc(var(--spacing) * 5.5);
 }
@@ -173,4 +249,16 @@ body {
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* push the overlay behind the header */
+[data-slot="sheet-overlay"] {
+  z-index: 40 !important; /* header is z‑50, so overlay sits under it */
+}
+
+/* drop the sheet content down below the header */
+[data-slot="sheet-content"] {
+  /* your header height is probably around 4rem (h-16) */
+  top: 7.594rem !important;
+  z-index: 45 !important; /* between overlay (40) and header (50) */
 }

@@ -5,7 +5,26 @@
   },
   "options": {},
   "attributes": {
+    "backgroundColor": {
+      "type": "enumeration",
+      "enum": [
+        "white",
+        "black",
+        "green",
+        "red"
+      ]
+    },
     "logo": {
+      "type": "component",
+      "component": "elements.logo",
+      "repeatable": false
+    },
+    "navigation": {
+      "type": "component",
+      "component": "elements.link",
+      "repeatable": true
+    },
+    "moreOptionIcon": {
       "type": "component",
       "component": "elements.logo",
       "repeatable": false

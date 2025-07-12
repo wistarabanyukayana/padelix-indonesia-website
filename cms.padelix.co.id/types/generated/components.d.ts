@@ -59,13 +59,31 @@ export interface ElementsLogoLink extends Struct.ComponentSchema {
   };
 }
 
+export interface LayoutsFooter extends Struct.ComponentSchema {
+  collectionName: 'components_layouts_footers';
+  info: {
+    displayName: 'Footer';
+  };
+  attributes: {
+    backgroundColor: Schema.Attribute.Enumeration<
+      ['white', 'black', 'green', 'red']
+    >;
+    copy: Schema.Attribute.String & Schema.Attribute.Required;
+  };
+}
+
 export interface LayoutsHeader extends Struct.ComponentSchema {
   collectionName: 'components_layouts_headers';
   info: {
     displayName: 'Header';
   };
   attributes: {
+    backgroundColor: Schema.Attribute.Enumeration<
+      ['white', 'black', 'green', 'red']
+    >;
     logo: Schema.Attribute.Component<'elements.logo', false>;
+    moreOptionIcon: Schema.Attribute.Component<'elements.logo', false>;
+    navigation: Schema.Attribute.Component<'elements.link', true>;
   };
 }
 
@@ -161,6 +179,7 @@ declare module '@strapi/strapi' {
       'elements.link': ElementsLink;
       'elements.logo': ElementsLogo;
       'elements.logo-link': ElementsLogoLink;
+      'layouts.footer': LayoutsFooter;
       'layouts.header': LayoutsHeader;
       'sections.certificate-section': SectionsCertificateSection;
       'sections.contact-section': SectionsContactSection;

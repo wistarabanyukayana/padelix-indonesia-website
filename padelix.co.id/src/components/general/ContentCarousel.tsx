@@ -1,7 +1,7 @@
-import { ProductProps } from "@/types";
-import { getContent } from "@/data/loaders";
+"use client";
 
-import Autoplay from "embla-carousel-autoplay";
+import React from "react";
+import useEmblaCarousel from "embla-carousel-react";
 
 import {
   Carousel,
@@ -10,52 +10,55 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
+import { ProductProps } from "@/types";
+
+type UseCarouselParameters = Parameters<typeof useEmblaCarousel>;
+type CarouselOptions = UseCarouselParameters[0];
+type CarouselPlugin = UseCarouselParameters[1];
 
 interface ContentCarouselProps {
-  query?: string;
-  path: string;
-  featured?: boolean;
-  custom?: boolean;
+  products: ProductProps[];
   component: React.ComponentType<ProductProps & { basePath: string }>;
+  basePath: string;
+  opts?: CarouselOptions;
+  plugins?: CarouselPlugin;
 }
 
-async function loader(path: string) {
-  const { data, meta } = await getContent(path);
-  return {
-    products: (data as ProductProps[]) || [],
-  };
-}
-
-export async function ContentCarousel({
-  path,
-  component,
-}: Readonly<ContentCarouselProps>) {
-  const { products } = await loader(path);
-  const Component = component;
-
+export function ContentCarousel({
+  products,
+  component: Component,
+  basePath,
+  opts,
+  plugins,
+}: ContentCarouselProps) {
   return (
     <Carousel
-      className="carrier items-center justify-center"
-      opts={{ loop: true }}
+      className="carrier flex-col items-center justify-evenly h-full sm:h-auto"
+      opts={opts}
+      plugins={plugins}
     >
-      <CarouselPrevious
-        className="left-0 top-1/2 -translate-y-1/2 z-10 text-[3.75rem]"
-        variant="link"
-        iconSizes={[60, 1]}
-        iconClassSize="3.75rem"
-      />
       <CarouselContent>
-        {products.map((product) => (
-          <CarouselItem key={product.documentId} className="px-17">
-            <Component {...product} basePath={path} />
+        {products.map((product, index) => (
+          <CarouselItem
+            key={`${product.documentId}-${index}`}
+            className="flex px-17 max-h-[40rem] sm:h-auto items-start sm:items-center"
+          >
+            <Component {...(product as ProductProps)} basePath={basePath} />
           </CarouselItem>
         ))}
       </CarouselContent>
-      <CarouselNext
-        className="right-0 top-1/2 -translate-y-1/2 z-10"
-        variant="link"
-        iconSize={[60, 1]}
-      />
+      <div className="flex justify-around items-center w-full">
+        <CarouselPrevious
+          className="relative items-center justify-center top-auto left-auto translate-0 md:left-0 md:top-1/2 md:-translate-y-1/2 z-10 md:absolute"
+          variant="link"
+          iconSizes={[60, 1]}
+        />
+        <CarouselNext
+          className="relative items-center justify-center top-auto right-auto translate-0 md:right-0 md:top-1/2 md:-translate-y-1/2 z-10 md:absolute"
+          variant="link"
+          iconSizes={[60, 1]}
+        />
+      </div>
     </Carousel>
   );
 }

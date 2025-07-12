@@ -1,16 +1,21 @@
 "use server";
 import { z } from "zod";
 import { contactSignupService, type ContactSignupProps } from "./service";
-import { ContactSignupState } from "@/types";
+import { ContactSignupForm, ContactSignupState } from "@/types";
 
 const contactSignupSchema = z.object({
-  name: z.string().min(1, {
-    message: "Mohon masukan nama anda",
+  name: z
+    .string()
+    .min(1, {
+      message: "Mohon masukan nama anda",
+    })
+    .regex(/^[A-Za-z ]+$/, {
+      message: "Mohon masukan nama anda yang benar",
+    }),
+  contact: z.union([z.email(), z.string().regex(/^\+?[0-9]{7,15}$/)], {
+    // ③ options (your custom message)
+    message: "Mohon masukan nomor Email/WA yang benar",
   }),
-  contact: z.union(
-    [z.email(), z.string().regex(/^\+?[0-9]{7,15}$/)],
-    "Mohon masukan nomor Email/WA yang benar"
-  ),
   message: z.string().min(1, {
     message: "Mohon masukan pesan anda",
   }),
@@ -30,21 +35,35 @@ export async function contactSignupAction(
   const validatedFields = contactSignupSchema.safeParse(formDataObject);
 
   if (!validatedFields.success) {
+    const zodErrors = z.flattenError(validatedFields.error).fieldErrors;
+    const strapiErrs = prevState.strapiErrors ?? {}; // adjust if shape differs
+
+    const filteredFormData: ContactSignupForm = {
+      ...formDataObject,
+      ...Object.fromEntries(
+        Object.keys(zodErrors)
+          .concat(Object.keys(strapiErrs))
+          .map((k) => [k, null])
+      ),
+    };
+    console.log({
+      ...prevState,
+      zodErrors,
+      strapiErrors: strapiErrs,
+      formData: filteredFormData,
+    });
     return {
       ...prevState,
-      zodErrors: z.flattenError(validatedFields.error).fieldErrors,
-      strapiErrors: null,
-      formData: {
-        ...formDataObject,
-      },
+      zodErrors,
+      strapiErrors: strapiErrs,
+      formData: filteredFormData,
     };
   }
 
+  console.log(formDataObject.eventId);
+
   const dataToSend: ContactSignupProps = {
     ...validatedFields.data,
-    event: {
-      connect: [formDataObject.eventId as string],
-    },
   };
 
   const responseData = await contactSignupService(dataToSend);
