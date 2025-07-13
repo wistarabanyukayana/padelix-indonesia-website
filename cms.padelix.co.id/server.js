@@ -1,13 +1,9 @@
-async function main() {
-  const { createStrapi, compileStrapi } = require("@strapi/strapi");
+require("dotenv").config();
 
-  const appContext = await compileStrapi();
-  const app = await createStrapi(appContext).start();
+const { createStrapi } = require("@strapi/strapi");
 
-  app.log.level = "error";
-}
-
-main().catch((error) => {
-  console.error(error);
-  process.exit(1);
+const strapi = createStrapi({
+  distDir: "dist",
 });
+
+strapi.start();

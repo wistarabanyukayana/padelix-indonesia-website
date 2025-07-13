@@ -19,6 +19,7 @@
   "dependencies": {
     "@strapi/plugin-cloud": "5.18.0",
     "@strapi/plugin-users-permissions": "5.18.0",
+    "@strapi/provider-email-nodemailer": "^5.18.0",
     "@strapi/strapi": "5.18.0",
     "mysql2": "3.9.8",
     "react": "^18.0.0",

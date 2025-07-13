@@ -1,20 +1,20 @@
+// next.config.ts
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  //output: "standalone",
   images: {
     remotePatterns: [
       {
         protocol: "http",
         hostname: "localhost",
         port: "1337",
-        pathname: "/uploads/**/*",
+        pathname: "/uploads/**",
       },
       {
         protocol: "https",
         hostname: "cms.padelix.co.id",
-        port: "1337",
-        pathname: "/uploads/**/*",
+        pathname: "/uploads/**",
       },
     ],
   },

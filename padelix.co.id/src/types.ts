@@ -31,6 +31,7 @@ export interface ProductProps {
   name: string;
   code: string;
   description: string;
+  specification: string;
   image: ImageProps;
   slug: string;
   featured: boolean;

@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build",
+    "build": "node scripts/build.js",
     "start": "next start",
     "lint": "next lint"
   },
@@ -16,6 +16,7 @@
     "clsx": "^2.1.1",
     "embla-carousel-autoplay": "^8.6.0",
     "embla-carousel-react": "^8.6.0",
+    "fs-extra": "^11.3.0",
     "lucide-react": "^0.525.0",
     "next": "15.3.4",
     "qs": "^6.14.0",

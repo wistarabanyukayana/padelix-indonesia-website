@@ -39,21 +39,21 @@ export function ContactSection({
       id={id}
       className={`section ${getBackgroundColor(
         backgroundColor
-      )} justify-center py-8 gap-4 sm:gap-7 items-center flex-col scroll-mt-[4.75rem] sm:scroll-mt-[6.25rem] h-[calc(100svh-4.75rem)] sm:h-auto`}
+      )} justify-center sm:py-8 gap-4 sm:gap-7 items-center flex-col scroll-mt-[4.75rem] sm:scroll-mt-[6.25rem] h-[calc(100lvh-4.75rem)] sm:h-auto`}
     >
-      <h3 className="subheading my-4">{subheading}</h3>
-      <div className="carrier items-start justify-center h-full gap-6 sm:gap-12 lg:gap-0">
-        <div className="flex flex-col justify-start items-start w-full lg:w-1/2 h-full gap-4">
+      <h3 className="subheading">{subheading}</h3>
+      <div className="carrier items-start justify-center h-full gap-4 sm:gap-12 lg:gap-0">
+        <div className="flex flex-col justify-start items-start w-full lg:w-1/2 h-full gap-2 sm:gap-4">
           <h2 className="h2">{contactForm.heading}</h2>
           <form
-            className="flex flex-col justify-start w-full sm:w-2/3 gap-4"
+            className="flex flex-col justify-start w-full sm:w-2/3 gap-2 sm:gap-4"
             action={formAction}
           >
             <TextInput
               id="name"
               label="Nama"
               name="name"
-              className="h-14 rounded-[1.875rem] bg-neutral-300 placeholder:text-neutral-600 placeholder:text-[1.125rem] p-4"
+              className="h-12 sm:h-14 rounded-[1.875rem] bg-neutral-300 placeholder:text-neutral-600 placeholder:text-[1.125rem] p-4"
               error={zodErrors?.name?.[0]}
               defaultValue={
                 typeof formState?.formData?.name === "string"
@@ -66,7 +66,7 @@ export function ContactSection({
               label="Email/WA"
               name="contact"
               type="text"
-              className="h-14 rounded-[1.875rem] bg-neutral-300 placeholder:text-neutral-600 placeholder:text-[1.125rem] p-4"
+              className="h-12 sm:h-14 rounded-[1.875rem] bg-neutral-300 placeholder:text-neutral-600 placeholder:text-[1.125rem] p-4"
               error={zodErrors?.contact?.[0]}
               defaultValue={
                 !zodErrors?.contact?.[0]
@@ -81,7 +81,7 @@ export function ContactSection({
               label="Pesan"
               name="message"
               textArea
-              className="h-48 rounded-[1.875rem] bg-neutral-300 placeholder:text-neutral-600 placeholder:text-[1.125rem] p-4"
+              className="h-29 sm:h-48 rounded-[1.875rem] bg-neutral-300 placeholder:text-neutral-600 placeholder:text-[1.125rem] p-4"
               error={zodErrors?.message?.[0]}
               defaultValue={
                 typeof formState?.formData?.message === "string"
@@ -91,7 +91,7 @@ export function ContactSection({
             />
             <div className="w-1/3 flex items-center gap-8 text-nowrap">
               <SubmitButton
-                className="rounded-[1.875rem] uppercase font-bold bg-red-500 text-neutral-950 h-14 w-4/5 text-[1.125rem]"
+                className="rounded-[1.875rem] uppercase font-bold bg-red-500 text-neutral-950 h-12 sm:h-14 w-4/5 text-[1.125rem]"
                 text="Kirim"
               />
               {strapiErrors && <p className="text-red-500">{strapiErrors}</p>}
@@ -101,9 +101,9 @@ export function ContactSection({
             </div>
           </form>
         </div>
-        <div className="flex flex-col justify-start items-start w-full lg:w-1/2 h-full gap-4">
+        <div className="flex flex-col justify-start items-start w-full lg:w-1/2 h-full gap-2 sm:gap-4">
           <h2 className="h2">{contactInfo.heading}</h2>
-          <div className="flex flex-col h-full gap-4">
+          <div className="flex flex-col h-full gap-2 sm:gap-4">
             {contactInfo.logoLink.map((item) => (
               <Link
                 key={item.id}
@@ -119,7 +119,7 @@ export function ContactSection({
                   }
                   width={60}
                   height={60}
-                  className={`rounded-full p-2 ${getBackgroundColor(
+                  className={`size-10 sm:size-auto rounded-full p-2 ${getBackgroundColor(
                     item.logo.backgroundColor
                   )}`}
                 />

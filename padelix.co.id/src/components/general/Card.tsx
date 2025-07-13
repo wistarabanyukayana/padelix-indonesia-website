@@ -12,6 +12,7 @@ export interface CardProps {
   name: string;
   code: string;
   description: string;
+  specification: string;
   slug: string;
   image: ImageProps;
   price?: number;
@@ -24,6 +25,7 @@ export function Card({
   name,
   code,
   description,
+  specification,
   slug,
   image,
   price,
@@ -32,17 +34,29 @@ export function Card({
   return (
     <Link
       href={`/${basePath}/${slug}`}
-      className="carrier items-center justify-start sm:justify-around xl:h-[28.125rem] w-full sm:gap-8"
+      className="carrier items-center justify-start sm:justify-around xl:h-[28.125rem] w-full sm:gap-8 pb-13 sm:pb-0"
     >
+      <div className="sm:hidden relative flex flex-col items-start md:items-start justify-center gap-2 sm:gap-4 max-w-[17.375rem] sm:max-w-[30rem] md:max-w-[34.375rem]">
+        <div className="relative flex flex-col items-center justify-center sm:gap-2">
+          <h2 className="h2">{name}</h2>
+          <span className="text-muted-foreground">{code}</span>
+        </div>
+        {price && (
+          <p className="body-text">
+            <span className="font-medium">Price: </span>
+            {price}
+          </p>
+        )}
+      </div>
       <StrapiImage
         src={image.url}
         alt={image.alternativeText || "No alternative text provided"}
         width={400}
         height={400}
-        className="w-full object-cover object-center rounded-[1.875rem] max-w-[17.375rem]  lg:max-w-[25.375rem] xl:max-w-[29.375rem]"
+        className="w-full object-cover object-center rounded-[1.875rem] max-w-[17.375rem] lg:max-w-[25.375rem] xl:max-w-[29.375rem]"
       />
       <div className="relative flex flex-col items-start md:items-start justify-center gap-2 sm:gap-4 max-w-[17.375rem] sm:max-w-[30rem] md:max-w-[34.375rem]">
-        <div className="relative flex flex-col items-start justify-start sm:gap-2  ">
+        <div className="relative hidden sm:flex flex-col items-start justify-start sm:gap-2">
           <h2 className="h2">{name}</h2>
           <span className="text-neutral-500">{code}</span>
         </div>
@@ -53,6 +67,8 @@ export function Card({
           </p>
         )}
         <div className="w-full">
+          <p>{description}</p>
+          <br />
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
             rehypePlugins={[rehypeRaw]}
@@ -62,7 +78,7 @@ export function Card({
               li: (props) => <li className="mb-1" {...props} />,
             }}
           >
-            {description.replace(/\n\n/g, "\n<br><br>\n")}
+            {specification.replace(/\n\n/g, "\n<br><br>\n")}
           </ReactMarkdown>
         </div>
       </div>
