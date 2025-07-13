@@ -57,13 +57,9 @@ export function Card({
             remarkPlugins={[remarkGfm]}
             rehypePlugins={[rehypeRaw]}
             components={{
-              ul: ({ node, ...props }) => (
-                <ul className="list-disc pl-6" {...props} />
-              ),
-              ol: ({ node, ...props }) => (
-                <ol className="list-decimal pl-6" {...props} />
-              ),
-              li: ({ node, ...props }) => <li className="mb-1" {...props} />,
+              ul: (props) => <ul className="list-disc pl-6" {...props} />,
+              ol: (props) => <ol className="list-decimal pl-6" {...props} />,
+              li: (props) => <li className="mb-1" {...props} />,
             }}
           >
             {description.replace(/\n\n/g, "\n<br><br>\n")}

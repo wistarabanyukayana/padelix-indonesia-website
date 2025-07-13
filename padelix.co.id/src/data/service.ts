@@ -11,8 +11,6 @@ export interface ContactSignupProps {
 export async function contactSignupService(data: ContactSignupProps) {
   const url = new URL("/api/contact-signups", BASE_URL);
 
-  console.log(data);
-
   try {
     const response = await fetch(url, {
       method: "POST",

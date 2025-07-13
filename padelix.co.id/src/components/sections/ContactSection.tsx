@@ -34,8 +34,6 @@ export function ContactSection({
   const strapiErrors = formState?.strapiErrors?.message;
   const successMessage = formState?.successMessage;
 
-  console.log("This is formstate from the section\n", formState);
-
   return (
     <section
       id={id}

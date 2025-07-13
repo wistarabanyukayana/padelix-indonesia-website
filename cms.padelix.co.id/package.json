@@ -4,7 +4,9 @@
   "private": true,
   "description": "A Strapi application",
   "scripts": {
-    "build": "strapi build",
+    "compile": "tsc -p tsconfig.json",
+    "build:admin": "strapi build",
+    "build": "npm run compile && npm run build:admin",
     "console": "strapi console",
     "deploy": "strapi deploy",
     "dev": "strapi develop",
@@ -15,14 +17,13 @@
     "upgrade:dry": "npx @strapi/upgrade latest --dry"
   },
   "dependencies": {
-    "@strapi/plugin-cloud": "5.16.1",
-    "@strapi/plugin-users-permissions": "5.16.1",
-    "@strapi/strapi": "5.16.1",
+    "@strapi/plugin-cloud": "5.18.0",
+    "@strapi/plugin-users-permissions": "5.18.0",
+    "@strapi/strapi": "5.18.0",
     "mysql2": "3.9.8",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
     "react-router-dom": "^6.0.0",
-    "strapi-advanced-uuid": "^2.1.1",
     "styled-components": "^6.0.0"
   },
   "devDependencies": {

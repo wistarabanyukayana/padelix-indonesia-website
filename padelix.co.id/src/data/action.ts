@@ -46,12 +46,7 @@ export async function contactSignupAction(
           .map((k) => [k, null])
       ),
     };
-    console.log({
-      ...prevState,
-      zodErrors,
-      strapiErrors: strapiErrs,
-      formData: filteredFormData,
-    });
+
     return {
       ...prevState,
       zodErrors,
@@ -59,8 +54,6 @@ export async function contactSignupAction(
       formData: filteredFormData,
     };
   }
-
-  console.log(formDataObject.eventId);
 
   const dataToSend: ContactSignupProps = {
     ...validatedFields.data,
