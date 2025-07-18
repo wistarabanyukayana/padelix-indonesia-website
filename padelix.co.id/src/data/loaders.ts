@@ -3,6 +3,7 @@ import { getStrapiURL } from "@/utils/get-strapi-url";
 import { fetchAPI } from "@/utils/fetch-api";
 
 const BASE_URL = getStrapiURL();
+const CONTENT_LIST_SIZE = 6;
 
 const globalSettingQuery = qs.stringify({
   populate: {
@@ -104,11 +105,50 @@ export async function getHomePage() {
   });
 }
 
-export async function getContent(path: string) {
+export async function getContentCarousel(path: string) {
   const url = new URL(path, BASE_URL);
 
   url.search = qs.stringify({
     sort: ["createdAt:asc"],
+    populate: {
+      image: {
+        fields: ["url", "alternativeText"],
+      },
+    },
+  });
+
+  return fetchAPI(url.href, { method: "GET" });
+}
+
+export async function getContentList(
+  path: string,
+  featured?: boolean,
+  query?: string,
+  page?: string
+) {
+  const url = new URL(path, BASE_URL);
+
+  url.search = qs.stringify({
+    sort: ["createdAt:asc"],
+    filters: {
+      $or: [
+        {
+          title: {
+            $containsi: query,
+          },
+        },
+        {
+          description: {
+            $containsi: query,
+          },
+        },
+      ],
+      ...(featured && { featured: { $eq: featured } }),
+    },
+    pagination: {
+      pageSize: CONTENT_LIST_SIZE,
+      page: parseInt(page || "1"),
+    },
     populate: {
       image: {
         fields: ["url", "alternativeText"],

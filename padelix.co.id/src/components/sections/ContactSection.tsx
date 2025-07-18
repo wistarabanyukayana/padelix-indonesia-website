@@ -37,12 +37,12 @@ export function ContactSection({
   return (
     <section
       id={id}
-      className={`section ${getBackgroundColor(
+      className={`section sm:py-8 gap-4 sm:gap-7 h-[calc(100lvh-4.75rem)] sm:h-auto ${getBackgroundColor(
         backgroundColor
-      )} justify-center sm:py-8 gap-4 sm:gap-7 items-center flex-col scroll-mt-[4.75rem] sm:scroll-mt-[6.25rem] h-[calc(100lvh-4.75rem)] sm:h-auto`}
+      )}`}
     >
       <h3 className="subheading">{subheading}</h3>
-      <div className="carrier items-start justify-center h-full gap-4 sm:gap-12 lg:gap-0">
+      <div className="wrapper items-start justify-center h-full gap-4 sm:gap-12 lg:gap-0">
         <div className="flex flex-col justify-start items-start w-full lg:w-1/2 h-full gap-2 sm:gap-4">
           <h2 className="h2">{contactForm.heading}</h2>
           <form

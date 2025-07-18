@@ -77,14 +77,29 @@
     font-size: 0.875rem;
   }
 
-  .section {
+  .image-responsive {
+    @apply w-full object-cover object-center;
+  }
+
+  .header {
     position: relative;
     width: 100%;
     padding: calc(var(--spacing) * 4) calc(var(--spacing) * 10);
     display: flex;
   }
 
-  .carrier {
+  .section {
+    position: relative;
+    width: 100%;
+    padding: calc(var(--spacing) * 4) calc(var(--spacing) * 10);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    @apply scroll-mt-[4.75rem];
+  }
+
+  .wrapper {
     position: relative;
     max-width: 83.5rem;
     width: 100%;
@@ -117,6 +132,7 @@
 
     .section {
       padding: calc(var(--spacing) * 7) calc(var(--spacing) * 13);
+      @apply scroll-mt-[6.25rem];
     }
 
     [data-slot="sheet-content"] {
@@ -144,7 +160,7 @@
       font-size: 1rem;
     }
 
-    .carrier {
+    .wrapper {
       flex-direction: row;
     }
   }

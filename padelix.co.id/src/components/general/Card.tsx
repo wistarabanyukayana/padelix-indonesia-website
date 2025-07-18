@@ -34,7 +34,7 @@ export function Card({
   return (
     <Link
       href={`/${basePath}/${slug}`}
-      className="carrier items-center justify-start sm:justify-around xl:h-[28.125rem] w-full sm:gap-8 pb-13 sm:pb-0"
+      className="wrapper items-center justify-start sm:justify-around xl:h-[28.125rem] w-full gap-4 sm:gap-8 pb-0"
     >
       <div className="sm:hidden relative flex flex-col items-start md:items-start justify-center gap-2 sm:gap-4 max-w-[17.375rem] sm:max-w-[30rem] md:max-w-[34.375rem]">
         <div className="relative flex flex-col items-center justify-center sm:gap-2">
@@ -51,9 +51,9 @@ export function Card({
       <StrapiImage
         src={image.url}
         alt={image.alternativeText || "No alternative text provided"}
-        width={400}
-        height={400}
-        className="w-full object-cover object-center rounded-[1.875rem] max-w-[17.375rem] lg:max-w-[25.375rem] xl:max-w-[29.375rem]"
+        width={1080}
+        height={1080}
+        className="image-responsive rounded-[1.875rem] max-w-[17.375rem] lg:max-w-[25.375rem] xl:max-w-[29.375rem]"
       />
       <div className="relative flex flex-col items-start md:items-start justify-center gap-2 sm:gap-4 max-w-[17.375rem] sm:max-w-[30rem] md:max-w-[34.375rem]">
         <div className="relative hidden sm:flex flex-col items-start justify-start sm:gap-2">
@@ -66,20 +66,22 @@ export function Card({
             {price}
           </p>
         )}
-        <div className="w-full">
+        <div className="w-full text-center sm:text-justify">
           <p>{description}</p>
           <br />
-          <ReactMarkdown
-            remarkPlugins={[remarkGfm]}
-            rehypePlugins={[rehypeRaw]}
-            components={{
-              ul: (props) => <ul className="list-disc pl-6" {...props} />,
-              ol: (props) => <ol className="list-decimal pl-6" {...props} />,
-              li: (props) => <li className="mb-1" {...props} />,
-            }}
-          >
-            {specification.replace(/\n\n/g, "\n<br><br>\n")}
-          </ReactMarkdown>
+          <div className="w-full hidden sm:block ">
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              rehypePlugins={[rehypeRaw]}
+              components={{
+                ul: (props) => <ul className="list-disc pl-6" {...props} />,
+                ol: (props) => <ol className="list-decimal pl-6" {...props} />,
+                li: (props) => <li className="mb-1" {...props} />,
+              }}
+            >
+              {specification.replace(/\n\n/g, "\n<br><br>\n")}
+            </ReactMarkdown>
+          </div>
         </div>
       </div>
     </Link>

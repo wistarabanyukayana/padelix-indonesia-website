@@ -14,12 +14,10 @@ export function CertificateSection({
   return (
     <section
       id={id}
-      className={`section ${getBackgroundColor(
-        backgroundColor
-      )} justify-center items-center flex-col gap-4 scroll-mt-[4.75rem] sm:scroll-mt-[6.25rem]`}
+      className={`section gap-4 ${getBackgroundColor(backgroundColor)}`}
     >
       <h3 className="subheading">{subheading}</h3>
-      <div className="carrier grid grid-cols-2 md:flex md:items-center md:justify-center gap-6">
+      <div className="wrapper grid grid-cols-2 md:flex md:items-center md:justify-center gap-6">
         {certificates.map((certificate) => (
           <div
             key={certificate.id}

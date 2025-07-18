@@ -17,7 +17,7 @@ export function Footer({ data }: FooterProps) {
         backgroundColor
       )} justify-center items-center align-middle text-center`}
     >
-      <div className="carrier justify-center items-center align-middle text-center">
+      <div className="wrapper justify-center items-center align-middle text-center">
         <p className="subtitle text-white">{copy}</p>
       </div>
     </footer>

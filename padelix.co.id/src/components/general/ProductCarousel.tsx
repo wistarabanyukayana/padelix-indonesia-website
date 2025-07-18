@@ -2,7 +2,7 @@
 
 import React, { useRef } from "react";
 import Autoplay from "embla-carousel-autoplay";
-import { ContentCarousel } from "./ContentCarousel";
+import { ProductContentCarousel } from "./ProductContentCarousel";
 import { ProductCard } from "./ProductCard";
 import { ProductProps } from "@/types";
 
@@ -17,7 +17,7 @@ export function ProductCarousel({ products, basePath }: ProductCarouselProps) {
   const autoplay = useRef(Autoplay({ delay: 8000, stopOnInteraction: false }));
 
   return (
-    <ContentCarousel
+    <ProductContentCarousel
       products={products}
       component={ProductCard}
       basePath={basePath}

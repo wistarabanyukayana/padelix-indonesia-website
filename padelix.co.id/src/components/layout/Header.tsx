@@ -38,7 +38,7 @@ export function Header({ data }: HeaderProps) {
         backgroundColor
       )} justify-center items-center border-solid border-b-1 border-b-neutral-900`}
     >
-      <div className="carrier flex-row md:flex-col lg:flex-row justify-between items-center gap-7 xl:gap-0">
+      <div className="wrapper flex-row md:flex-col lg:flex-row justify-between items-center gap-7 xl:gap-0">
         <Link href="/">
           <StrapiImage
             src={logo.image.url}

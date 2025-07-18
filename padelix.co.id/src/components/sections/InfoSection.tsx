@@ -17,12 +17,12 @@ export function InfoSection({
   return (
     <section
       id={id}
-      className={`section ${getBackgroundColor(
+      className={`section  h-[calc(100svh-4.75rem)] sm:h-auto ${getBackgroundColor(
         backgroundColor
-      )} justify-center items-center scroll-mt-[4.75rem] sm:scroll-mt-[6.25rem] h-[calc(100svh-4.75rem)] sm:h-auto`}
+      )}`}
     >
       <div
-        className={`carrier items-center justify-center md:justify-between ${
+        className={`wrapper items-center justify-center md:justify-between ${
           !reversed
             ? "flex-col md:flex-row"
             : "flex-col-reverse md:flex-row-reverse"
@@ -36,8 +36,8 @@ export function InfoSection({
         <StrapiImage
           src={image.url}
           alt={image.alternativeText || "No alternative text provided"}
-          width={600}
-          height={600}
+          width={1080}
+          height={1080}
           className="w-full object-cover object-center rounded-[1.875rem] max-w-[32.625rem] md:max-w-[22.625rem] lg:max-w-[32.625rem] xl:max-w-[42.625rem]"
         />
         <div className="relative w-full text-slate-50 flex flex-col items-start justify-center gap-2 sm:gap-6">

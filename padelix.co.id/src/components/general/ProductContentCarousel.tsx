@@ -24,7 +24,7 @@ interface ContentCarouselProps {
   plugins?: CarouselPlugin;
 }
 
-export function ContentCarousel({
+export function ProductContentCarousel({
   products,
   component: Component,
   basePath,
@@ -33,7 +33,7 @@ export function ContentCarousel({
 }: ContentCarouselProps) {
   return (
     <Carousel
-      className="carrier flex-col items-center justify-evenly h-full sm:h-auto"
+      className="wrapper flex-col items-center justify-evenly h-full sm:h-auto"
       opts={opts}
       plugins={plugins}
     >
@@ -41,7 +41,7 @@ export function ContentCarousel({
         {products.map((product, index) => (
           <CarouselItem
             key={`${product.documentId}-${index}`}
-            className="flex px-17 max-h-[40rem] sm:h-auto items-start sm:items-center"
+            className="flex px-17 max-h-[40rem] sm:h-auto items-center"
           >
             <Component {...(product as ProductProps)} basePath={basePath} />
           </CarouselItem>
