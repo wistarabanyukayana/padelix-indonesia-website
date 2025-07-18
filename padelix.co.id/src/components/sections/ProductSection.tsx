@@ -1,7 +1,7 @@
 import { ProductSectionProps, ProductProps } from "@/types";
 import { getBackgroundColor } from "@/utils/get-backgrounColor";
 import { getContentCarousel } from "@/data/loaders";
-import { ProductCarousel } from "../general/ProductCarousel";
+import { ProductCarousel } from "../special/product/ProductCarousel";
 
 export async function ProductSection({
   subheading,
