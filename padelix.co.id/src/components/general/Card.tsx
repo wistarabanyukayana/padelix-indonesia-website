@@ -6,9 +6,11 @@ import { StrapiImage } from "./StrapiImage";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
+import { cn } from "@/lib/utils";
 
 export interface CardProps {
   documentId: string;
+  className?: string;
   name: string;
   code: string;
   description: string;
@@ -22,6 +24,7 @@ export interface CardProps {
 }
 
 export function Card({
+  className,
   name,
   code,
   description,
@@ -34,7 +37,10 @@ export function Card({
   return (
     <Link
       href={`/${basePath}/${slug}`}
-      className="wrapper items-center justify-start sm:justify-around xl:h-[28.125rem] w-full gap-4 sm:gap-8 pb-0"
+      className={cn(
+        "wrapper items-center justify-start sm:justify-around xl:h-[28.125rem] w-full gap-4 sm:gap-8 pb-0",
+        className
+      )}
     >
       <div className="sm:hidden relative flex flex-col items-start md:items-start justify-center gap-2 sm:gap-4 max-w-[17.375rem] sm:max-w-[30rem] md:max-w-[34.375rem]">
         <div className="relative flex flex-col items-center justify-center sm:gap-2">
@@ -57,7 +63,7 @@ export function Card({
       />
       <div className="relative flex flex-col items-start md:items-start justify-center gap-2 sm:gap-4 max-w-[17.375rem] sm:max-w-[30rem] md:max-w-[34.375rem]">
         <div className="relative hidden sm:flex flex-col items-start justify-start sm:gap-2">
-          <h2 className="h2">{name}</h2>
+          <h2 className="h2 lg:text-nowrap">{name}</h2>
           <span className="text-neutral-500">{code}</span>
         </div>
         {price && (

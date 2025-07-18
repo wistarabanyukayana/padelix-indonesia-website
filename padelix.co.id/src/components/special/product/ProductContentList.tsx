@@ -24,7 +24,7 @@ async function loader(
 ) {
   const { data, meta } = await getContentList(path, featured, query, page);
   return {
-    articles: (data as ProductProps[]) || [],
+    products: (data as ProductProps[]) || [],
     pageCount: meta?.pagination?.pageCount || 1,
   };
 }
@@ -40,18 +40,18 @@ export async function ProductContentList({
   page,
   showPagination,
 }: Readonly<ContentListProps>) {
-  const { articles, pageCount } = await loader(path, featured, query, page);
+  const { products, pageCount } = await loader(path, featured, query, page);
   const Component = component;
   return (
-    <section className="content-items container">
+    <section className="section">
       <h3
         className={`content-items__headline ${`content-items--${headlineAlignment}`}`}
       >
         {headline || "Featured Articles"}
       </h3>
       {showSearch && <Search />}
-      <div className="content-items__container--card">
-        {articles.map((article) => (
+      <div className="flex flex-col gap-4">
+        {products.map((article) => (
           <Component key={article.documentId} {...article} basePath={path} />
         ))}
       </div>

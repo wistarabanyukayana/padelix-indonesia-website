@@ -33,7 +33,7 @@ export function ProductContentCarousel({
 }: ContentCarouselProps) {
   return (
     <Carousel
-      className="wrapper flex-col items-center justify-evenly h-full sm:h-auto"
+      className="wrapper flex-col justify-evenly h-full sm:h-auto"
       opts={opts}
       plugins={plugins}
     >
@@ -41,7 +41,7 @@ export function ProductContentCarousel({
         {products.map((product, index) => (
           <CarouselItem
             key={`${product.documentId}-${index}`}
-            className="flex px-17 max-h-[40rem] sm:h-auto items-center"
+            className="flex sm:px-17 max-h-[40rem] items-center"
           >
             <Component {...(product as ProductProps)} basePath={basePath} />
           </CarouselItem>

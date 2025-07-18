@@ -133,12 +133,22 @@ export async function getContentList(
     filters: {
       $or: [
         {
-          title: {
+          name: {
+            $containsi: query,
+          },
+        },
+        {
+          code: {
             $containsi: query,
           },
         },
         {
           description: {
+            $containsi: query,
+          },
+        },
+        {
+          spesification: {
             $containsi: query,
           },
         },
