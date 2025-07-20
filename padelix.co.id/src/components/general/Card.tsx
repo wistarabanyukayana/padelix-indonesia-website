@@ -21,6 +21,8 @@ export interface CardProps {
   startDate?: string;
   createdAt: string;
   basePath: string;
+  showSpecification?: boolean;
+  itemImageClassName?: string;
 }
 
 export function Card({
@@ -33,6 +35,8 @@ export function Card({
   image,
   price,
   basePath,
+  showSpecification,
+  itemImageClassName,
 }: Readonly<CardProps>) {
   return (
     <Link
@@ -59,11 +63,14 @@ export function Card({
         alt={image.alternativeText || "No alternative text provided"}
         width={1080}
         height={1080}
-        className="image-responsive rounded-[1.875rem] max-w-[17.375rem] lg:max-w-[25.375rem] xl:max-w-[29.375rem]"
+        className={cn(
+          "image-responsive rounded-[1.875rem] max-w-[17.375rem] lg:max-w-[25.375rem] xl:max-w-[29.375rem]",
+          itemImageClassName
+        )}
       />
       <div className="relative flex flex-col items-start md:items-start justify-center gap-2 sm:gap-4 max-w-[17.375rem] sm:max-w-[30rem] md:max-w-[34.375rem]">
         <div className="relative hidden sm:flex flex-col items-start justify-start sm:gap-2">
-          <h2 className="h2 lg:text-nowrap">{name}</h2>
+          <h2 className="h2">{name}</h2>
           <span className="text-neutral-500">{code}</span>
         </div>
         {price && (
@@ -85,7 +92,9 @@ export function Card({
                 li: (props) => <li className="mb-1" {...props} />,
               }}
             >
-              {specification.replace(/\n\n/g, "\n<br><br>\n")}
+              {showSpecification
+                ? specification.replace(/\n\n/g, "\n<br><br>\n")
+                : ""}
             </ReactMarkdown>
           </div>
         </div>

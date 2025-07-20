@@ -8,16 +8,17 @@ interface PageProps {
 export default async function BlogRoute({ searchParams }: PageProps) {
   const { page, query } = await searchParams;
   return (
-    <div className="blog-page">
-      <ProductContentList
-        headline="Katalog Produk"
-        path="/api/products"
-        component={ProductCard}
-        showSearch
-        query={query}
-        showPagination
-        page={page}
-      />
-    </div>
+    <ProductContentList
+      headline="Katalog Produk"
+      path="/api/products"
+      component={ProductCard}
+      showSearch
+      query={query}
+      showPagination
+      page={page}
+      itemClassName="bg-lime-400 p-4 rounded-[1.875rem] xl:h-auto"
+      showSpecification={false}
+      itemImageClassName="lg:max-w-[15.375rem] xl:lg:max-w-[17.375rem]"
+    />
   );
 }

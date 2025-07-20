@@ -9,11 +9,21 @@ interface ContentListProps {
   query?: string;
   path: string;
   featured?: boolean;
-  component: React.ComponentType<ProductProps & { basePath: string }>;
+  component: React.ComponentType<
+    ProductProps & {
+      basePath: string;
+      showSpecification?: boolean;
+      className?: string;
+      itemImageClassName?: string;
+    }
+  >;
   headlineAlignment?: "center" | "right" | "left";
   showSearch?: boolean;
   page?: string;
   showPagination?: boolean;
+  showSpecification?: boolean;
+  itemClassName?: string;
+  itemImageClassName?: string;
 }
 
 async function loader(
@@ -39,6 +49,9 @@ export async function ProductContentList({
   query,
   page,
   showPagination,
+  showSpecification = true,
+  itemClassName,
+  itemImageClassName,
 }: Readonly<ContentListProps>) {
   const { products, pageCount } = await loader(path, featured, query, page);
   const Component = component;
@@ -50,9 +63,16 @@ export async function ProductContentList({
         {headline || "Featured Articles"}
       </h3>
       {showSearch && <Search />}
-      <div className="flex flex-col gap-4">
-        {products.map((article) => (
-          <Component key={article.documentId} {...article} basePath={path} />
+      <div className="grid grid-cols-1 sm:grid-cols-2 w-full gap-4 p-4">
+        {products.map((product) => (
+          <Component
+            key={product.documentId}
+            {...product}
+            showSpecification={showSpecification}
+            basePath={path}
+            className={itemClassName}
+            itemImageClassName={itemImageClassName}
+          />
         ))}
       </div>
       {showPagination && <Pagination pageCount={pageCount} />}
