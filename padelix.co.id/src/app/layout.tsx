@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Lato, Inter } from "next/font/google";
 import "./globals.css";
 
@@ -29,15 +29,89 @@ async function loader() {
   };
 }
 
-export async function generateMetadata(): Promise<Metadata> {
-  // fetch post information
-  const { title, description } = await loader();
+export const metadata: Metadata = {
+  title: "Padelix Indonesia",
+  description: "Padel Starts Here.",
 
-  return {
-    title: title,
-    description: description,
-  };
-}
+  // 1. Favicon + shortcut icon is directly in /app folder
+  icons: {
+    // 2. Apple touch icon (fallback if you just want one)
+    apple: "/apple-icon-180x180.png",
+
+    // 3. The “other” array is where you list _every_ custom link:
+    other: [
+      // Apple
+      { rel: "apple-touch-icon", url: "/apple-icon-57x57.png", sizes: "57x57" },
+      { rel: "apple-touch-icon", url: "/apple-icon-60x60.png", sizes: "60x60" },
+      { rel: "apple-touch-icon", url: "/apple-icon-72x72.png", sizes: "72x72" },
+      { rel: "apple-touch-icon", url: "/apple-icon-76x76.png", sizes: "76x76" },
+      {
+        rel: "apple-touch-icon",
+        url: "/apple-icon-114x114.png",
+        sizes: "114x114",
+      },
+      {
+        rel: "apple-touch-icon",
+        url: "/apple-icon-120x120.png",
+        sizes: "120x120",
+      },
+      {
+        rel: "apple-touch-icon",
+        url: "/apple-icon-144x144.png",
+        sizes: "144x144",
+      },
+      {
+        rel: "apple-touch-icon",
+        url: "/apple-icon-152x152.png",
+        sizes: "152x152",
+      },
+      {
+        rel: "apple-touch-icon",
+        url: "/apple-icon-180x180.png",
+        sizes: "180x180",
+      },
+
+      // Android / general PNG icons
+      {
+        rel: "icon",
+        url: "/android-icon-192x192.png",
+        type: "image/png",
+        sizes: "192x192",
+      },
+      {
+        rel: "icon",
+        url: "/favicon-96x96.png",
+        type: "image/png",
+        sizes: "96x96",
+      },
+      {
+        rel: "icon",
+        url: "/favicon-32x32.png",
+        type: "image/png",
+        sizes: "32x32",
+      },
+      {
+        rel: "icon",
+        url: "/favicon-16x16.png",
+        type: "image/png",
+        sizes: "16x16",
+      },
+    ],
+  },
+
+  // 4. Web App Manifest
+  manifest: "/manifest.json",
+
+  openGraph: {
+    title: "Padelix Indonesia",
+    description: "Padel Starts Here.",
+    url: "https://padelix.co.id",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#ffffff",
+};
 
 export default async function RootLayout({
   children,

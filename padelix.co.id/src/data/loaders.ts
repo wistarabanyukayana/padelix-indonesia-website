@@ -269,3 +269,14 @@ export async function getSlugProduct(slug: string) {
     method: "GET",
   });
 }
+
+export async function getProductList(path: string) {
+  const url = new URL(path, BASE_URL);
+
+  url.search = qs.stringify({
+    sort: ["createdAt:asc"],
+    fields: ["id", "slug", "createdAt", "updatedAt"],
+  });
+
+  return fetchAPI(url.href, { method: "GET" });
+}

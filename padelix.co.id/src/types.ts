@@ -36,6 +36,7 @@ export interface ProductProps {
   slug: string;
   featured: boolean;
   createdAt: string;
+  updatedAt: string;
   basePath: string;
 }
 
