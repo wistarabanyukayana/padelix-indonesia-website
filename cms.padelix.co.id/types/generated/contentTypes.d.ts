@@ -464,6 +464,7 @@ export interface ApiHomePageHomePage extends Struct.SingleTypeSchema {
         'sections.product-section',
         'sections.certificate-section',
         'sections.contact-section',
+        'sections.portofolio-section',
       ]
     >;
     title: Schema.Attribute.String;
@@ -501,6 +502,7 @@ export interface ApiProductProduct extends Struct.CollectionTypeSchema {
     > &
       Schema.Attribute.Private;
     name: Schema.Attribute.String & Schema.Attribute.Required;
+    price: Schema.Attribute.String;
     publishedAt: Schema.Attribute.DateTime;
     sections: Schema.Attribute.DynamicZone<
       [

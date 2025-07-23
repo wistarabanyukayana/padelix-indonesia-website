@@ -67,6 +67,17 @@ const homePageQuery = qs.stringify({
             },
           },
         },
+        "sections.portofolio-section": {
+          populate: {
+            portofolios: {
+              populate: {
+                image: {
+                  fields: ["url", "alternativeText"],
+                },
+              },
+            },
+          },
+        },
         "sections.contact-section": {
           populate: {
             contactForm: true,
@@ -167,4 +178,78 @@ export async function getContentList(
   });
 
   return fetchAPI(url.href, { method: "GET" });
+}
+
+const slugProductQuery = (slug: string) =>
+  qs.stringify({
+    filters: {
+      slug: {
+        $eq: slug,
+      },
+    },
+    populate: {
+      sections: {
+        on: {
+          "sections.hero-section": {
+            populate: {
+              image: {
+                fields: ["url", "alternativeText"],
+              },
+            },
+          },
+          "sections.info-section": {
+            populate: {
+              image: {
+                fields: ["url", "alternativeText"],
+              },
+            },
+          },
+          "sections.product-section": true,
+          "sections.certificate-section": {
+            populate: {
+              certificates: {
+                populate: {
+                  image: {
+                    fields: ["url", "alternativeText"],
+                  },
+                },
+              },
+            },
+          },
+          "sections.contact-section": {
+            populate: {
+              contactForm: true,
+              contactInfo: {
+                populate: {
+                  logoLink: {
+                    populate: {
+                      logo: {
+                        populate: {
+                          image: {
+                            fields: ["url", "alternativeText"],
+                          },
+                        },
+                      },
+                      link: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+
+export async function getSlugProduct(slug: string) {
+  const path = `/api/products`;
+
+  const pageDataURL = new URL(path, BASE_URL);
+
+  pageDataURL.search = slugProductQuery(slug);
+
+  return await fetchAPI(pageDataURL.href, {
+    method: "GET",
+  });
 }

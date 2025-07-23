@@ -44,7 +44,8 @@ type ComponentType =
   | "sections.info-section"
   | "sections.product-section"
   | "sections.certificate-section"
-  | "sections.contact-section";
+  | "sections.contact-section"
+  | "sections.portofolio-section";
 
 interface Base<
   T extends ComponentType,
@@ -64,7 +65,8 @@ export type Section =
   | InfoSectionProps
   | ProductSectionProps
   | CertificateSectionProps
-  | ContactSectionProps;
+  | ContactSectionProps
+  | PortofolioSectionProps;
 
 export interface HeroSectionProps extends Base<"sections.hero-section"> {
   backgroundColor: "white" | "black" | "green" | "red";
@@ -118,4 +120,11 @@ export interface ContactSignupState {
   errorMessage: string | null;
   successMessage: string | null;
   formData: ContactSignupForm | null;
+}
+
+export interface PortofolioSectionProps
+  extends Base<"sections.portofolio-section"> {
+  backgroundColor: "white" | "black" | "green" | "red";
+  subheading: string;
+  portofolios: LogoProps[];
 }

@@ -48,15 +48,9 @@ export function Card({
     >
       <div className="sm:hidden relative flex flex-col items-start md:items-start justify-center gap-2 sm:gap-4 max-w-[17.375rem] sm:max-w-[30rem] md:max-w-[34.375rem]">
         <div className="relative flex flex-col items-center justify-center sm:gap-2">
-          <h2 className="h2">{name}</h2>
+          <h2 className="h2 text-center sm:text-left">{name}</h2>
           <span className="text-muted-foreground">{code}</span>
         </div>
-        {price && (
-          <p className="body-text">
-            <span className="font-medium">Price: </span>
-            {price}
-          </p>
-        )}
       </div>
       <StrapiImage
         src={image.url}
@@ -73,14 +67,16 @@ export function Card({
           <h2 className="h2">{name}</h2>
           <span className="text-neutral-500">{code}</span>
         </div>
-        {price && (
-          <p>
-            <span>Price: </span>
-            {price}
-          </p>
-        )}
+
         <div className="w-full text-center sm:text-justify">
           <p>{description}</p>
+          <br />
+          {price && (
+            <p>
+              <span>Harga: </span>
+              {price}
+            </p>
+          )}
           <br />
           <div className="w-full hidden sm:block ">
             <ReactMarkdown

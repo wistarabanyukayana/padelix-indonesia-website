@@ -1,5 +1,5 @@
 import { ProductContentList } from "@/components/special/product/ProductContentList";
-import { ProductCard } from "@/components/special/product/ProductCard";
+import { ProductListCard } from "@/components/special/product/ProductListCard";
 
 interface PageProps {
   searchParams: Promise<{ page?: string; query?: string }>;
@@ -11,7 +11,7 @@ export default async function ProductRoute({ searchParams }: PageProps) {
     <ProductContentList
       headline="Katalog Produk"
       path="/api/products"
-      component={ProductCard}
+      component={ProductListCard}
       showSearch
       query={query}
       showPagination

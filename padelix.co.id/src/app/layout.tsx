@@ -49,7 +49,7 @@ export default async function RootLayout({
   return (
     <html lang="id">
       <body
-        className={`${lato.variable} ${inter.variable} antialiased flex flex-col items-center bg-white h-svh`}
+        className={`${lato.variable} ${inter.variable} antialiased flex flex-col items-center bg-white`}
       >
         <Header data={header} />
         {children}

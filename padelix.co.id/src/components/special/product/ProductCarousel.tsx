@@ -3,7 +3,7 @@
 import React, { useRef } from "react";
 import Autoplay from "embla-carousel-autoplay";
 import { ProductContentCarousel } from "./ProductContentCarousel";
-import { ProductCard } from "./ProductCard";
+import { ProductCarouselCard } from "./ProductCarouselCard";
 import { ProductProps } from "@/types";
 
 interface ProductCarouselProps {
@@ -19,7 +19,7 @@ export function ProductCarousel({ products, basePath }: ProductCarouselProps) {
   return (
     <ProductContentCarousel
       products={products}
-      component={ProductCard}
+      component={ProductCarouselCard}
       basePath={basePath}
       opts={opts}
       plugins={[autoplay.current]}

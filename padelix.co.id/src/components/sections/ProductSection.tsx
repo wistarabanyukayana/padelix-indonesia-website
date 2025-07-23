@@ -14,7 +14,7 @@ export async function ProductSection({
   return (
     <section
       id={id}
-      className={`section  sm:py-13 gap-3 sm:gap-12 lg:gap-6 xl:gap-2 h-[calc(100svh-4.75rem)] sm:h-auto ${getBackgroundColor(
+      className={`section gap-3 sm:py-13 sm:gap-12 lg:gap-6 xl:gap-2 ${getBackgroundColor(
         backgroundColor
       )}`}
     >

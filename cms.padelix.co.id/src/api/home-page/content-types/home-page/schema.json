@@ -26,7 +26,8 @@
         "sections.info-section",
         "sections.product-section",
         "sections.certificate-section",
-        "sections.contact-section"
+        "sections.contact-section",
+        "sections.portofolio-section"
       ]
     }
   }

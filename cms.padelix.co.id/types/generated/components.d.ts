@@ -154,6 +154,20 @@ export interface SectionsInfoSection extends Struct.ComponentSchema {
   };
 }
 
+export interface SectionsPortofolioSection extends Struct.ComponentSchema {
+  collectionName: 'components_sections_portofolio_sections';
+  info: {
+    displayName: 'Portofolio Section';
+  };
+  attributes: {
+    backgroundColor: Schema.Attribute.Enumeration<
+      ['white', 'black', 'green', 'red']
+    >;
+    portofolios: Schema.Attribute.Component<'elements.logo', true>;
+    subheading: Schema.Attribute.String & Schema.Attribute.Required;
+  };
+}
+
 export interface SectionsProductSection extends Struct.ComponentSchema {
   collectionName: 'components_sections_product_sections';
   info: {
@@ -185,6 +199,7 @@ declare module '@strapi/strapi' {
       'sections.contact-section': SectionsContactSection;
       'sections.hero-section': SectionsHeroSection;
       'sections.info-section': SectionsInfoSection;
+      'sections.portofolio-section': SectionsPortofolioSection;
       'sections.product-section': SectionsProductSection;
     }
   }

@@ -3,6 +3,8 @@ import ReactMarkdown from "react-markdown";
 
 import { InfoSectionProps } from "@/types";
 import { getBackgroundColor } from "@/utils/get-backgrounColor";
+import remarkGfm from "remark-gfm";
+import rehypeRaw from "rehype-raw";
 
 export function InfoSection({
   reversed,
@@ -17,20 +19,28 @@ export function InfoSection({
   return (
     <section
       id={id}
-      className={`section  h-[calc(100svh-4.75rem)] sm:h-auto ${getBackgroundColor(
-        backgroundColor
-      )}`}
+      className={`section ${getBackgroundColor(backgroundColor)}`}
     >
       <div
         className={`wrapper items-center justify-center md:justify-between ${
           !reversed
-            ? "flex-col md:flex-row"
+            ? "flex-col-reverse sm:flex-col md:flex-row"
             : "flex-col-reverse md:flex-row-reverse"
         } gap-8 sm:gap-8 h-full sm:h-auto`}
       >
         <div className="relative w-full text-slate-50 flex flex-col items-start justify-center gap-2 sm:gap-6 sm:hidden">
           <div className="max-w-[32.813rem]">
-            <ReactMarkdown>{content}</ReactMarkdown>
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              rehypePlugins={[rehypeRaw]}
+              components={{
+                ul: (props) => <ul className="list-disc pl-6" {...props} />,
+                ol: (props) => <ol className="list-decimal pl-6" {...props} />,
+                li: (props) => <li className="mb-1" {...props} />,
+              }}
+            >
+              {content}
+            </ReactMarkdown>
           </div>
         </div>
         <StrapiImage
@@ -44,7 +54,17 @@ export function InfoSection({
           <h3 className="subheading">{subheading}</h3>
           <h2 className="h2">{heading}</h2>
           <div className="hidden sm:block max-w-[32.813rem]">
-            <ReactMarkdown>{content}</ReactMarkdown>
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              rehypePlugins={[rehypeRaw]}
+              components={{
+                ul: (props) => <ul className="list-disc pl-6" {...props} />,
+                ol: (props) => <ol className="list-decimal pl-6" {...props} />,
+                li: (props) => <li className="mb-1" {...props} />,
+              }}
+            >
+              {content}
+            </ReactMarkdown>
           </div>
         </div>
       </div>

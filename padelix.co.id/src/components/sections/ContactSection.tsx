@@ -37,7 +37,7 @@ export function ContactSection({
   return (
     <section
       id={id}
-      className={`section sm:py-8 gap-4 sm:gap-7 h-[calc(100lvh-4.75rem)] sm:h-auto ${getBackgroundColor(
+      className={`section sm:py-8 gap-4 sm:gap-7 ${getBackgroundColor(
         backgroundColor
       )}`}
     >
