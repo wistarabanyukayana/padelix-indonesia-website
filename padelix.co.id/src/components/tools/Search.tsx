@@ -1,6 +1,7 @@
 "use client";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useDebouncedCallback } from "use-debounce";
+import { Input } from "../ui/input";
 
 export function Search() {
   // Get access to URL search parameters, routing, and current pathname
@@ -28,10 +29,10 @@ export function Search() {
   }, 300);
 
   return (
-    <div className="search">
-      <input
+    <div className="w-full px-4">
+      <Input
         type="text"
-        placeholder="Search"
+        placeholder="Pencarian"
         // Call handleSearch whenever input value changes
         onChange={(e) => handleSearch(e.target.value)}
         // Initialize input with existing search query from URL

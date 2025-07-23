@@ -3,6 +3,7 @@ import { getContentList } from "@/data/loaders";
 
 import { Pagination } from "@/components/tools/Pagination";
 import { Search } from "@/components/tools/Search";
+import { cn } from "@/lib/utils";
 
 interface ContentListProps {
   headline: string;
@@ -24,6 +25,7 @@ interface ContentListProps {
   showSpecification?: boolean;
   itemClassName?: string;
   itemImageClassName?: string;
+  className?: string;
 }
 
 async function loader(
@@ -52,18 +54,18 @@ export async function ProductContentList({
   showSpecification = true,
   itemClassName,
   itemImageClassName,
+  className,
 }: Readonly<ContentListProps>) {
   const { products, pageCount } = await loader(path, featured, query, page);
+  console.log(products);
   const Component = component;
   return (
-    <section className="section">
-      <h3
-        className={`content-items__headline ${`content-items--${headlineAlignment}`}`}
-      >
+    <section className={cn("section", className)}>
+      <h3 className={`h3 w-full ${`text-${headlineAlignment}`}`}>
         {headline || "Featured Articles"}
       </h3>
       {showSearch && <Search />}
-      <div className="grid grid-cols-1 sm:grid-cols-2 w-full gap-4 p-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 w-full gap-4 p-4 h-full">
         {products.map((product) => (
           <Component
             key={product.documentId}

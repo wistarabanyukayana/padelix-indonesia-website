@@ -5,7 +5,7 @@ interface PageProps {
   searchParams: Promise<{ page?: string; query?: string }>;
 }
 
-export default async function BlogRoute({ searchParams }: PageProps) {
+export default async function ProductRoute({ searchParams }: PageProps) {
   const { page, query } = await searchParams;
   return (
     <ProductContentList
@@ -19,6 +19,8 @@ export default async function BlogRoute({ searchParams }: PageProps) {
       itemClassName="bg-lime-400 p-4 rounded-[1.875rem] xl:h-auto"
       showSpecification={false}
       itemImageClassName="lg:max-w-[15.375rem] xl:lg:max-w-[17.375rem]"
+      headlineAlignment="center"
+      className="h-full"
     />
   );
 }

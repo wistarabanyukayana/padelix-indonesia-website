@@ -1,6 +1,7 @@
 "use client";
 import { FC } from "react";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
+import { Button } from "../ui/button";
 
 // Props interface for the main pagination component
 interface PaginationProps {
@@ -23,8 +24,10 @@ const PaginationArrow: FC<PaginationArrowProps> = ({
   const router = useRouter();
   const isLeft = direction === "left";
 
+  console.log(direction, isDisabled);
+
   return (
-    <button
+    <Button
       onClick={(e) => {
         e.preventDefault();
         // Use Next.js client-side navigation without scroll reset
@@ -33,9 +36,10 @@ const PaginationArrow: FC<PaginationArrowProps> = ({
       className={`pagination-arrow ${isDisabled ? "disabled" : ""}`}
       aria-disabled={isDisabled}
       disabled={isDisabled}
+      size="icon"
     >
       {isLeft ? "«" : "»"}
-    </button>
+    </Button>
   );
 };
 
@@ -55,8 +59,8 @@ export function Pagination({ pageCount }: Readonly<PaginationProps>) {
   };
 
   return (
-    <nav role="navigation" aria-label="Pagination" className="pagination-nav">
-      <ul className="pagination-list">
+    <nav role="navigation" aria-label="Pagination" className="w-full">
+      <ul className="flex w-full justify-center items-center gap-4">
         {/* Left arrow - disabled if on first page */}
         <li>
           <PaginationArrow
@@ -67,7 +71,7 @@ export function Pagination({ pageCount }: Readonly<PaginationProps>) {
         </li>
         {/* Current page indicator */}
         <li>
-          <span className="page-number">Page {currentPage}</span>
+          <span className="subtitle">Halaman {currentPage}</span>
         </li>
         {/* Right arrow - disabled if on last page */}
         <li>

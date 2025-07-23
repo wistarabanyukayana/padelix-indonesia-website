@@ -148,7 +148,7 @@ export async function getContentList(
           },
         },
         {
-          spesification: {
+          specification: {
             $containsi: query,
           },
         },
