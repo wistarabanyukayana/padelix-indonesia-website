@@ -1,13 +1,13 @@
 import { ProductSectionProps, ProductProps } from "@/types";
 import { getBackgroundColor } from "@/utils/get-backgrounColor";
-import { getContentCarousel } from "@/data/loaders";
+import { getFeaturedContentCarousel } from "@/data/loaders";
 import { ProductCarousel } from "../special/product/ProductCarousel";
 
 export async function ProductSection({
   subheading,
   backgroundColor,
 }: Readonly<ProductSectionProps>) {
-  const { data: products } = await getContentCarousel("/api/products");
+  const { data: products } = await getFeaturedContentCarousel("/api/products");
 
   const id = subheading.toLocaleLowerCase().replace(" ", "-");
 

@@ -131,6 +131,22 @@ export async function getContentCarousel(path: string) {
   return fetchAPI(url.href, { method: "GET" });
 }
 
+export async function getFeaturedContentCarousel(path: string) {
+  const url = new URL(path, BASE_URL);
+
+  url.search = qs.stringify({
+    sort: ["createdAt:asc"],
+    filters: { featured: { $eq: true } },
+    populate: {
+      image: {
+        fields: ["url", "alternativeText"],
+      },
+    },
+  });
+
+  return fetchAPI(url.href, { method: "GET" });
+}
+
 export async function getContentList(
   path: string,
   featured?: boolean,
