@@ -1,7 +1,7 @@
-import { getStrapiURL } from "@/utils/get-strapi-url";
+import { getClientUrl } from "@/utils/get-client-url";
 import { MetadataRoute } from "next";
 
-const BASE_URL = getStrapiURL();
+const BASE_URL = getClientUrl();
 
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -9,7 +9,6 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/cms.padelix.co.id", "privacy"],
       },
     ],
     sitemap: `${BASE_URL}/sitemap.xml`,

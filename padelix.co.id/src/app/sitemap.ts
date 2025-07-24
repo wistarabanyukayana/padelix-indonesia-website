@@ -1,9 +1,9 @@
 import { getProductList } from "@/data/loaders";
 import { ProductProps } from "@/types";
-import { getStrapiURL } from "@/utils/get-strapi-url";
+import { getClientUrl } from "@/utils/get-client-url";
 import type { MetadataRoute } from "next";
 
-const BASE_URL = getStrapiURL();
+const BASE_URL = getClientUrl();
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const { data } = await getProductList("/api/products");

@@ -2,10 +2,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  //output: "standalone",
-  experimental: {
-    inlineCss: true,
-  },
+  output: "standalone",
   images: {
     remotePatterns: [
       {
@@ -20,6 +17,9 @@ const nextConfig: NextConfig = {
         pathname: "/uploads/**",
       },
     ],
+  },
+  compiler: {
+    removeConsole: true,
   },
 };
 

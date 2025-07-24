@@ -5,6 +5,9 @@ import "./globals.css";
 import { Header } from "@/components/layout/Header";
 import { getGlobalSettings } from "@/data/loaders";
 import { Footer } from "@/components/layout/Footer";
+import { getClientUrl } from "@/utils/get-client-url";
+
+const BASE_URL = getClientUrl();
 
 const lato = Lato({
   variable: "--font-lato",
@@ -30,6 +33,7 @@ async function loader() {
 }
 
 export const metadata: Metadata = {
+  metadataBase: new URL(`${BASE_URL}`),
   title: "Padelix Indonesia",
   description: "Padel Starts Here.",
 
