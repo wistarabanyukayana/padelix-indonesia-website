@@ -1,7 +1,25 @@
 # Padelix.co.id Monorepo
 
-A fullstack web application for Padelix Indonesia, featuring a Next.js frontend and a Strapi CMS backend.  
-The project supports Business-to-Business (B2B), Business-to-Consumer (B2C), and (planned) advertising features.
+A fullstack web application for Padelix Indonesia, featuring a Next.js frontend and a Strapi CMS backend.
+
+---
+
+## Table of Contents
+
+- [Project Purpose](#project-purpose)
+- [Project Structure](#project-structure)
+- [Tech Stack](#tech-stack)
+- [Prerequisites](#prerequisites)
+- [Getting Started](#getting-started)
+- [Scripts](#scripts)
+- [Deployment](#deployment)
+- [Contributing](#contributing)
+- [Contact](#contact)
+- [License](#license)
+- [Testing](#testing)
+- [Accessibility & Internationalization](#accessibility--internationalization)
+- [Known Issues & Troubleshooting](#known-issues--troubleshooting)
+- [Changelog](#changelog)
 
 ---
 
@@ -24,61 +42,73 @@ This project aims to create a website for Padelix Indonesia that supports:
 
 ---
 
+## 2. Frontend README.md (at `padelix.co.id/README.md`)
+
+```markdown
+# Padelix.co.id Frontend (Next.js)
+
+Frontend for Padelix Indonesia, built with Next.js and deployed as a Node.js app on cPanel.
+
+---
+
+## Table of Contents
+
+- [About](#about)
+- [Tech Stack](#tech-stack)
+- [Prerequisites](#prerequisites)
+- [Getting Started](#getting-started)
+- [Environment Variables](#environment-variables)
+- [Available Scripts](#available-scripts)
+- [Deployment](#deployment)
+- [Troubleshooting](#troubleshooting)
+- [License](#license)
+
+---
+
+## About
+
+This is the main website for Padelix Indonesia, supporting B2B and B2C information.  
+Ads and additional features are planned for the future.
+
+---
+
 ## Tech Stack
 
-- **Frontend:** Next.js (Node.js app, standalone build), React, TypeScript
-- **Backend:** Strapi CMS (Node.js, TypeScript, SMTP for email as noreply@padelix.co.id)
-- **Database:** MariaDB (production on Rumahweb shared hosting, local via db-dump)
-- **Deployment:** cPanel (Node.js app for both frontend and backend)
-- **Other:** Google Analytics, Google Meta, Google Ads (planned), direct image hosting on shared hosting
+- **Next.js** (Node.js app, standalone build)
+- **React, TypeScript**
 
 ---
 
 ## Prerequisites
 
-- **Node.js v20+ (even-numbered LTS releases only, e.g., 20, 22, 24, …)**
-- **npm v9+** (comes with Node 20+)
-- Access to a MariaDB database (request latest db-dump for local development)
+- **Node.js v20+ (even-numbered LTS releases only)**
+- **npm v9+**
 
 ---
 
 ## Getting Started
 
-### Clone the repository
-
-```bash
-git clone https://github.com/your-org/padelix.co.id.git
-cd padelix.co.id
-```
-
 ### Install dependencies
 
 ```bash
-# For frontend
-cd padelix.co.id
-npm install
-
-# For backend (Strapi)
-cd ../cms.padelix.co.id
 npm install
 ```
 
-### Environment Variables
+---
 
-Each app requires its own environment variables.  
-See `padelix.co.id/.env.example` and `cms.padelix.co.id/.env.example` for required variables.
+## Environment Variables
 
-### Database Setup (Backend)
+Copy `.env.example` to `.env` and fill in your required variables.
 
-- Request the latest MariaDB db-dump from the maintainer.
-- Import the db-dump into your local MariaDB instance.
-- Update your `.env` file with your local database credentials.
+- Only the API URL is required for the frontend.
+
+```bash
+cp .env.example .env
+```
 
 ---
 
-## Scripts
-
-Each app has its own scripts:
+## Available Scripts
 
 - `npm run dev` — Start in development mode
 - `npm run build` — Build for production
@@ -87,21 +117,17 @@ Each app has its own scripts:
 
 ## Deployment
 
-See the individual app READMEs for deployment instructions.
+1. Build the app using `npm run build` (standalone output).
+2. Upload the contents of the `.next/standalone` directory to your cPanel Node.js app directory.
+3. Ensure your environment variables are set in cPanel.
+4. Start the Node.js app from cPanel.
 
 ---
 
-## Contributing
+## Troubleshooting
 
-- Use the default code style (double quotes for strings).
-- Commit messages should be simple and concise (e.g., "Added X", "Edited Y").
-- No issue tracker; contact the maintainer for support.
-
----
-
-## Contact
-
-Maintainer: wisthara.banyu.kayana@gmail.com
+- **Next.js on cPanel:**  
+  Use the standalone build to avoid process overload.
 
 ---
 
@@ -110,30 +136,21 @@ Maintainer: wisthara.banyu.kayana@gmail.com
 This project is proprietary and not open source.
 
 ---
-
-## Testing
-
-Testing is planned for the future.
+```
 
 ---
 
-## Accessibility & Internationalization
+## 3. Backend README.md (at `cms.padelix.co.id/README.md`)
 
-Not implemented yet, but planned for the future.
+```markdown
+# Padelix.co.id CMS (Strapi)
 
----
-
-## Known Issues & Troubleshooting
-
-- **Strapi CMS on cPanel:**  
-  Use Node.js version below 20 for `npm install` if you encounter memory issues, but run Strapi with Node.js 20+ (Strapi 5 requires Node 20+).
-- **Next.js on cPanel:**  
-  Use the standalone build to avoid process overload.
+Backend CMS for Padelix Indonesia, built with Strapi and using MariaDB as the database.
 
 ---
 
-## Changelog
+## Table of Contents
 
-Changelog is not maintained yet.
-
----
+- [About](#about)
+- [Tech Stack](#tech-stack)
+- [Prerequisites](

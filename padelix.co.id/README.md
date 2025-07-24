@@ -4,6 +4,20 @@ Frontend for Padelix Indonesia, built with Next.js and deployed as a Node.js app
 
 ---
 
+## Table of Contents
+
+- [About](#about)
+- [Tech Stack](#tech-stack)
+- [Prerequisites](#prerequisites)
+- [Getting Started](#getting-started)
+- [Environment Variables](#environment-variables)
+- [Available Scripts](#available-scripts)
+- [Deployment](#deployment)
+- [Troubleshooting](#troubleshooting)
+- [License](#license)
+
+---
+
 ## About
 
 This is the main website for Padelix Indonesia, supporting B2B and B2C information.  
@@ -33,7 +47,9 @@ Ads and additional features are planned for the future.
 npm install
 ```
 
-### Environment Variables
+---
+
+## Environment Variables
 
 Copy `.env.example` to `.env` and fill in your required variables.
 

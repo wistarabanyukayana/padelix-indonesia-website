@@ -4,6 +4,22 @@ Backend CMS for Padelix Indonesia, built with Strapi and using MariaDB as the da
 
 ---
 
+## Table of Contents
+
+- [About](#about)
+- [Tech Stack](#tech-stack)
+- [Prerequisites](#prerequisites)
+- [Getting Started](#getting-started)
+- [Environment Variables](#environment-variables)
+- [Database Setup](#database-setup)
+- [Available Scripts](#available-scripts)
+- [Deployment](#deployment)
+- [Content Types & API](#content-types--api)
+- [Troubleshooting](#troubleshooting)
+- [License](#license)
+
+---
+
 ## About
 
 This Strapi CMS manages content for the Padelix.co.id website.  
@@ -35,7 +51,9 @@ It uses MariaDB (production on Rumahweb, local via db-dump) and is configured to
 npm install
 ```
 
-### Environment Variables
+---
+
+## Environment Variables
 
 Copy `.env.example` to `.env` and fill in your database, Strapi, and SMTP credentials.
 
@@ -45,19 +63,13 @@ Copy `.env.example` to `.env` and fill in your database, Strapi, and SMTP creden
 cp .env.example .env
 ```
 
-### Database Setup
+---
+
+## Database Setup
 
 - Request the latest MariaDB db-dump from the maintainer.
 - Import the db-dump into your local MariaDB instance.
 - Update your `.env` file with your local database credentials.
-
-### Run Strapi in development mode
-
-```bash
-npm run develop
-```
-
-Strapi will start at [http://localhost:1337](http://localhost:1337) by default.
 
 ---
 
