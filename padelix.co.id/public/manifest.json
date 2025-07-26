@@ -1,5 +1,13 @@
 {
   "name": "Padelix Indonesia",
+  "short_name": "Padelix",
+  "description": "Official web app for Padelix Indonesia—your gateway to padel events, gear, and community.",
+  "lang": "id-ID",
+  "start_url": "/?utm_source=homescreen",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "oklch(98.4% 0.003 247.858)",
+  "theme_color": "oklch(98.4% 0.003 247.858)",
   "icons": [
     {
       "src": "/android-icon-36x36.png",
@@ -36,6 +44,12 @@
       "sizes": "192x192",
       "type": "image/png",
       "density": "4.0"
+    },
+    {
+      "src": "/android-icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }

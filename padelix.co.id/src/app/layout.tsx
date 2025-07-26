@@ -37,8 +37,25 @@ export const metadata: Metadata = {
   title: "Padelix Indonesia",
   description: "Padel Starts Here.",
 
+  appleWebApp: {
+    capable: true, // turns on standalone mode in iOS
+    title: "Padelix Indonesia", // label under the icon
+    statusBarStyle: "black-translucent", // optional styling of iOS status bar
+  },
+
   // 1. Favicon + shortcut icon is directly in /app folder
   icons: {
+    icon: "/favicon.svg",
+
+    shortcut: [
+      {
+        rel: "shortcut icon",
+        url: "/favicon.ico",
+        type: "image/x-icon",
+        sizes: "16x16 32x32 48x48",
+      },
+    ],
+
     // 2. Apple touch icon (fallback if you just want one)
     apple: "/apple-icon-180x180.png",
 
