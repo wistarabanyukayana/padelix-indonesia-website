@@ -40,18 +40,18 @@ export function PortofolioContentCarousel({
         {portofolios.map((portofolio, index) => (
           <CarouselItem
             key={`${portofolio.image.documentId}-${index}`}
-            className="flex flex-col justify-around items-center  p-2 sm:p-0 rounded-[1.875rem] sm:rounded-none basis-full sm:basis-1/3 md:basis-1/4 lg:basis-1/5 xl:basis-1/6"
+            className="flex flex-col justify-evenly items-center max-w-[16.375rem] p-5 sm:rounded-none basis-full sm:basis-1/3 md:basis-1/4 lg:basis-1/5 xl:basis-1/6"
           >
-            <StrapiImage
-              src={portofolio.image.url}
-              alt={
-                portofolio.image.alternativeText ||
-                "No alternative text provided"
-              }
-              height={1280}
-              width={720}
-              className="w-full h-full object-cover object-center rounded-[1.875rem] max-w-[9.375rem]"
-            />
+            <div className="flex justify-center items-center w-full  overflow-hidden">
+              <StrapiImage
+                src={portofolio.image.url}
+                alt={portofolio.image.alternativeText || "…"}
+                height={1280}
+                width={720}
+                className="w-full h-full object-contain object-center rounded-[1.875rem]"
+              />
+            </div>
+
             <div className="text-center text-slate-50 mt-4">
               <ReactMarkdown>{portofolio.logoText}</ReactMarkdown>
             </div>

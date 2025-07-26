@@ -45,7 +45,13 @@ export const metadata: Metadata = {
 
   // 1. Favicon + shortcut icon is directly in /app folder
   icons: {
-    icon: "/favicon.svg",
+    icon: [
+      {
+        url: "/favicon.svg",
+        type: "image/svg+xml",
+        sizes: "any",
+      },
+    ],
 
     shortcut: [
       {
