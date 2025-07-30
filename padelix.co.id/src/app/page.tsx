@@ -2,7 +2,9 @@ import { SectionRenderer } from "@/components/general/SectionRenderer";
 import { getHomePage } from "@/data/loaders";
 import { notFound } from "next/navigation";
 
-export async function loadData() {
+export const revalidate = false;
+
+async function loadData() {
   const data = await getHomePage();
 
   if (!data) notFound();

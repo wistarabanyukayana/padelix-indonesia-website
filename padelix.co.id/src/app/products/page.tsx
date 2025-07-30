@@ -1,9 +1,14 @@
+import { StimulatedProgress } from "@/components/general/StimulatedProgress";
 import { ProductContentList } from "@/components/special/product/ProductContentList";
 import { ProductListCard } from "@/components/special/product/ProductListCard";
+import { Suspense } from "react";
+
+export const revalidate = false;
 
 export default function ProductRoute() {
   return (
-    <ProductContentList
+    <Suspense fallback={<StimulatedProgress />}>
+      <ProductContentList
       headline="Katalog Produk"
       path="/api/products"
       component={ProductListCard}
@@ -15,5 +20,6 @@ export default function ProductRoute() {
       headlineAlignment="center"
       className="h-full"
     />
+    </Suspense>
   );
 }
