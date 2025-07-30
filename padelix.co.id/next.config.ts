@@ -18,9 +18,9 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  /*compiler: {
+  compiler: {
     removeConsole: true,
-  },*/
+  },
 };
 
 export default nextConfig;

@@ -32,7 +32,6 @@ interface ContentListProps {
 }
 
 export async function loadData(path: string, featured?: boolean, query?: string, page?: string) {
-  await new Promise((resolve) => setTimeout(resolve, 2000));
   const data = await getContentList(path, featured, query, page);
   return data;
 }
