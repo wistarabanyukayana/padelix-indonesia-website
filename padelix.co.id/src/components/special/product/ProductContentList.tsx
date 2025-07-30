@@ -1,13 +1,16 @@
+"use client";
+
 import { ProductProps } from "@/types";
 import { getContentList } from "@/data/loaders";
 
 import { Pagination } from "@/components/tools/Pagination";
 import { Search } from "@/components/tools/Search";
 import { cn } from "@/lib/utils";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
 interface ContentListProps {
   headline: string;
-  query?: string;
   path: string;
   featured?: boolean;
   component: React.ComponentType<
@@ -20,7 +23,6 @@ interface ContentListProps {
   >;
   headlineAlignment?: "center" | "right" | "left";
   showSearch?: boolean;
-  page?: string;
   showPagination?: boolean;
   showSpecification?: boolean;
   itemClassName?: string;
@@ -28,36 +30,52 @@ interface ContentListProps {
   className?: string;
 }
 
-async function loader(
-  path: string,
-  featured?: boolean,
-  query?: string,
-  page?: string
-) {
-  const { data, meta } = await getContentList(path, featured, query, page);
-  return {
-    products: (data as ProductProps[]) || [],
-    pageCount: meta?.pagination?.pageCount || 1,
-  };
+export async function loadData(path: string, featured?: boolean, query?: string, page?: string) {
+  const data = await getContentList(path, featured, query, page);
+  return data;
 }
-
-export async function ProductContentList({
+export function ProductContentList({
   headline,
   path,
   featured,
   component,
   headlineAlignment,
   showSearch,
-  query,
-  page,
   showPagination,
   showSpecification = true,
   itemClassName,
   itemImageClassName,
   className,
 }: Readonly<ContentListProps>) {
-  const { products, pageCount } = await loader(path, featured, query, page);
+  
+
+  // 1. Read search and page from the URL
+  const searchParams = useSearchParams();
+  const query = searchParams.get("query") || "";
+  const page = searchParams.get("page") || "1";
+
+  // 2. State for products and page count
+  const [products, setProducts] = useState<ProductProps[]>([]);
+  const [pageCount, setPageCount] = useState(1);
+
+  // 3. Fetch data when query or page changes
+  useEffect(() => {
+    async function loader(
+      path: string,
+      featured?: boolean,
+      query?: string,
+      page?: string
+    ) {
+      const { data, meta } = await loadData(path, featured, query, page);
+      setProducts((data as ProductProps[]) || [])
+      setPageCount(meta?.pagination?.pageCount || 1)
+    }
+
+    loader(path, featured, query, page);
+  }, [path, featured, query, page]);
+
   console.log(products);
+  
   const Component = component;
   return (
     <section className={cn("section", className)}>

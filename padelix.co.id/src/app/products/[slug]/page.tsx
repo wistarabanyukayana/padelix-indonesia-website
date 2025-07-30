@@ -7,22 +7,24 @@ interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
-async function getData(slug: string) {
-  const { data } = await getSlugProduct(slug);
+export async function loadData(slug: string) {
+  const {data} = await getSlugProduct(slug);
 
-  const product = data[0];
+  console.log("This is the data", data);
 
-  if (!product) notFound();
-
-  return { product: product as ProductProps, sections: product?.sections };
+  return data;
 }
 
 export default async function SingleProductRoute({ params }: PageProps) {
   const slug = (await params).slug;
 
-  const { product, sections } = await getData(slug);
+  const data = await loadData(slug);
 
-  console.log(product, sections);
+  const product : ProductProps = data[0];
 
-  return <SectionRenderer sections={sections} />;
+  if (!product) notFound();
+
+  
+
+  return <SectionRenderer sections={product?.sections} />;
 }

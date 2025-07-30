@@ -34,7 +34,7 @@ export async function getGlobalSettings() {
   const path = "/api/global";
   const url = new URL(path, BASE_URL);
   url.search = globalSettingQuery;
-  return fetchAPI(url.href, { method: "GET" });
+  return fetchAPI(url.href, { method: "GET", next: { tags: ["global"] } });
 }
 
 const homePageQuery = qs.stringify({
@@ -113,14 +113,16 @@ export async function getHomePage() {
 
   return await fetchAPI(pageDataURL.href, {
     method: "GET",
+    next: { tags: ["homepage"] },
   });
 }
 
-export async function getContentCarousel(path: string) {
+export async function getContentCarousel(path: string, featured?: boolean) {
   const url = new URL(path, BASE_URL);
 
   url.search = qs.stringify({
     sort: ["createdAt:asc"],
+    filters: {...(featured && { featured: { $eq: featured } }),},
     populate: {
       image: {
         fields: ["url", "alternativeText"],
@@ -128,23 +130,10 @@ export async function getContentCarousel(path: string) {
     },
   });
 
-  return fetchAPI(url.href, { method: "GET" });
-}
-
-export async function getFeaturedContentCarousel(path: string) {
-  const url = new URL(path, BASE_URL);
-
-  url.search = qs.stringify({
-    sort: ["createdAt:asc"],
-    filters: { featured: { $eq: true } },
-    populate: {
-      image: {
-        fields: ["url", "alternativeText"],
-      },
-    },
+  return fetchAPI(url.href, {
+    method: "GET",
+    next: { tags: [`content-carousel`] },
   });
-
-  return fetchAPI(url.href, { method: "GET" });
 }
 
 export async function getContentList(
@@ -193,7 +182,10 @@ export async function getContentList(
     },
   });
 
-  return fetchAPI(url.href, { method: "GET" });
+  return fetchAPI(url.href, {
+    method: "GET",
+    next: { tags: [`content-list`] },
+  });
 }
 
 const slugProductQuery = (slug: string) =>
@@ -267,9 +259,11 @@ export async function getSlugProduct(slug: string) {
 
   return await fetchAPI(pageDataURL.href, {
     method: "GET",
+    next: { tags: [`product-slug`] },
   });
 }
 
+//for dynamic sitemap
 export async function getProductList(path: string) {
   const url = new URL(path, BASE_URL);
 
@@ -278,5 +272,8 @@ export async function getProductList(path: string) {
     fields: ["id", "slug", "createdAt", "updatedAt"],
   });
 
-  return fetchAPI(url.href, { method: "GET" });
+  return fetchAPI(url.href, {
+    method: "GET",
+    next: { tags: ["product-list"] },
+  });
 }

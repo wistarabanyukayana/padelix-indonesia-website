@@ -2,16 +2,16 @@ import { SectionRenderer } from "@/components/general/SectionRenderer";
 import { getHomePage } from "@/data/loaders";
 import { notFound } from "next/navigation";
 
-async function getData() {
+export async function loadData() {
   const data = await getHomePage();
 
   if (!data) notFound();
 
-  return { ...data.data };
+  return data;
 }
 
 export default async function Home() {
-  const data = await getData();
+  const { data } = await loadData();
   const sections = data?.sections || [];
 
   return <SectionRenderer sections={sections} />;

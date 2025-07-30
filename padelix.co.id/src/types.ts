@@ -38,6 +38,7 @@ export interface ProductProps {
   createdAt: string;
   updatedAt: string;
   basePath: string;
+  sections: Section[];
 }
 
 type ComponentType =
