@@ -5,11 +5,11 @@
       "splitTerminals": [
         {
           "name": "server",
-          "commands": ["cd cms.padelix.co.id", "npm run develop"]
+          "commands": ["cd server"]
         },
         {
           "name": "client",
-          "commands": ["cd padelix.co.id", "npm run dev"]
+          "commands": ["cd client"]
         }
       ]
     }
