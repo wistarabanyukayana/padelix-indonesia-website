@@ -8,6 +8,14 @@ The project supports Business-to-Business (B2B), Business-to-Consumer (B2C), and
 
 ---
 
+## Production Status
+
+- **Live:** [https://padelix.co.id](https://padelix.co.id)
+- **Backend:** [https://cms.padelix.co.id](https://cms.padelix.co.id)
+- **Current Version:** 1.0.0
+
+---
+
 ## Table of Contents
 
 - [Project Purpose](#project-purpose)
