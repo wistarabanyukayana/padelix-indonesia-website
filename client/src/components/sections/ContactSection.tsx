@@ -119,7 +119,7 @@ export function ContactSection({
                   }
                   width={60}
                   height={60}
-                  className={`size-10 sm:size-auto rounded-full p-2 ${getBackgroundColor(
+                  className={`size-10 sm:size-auto sm:max-w-15 sm:max-h-15 rounded-full p-2 ${getBackgroundColor(
                     item.logo.backgroundColor
                   )}`}
                 />

@@ -1,13 +1,17 @@
-# Padelix.co.id Monorepo
+# Padelix Indonesia Website
 
 A fullstack web application for Padelix Indonesia, featuring a Next.js frontend and a Strapi CMS backend.  
 The project supports Business-to-Business (B2B), Business-to-Consumer (B2C), and (planned) advertising features.
+
+> **Note:** This project was commissioned by Padelix Indonesia and was fully designed, developed, and deployed by me, Wistara Banyu Kayana.  
+> It is featured in my professional portfolio as a demonstration of my fullstack web development capabilities.
 
 ---
 
 ## Table of Contents
 
 - [Project Purpose](#project-purpose)
+- [About the Developer](#about-the-developer)
 - [Project Structure](#project-structure)
 - [Tech Stack](#tech-stack)
 - [Prerequisites](#prerequisites)
@@ -27,17 +31,26 @@ The project supports Business-to-Business (B2B), Business-to-Consumer (B2C), and
 ## Project Purpose
 
 This project aims to create a website for Padelix Indonesia that supports:
+
 - **B2B (Business-to-Business):** Information and features for partners and business clients.
 - **B2C (Business-to-Consumer):** Information and engagement for end customers.
 - **Ads:** (Planned) Advertising space and promotional features.
 
 ---
 
+## About the Developer
+
+This website was fully designed, developed, and deployed by me, **Wistara Banyu Kayana**.  
+It is a commissioned project for Padelix Indonesia and is featured in my professional portfolio as a demonstration of my fullstack web development capabilities.
+
+---
+
 ## Project Structure
 
-```/
-├── padelix.co.id/         # Next.js frontend (Node.js app, standalone build)
-├── cms.padelix.co.id/     # Strapi CMS backend (Node.js app)
+```
+/
+├── client/     # Next.js frontend (Node.js app, standalone build)
+├── server/     # Strapi CMS backend (Node.js app)
 ```
 
 ---
@@ -65,7 +78,7 @@ This project aims to create a website for Padelix Indonesia that supports:
 ### Clone the repository
 
 ```bash
-git clone https://github.com/your-org/padelix.co.id.git
+git clone https://github.com/wistarabanyukayana/padelix-indonesia-website
 cd padelix.co.id
 ```
 
@@ -84,7 +97,7 @@ npm install
 ### Environment Variables
 
 Each app requires its own environment variables.  
-See `padelix.co.id/.env.example` and `cms.padelix.co.id/.env.example` for required variables.
+See `client/.env.example` and `server/.env.example` for required variables.
 
 ### Database Setup (Backend)
 
@@ -119,13 +132,16 @@ See the individual app READMEs for deployment instructions.
 
 ## Contact
 
-Maintainer: wisthara.banyu.kayana@gmail.com
+Maintainer & Developer: **Wistara Banyu Kayana**  
+Email: wisthara.banyu.kayana@gmail.com
+
+This project is part of my professional portfolio. For inquiries or references, feel free to reach out.
 
 ---
 
 ## License
 
-This project is proprietary and not open source.
+This project is proprietary, delivered to Padelix Indonesia, and not open source.
 
 ---
 
@@ -152,6 +168,4 @@ Not implemented yet, but planned for the future.
 
 ## Changelog
 
-Changelog is not maintained yet.
-
----
+Changelog is not maintained
