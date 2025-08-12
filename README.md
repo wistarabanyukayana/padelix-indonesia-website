@@ -87,18 +87,18 @@ It is a commissioned project for Padelix Indonesia and is featured in my profess
 
 ```bash
 git clone https://github.com/wistarabanyukayana/padelix-indonesia-website
-cd padelix.co.id
+cd padelix-indonesia-website
 ```
 
 ### Install dependencies
 
 ```bash
 # For frontend
-cd padelix.co.id
+cd client
 npm install
 
 # For backend (Strapi)
-cd ../cms.padelix.co.id
+cd server
 npm install
 ```
 
