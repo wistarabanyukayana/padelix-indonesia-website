@@ -6,6 +6,7 @@ import { Header } from "@/components/layout/Header";
 import { getGlobalSettings } from "@/data/loaders";
 import { Footer } from "@/components/layout/Footer";
 import { getClientUrl } from "@/utils/get-client-url";
+import { WAButton } from "@/components/ui/waButton";
 
 const BASE_URL = getClientUrl();
 
@@ -155,6 +156,7 @@ export default async function RootLayout({
         <Header data={header} />
         {children}
         <Footer data={footer} />
+        <WAButton />
       </body>
     </html>
   );
