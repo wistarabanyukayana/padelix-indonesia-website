@@ -59,6 +59,21 @@ export interface ElementsLogoLink extends Struct.ComponentSchema {
   };
 }
 
+export interface ElementsMediaPlayer extends Struct.ComponentSchema {
+  collectionName: 'components_elements_media_players';
+  info: {
+    displayName: 'Media Player';
+  };
+  attributes: {
+    media: Schema.Attribute.Media<'images' | 'files' | 'audios', true>;
+    mediaText: Schema.Attribute.String;
+    muxVideo: Schema.Attribute.Relation<
+      'oneToOne',
+      'plugin::mux-video-uploader.mux-asset'
+    >;
+  };
+}
+
 export interface LayoutsFooter extends Struct.ComponentSchema {
   collectionName: 'components_layouts_footers';
   info: {
@@ -163,7 +178,7 @@ export interface SectionsPortofolioSection extends Struct.ComponentSchema {
     backgroundColor: Schema.Attribute.Enumeration<
       ['white', 'black', 'green', 'red']
     >;
-    portofolios: Schema.Attribute.Component<'elements.logo', true>;
+    portofoliosMedia: Schema.Attribute.Component<'elements.media-player', true>;
     subheading: Schema.Attribute.String & Schema.Attribute.Required;
   };
 }
@@ -193,6 +208,7 @@ declare module '@strapi/strapi' {
       'elements.link': ElementsLink;
       'elements.logo': ElementsLogo;
       'elements.logo-link': ElementsLogoLink;
+      'elements.media-player': ElementsMediaPlayer;
       'layouts.footer': LayoutsFooter;
       'layouts.header': LayoutsHeader;
       'sections.certificate-section': SectionsCertificateSection;

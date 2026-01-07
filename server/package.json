@@ -16,14 +16,15 @@
     "upgrade:dry": "npx @strapi/upgrade latest --dry"
   },
   "dependencies": {
-    "@strapi/plugin-cloud": "5.18.0",
-    "@strapi/plugin-users-permissions": "5.18.0",
+    "@strapi/plugin-cloud": "5.33.1",
+    "@strapi/plugin-users-permissions": "5.33.1",
     "@strapi/provider-email-nodemailer": "^5.18.0",
-    "@strapi/strapi": "5.18.0",
+    "@strapi/strapi": "5.33.1",
     "mysql2": "3.9.8",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
     "react-router-dom": "^6.0.0",
+    "strapi-plugin-mux-video-uploader": "^3.0.2",
     "styled-components": "^6.0.0"
   },
   "devDependencies": {

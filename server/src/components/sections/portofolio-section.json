@@ -18,9 +18,9 @@
         "red"
       ]
     },
-    "portofolios": {
+    "portofoliosMedia": {
       "type": "component",
-      "component": "elements.logo",
+      "component": "elements.media-player",
       "repeatable": true
     }
   },

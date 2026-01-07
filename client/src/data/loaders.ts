@@ -69,10 +69,17 @@ const homePageQuery = qs.stringify({
         },
         "sections.portofolio-section": {
           populate: {
-            portofolios: {
+            portofoliosMedia: {
               populate: {
-                image: {
-                  fields: ["url", "alternativeText"],
+                media: {
+                  fields: ["url", "alternativeText", "mime"],
+                },
+                muxVideo: {
+                  populate: {
+                    data: {
+                      fields: ["playbackId"],
+                    },
+                  },
                 },
               },
             },

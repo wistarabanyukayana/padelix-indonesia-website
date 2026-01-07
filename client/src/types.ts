@@ -12,6 +12,35 @@ export interface ImageProps {
   alternativeText: string;
 }
 
+export interface MuxVideoAttributes {
+  playbackId?: string;
+  isReady?: boolean;
+}
+
+export interface MuxVideoData {
+  id: number;
+  attributes: MuxVideoAttributes;
+}
+
+export interface MuxVideoRelation {
+  data: MuxVideoData;
+}
+
+export interface MediaProps {
+  id: number;
+  documentId?: string;
+  url?: string;
+  alternativeText?: string;
+  mime?: string;
+}
+
+export interface MediaPlayerProps {
+  id: number;
+  mediaText: string;
+  media: MediaProps[];
+  muxVideo?: MuxVideoRelation;
+}
+
 export interface LogoProps {
   id: number;
   logoText: string;
@@ -128,5 +157,5 @@ export interface PortofolioSectionProps
   extends Base<"sections.portofolio-section"> {
   backgroundColor: "white" | "black" | "green" | "red";
   subheading: string;
-  portofolios: LogoProps[];
+  portofoliosMedia: MediaPlayerProps[];
 }

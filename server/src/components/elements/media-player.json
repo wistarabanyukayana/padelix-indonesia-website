@@ -1,0 +1,28 @@
+{
+  "collectionName": "components_elements_media_players",
+  "info": {
+    "displayName": "Media Player"
+  },
+  "options": {},
+  "attributes": {
+    "mediaText": {
+      "type": "string"
+    },
+    "media": {
+      "type": "media",
+      "multiple": true,
+      "required": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "audios"
+      ]
+    },
+    "muxVideo": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::mux-video-uploader.mux-asset"
+    }
+  },
+  "config": {}
+}
