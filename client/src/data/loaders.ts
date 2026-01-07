@@ -75,11 +75,7 @@ const homePageQuery = qs.stringify({
                   fields: ["url", "alternativeText", "mime"],
                 },
                 muxVideo: {
-                  populate: {
-                    data: {
-                      fields: ["playbackId"],
-                    },
-                  },
+                  populate: "*",
                 },
               },
             },

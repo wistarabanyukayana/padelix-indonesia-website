@@ -12,18 +12,11 @@ export interface ImageProps {
   alternativeText: string;
 }
 
-export interface MuxVideoAttributes {
-  playbackId?: string;
-  isReady?: boolean;
-}
-
-export interface MuxVideoData {
+export interface MuxVideo {
   id: number;
-  attributes: MuxVideoAttributes;
-}
-
-export interface MuxVideoRelation {
-  data: MuxVideoData;
+  playbackId?: string;
+  playback_id?: string;
+  isReady?: boolean;
 }
 
 export interface MediaProps {
@@ -37,9 +30,11 @@ export interface MediaProps {
 export interface MediaPlayerProps {
   id: number;
   mediaText: string;
-  media: MediaProps[];
-  muxVideo?: MuxVideoRelation;
+  media: MediaProps[] | null;
+  muxVideo?: MuxVideo;
 }
+//... (the rest of the file remains the same)
+
 
 export interface LogoProps {
   id: number;

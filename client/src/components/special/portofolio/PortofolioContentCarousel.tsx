@@ -14,7 +14,7 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 
-import { MediaPlayerProps, MediaProps } from "@/types";
+import { MediaPlayerProps } from "@/types";
 import ReactMarkdown from "react-markdown";
 import { StrapiImage } from "@/components/general/StrapiImage";
 
@@ -29,10 +29,8 @@ const MuxPlayer = ({ playbackId }: { playbackId: string }) => {
     if (!video) return;
 
     if (video.canPlayType("application/vnd.apple.mpegurl")) {
-      // For Safari and other browsers with native HLS support
       video.src = src;
     } else if (Hls.isSupported()) {
-      // For other browsers, use HLS.js
       const hls = new Hls();
       hlsRef.current = hls;
       hls.loadSource(src);
@@ -50,7 +48,6 @@ const MuxPlayer = ({ playbackId }: { playbackId: string }) => {
               hls.recoverMediaError();
               break;
             default:
-              // Cannot recover
               console.error("Unrecoverable fatal error", data);
               hls.destroy();
               break;
@@ -62,7 +59,6 @@ const MuxPlayer = ({ playbackId }: { playbackId: string }) => {
     }
 
     return () => {
-      // Cleanup on component unmount
       if (hlsRef.current) {
         hlsRef.current.destroy();
         hlsRef.current = null;
@@ -99,23 +95,17 @@ export function PortofolioContentCarousel({
 
   const slides = (portofoliosMedia || [])
     .map((portofolio) => {
-      // Prioritize Mux video for lightbox if available
-      if (portofolio.muxVideo?.data.attributes.playbackId) {
-        return {
-          src: `https://image.mux.com/${portofolio.muxVideo.data.attributes.playbackId}/thumbnail.jpg`, // Use Mux thumbnail for lightbox
-          alt: portofolio.mediaText || "Mux Video",
-          width: 1920, // These dimensions are placeholders, Mux can provide actual metadata
-          height: 1080,
-        };
-      }
-      const firstMedia = portofolio.media[0];
-      if (firstMedia && firstMedia.mime?.startsWith("image")) {
-        return {
-          src: firstMedia.url,
-          alt: firstMedia.alternativeText || "…",
-          width: 1920,
-          height: 1080,
-        };
+      // Handle Strapi images
+      if (portofolio.media && portofolio.media.length > 0) {
+        const firstMedia = portofolio.media[0];
+        if (firstMedia.mime?.startsWith("image")) {
+          return {
+            src: firstMedia.url,
+            alt: firstMedia.alternativeText || "…",
+            width: 1920,
+            height: 1080,
+          };
+        }
       }
       return null;
     })
@@ -126,15 +116,26 @@ export function PortofolioContentCarousel({
     height: number;
   }[];
 
-  const renderMedia = (portofolio: MediaPlayerProps) => {
-    // Check for Mux video first
-    if (portofolio.muxVideo?.data.attributes.playbackId) {
-      return <MuxPlayer playbackId={portofolio.muxVideo.data.attributes.playbackId} />;
+  const renderMedia = (portofolio: MediaPlayerProps, index: number) => {
+    console.log("DEBUG: Portofolio Media Object:", JSON.stringify(portofolio));
+    // Prioritize Mux video
+    if (portofolio.muxVideo) {
+      const { isReady, playback_id, playbackId } = portofolio.muxVideo;
+      const effectivePlaybackId = playbackId || playback_id;
+
+      if (isReady && effectivePlaybackId) {
+        return <MuxPlayer playbackId={effectivePlaybackId} />;
+      }
+      return (
+        <div className="flex items-center justify-center w-full h-full bg-black rounded-[1.875rem]">
+          <p className="text-white text-center p-4">Video is processing, please check back later.</p>
+        </div>
+      );
     }
 
-    // Fallback to Strapi media (image or audio)
-    const firstMedia = portofolio.media[0];
-    if (firstMedia) {
+    // Fallback to Strapi media
+    if (portofolio.media && portofolio.media.length > 0) {
+      const firstMedia = portofolio.media[0];
       if (firstMedia.mime?.startsWith("image")) {
         return (
           <StrapiImage
@@ -143,6 +144,7 @@ export function PortofolioContentCarousel({
             height={1080}
             width={1920}
             className="w-full h-full object-contain object-center rounded-[1.875rem]"
+            priority={index === 0}
           />
         );
       }
@@ -154,7 +156,12 @@ export function PortofolioContentCarousel({
         );
       }
     }
-    return null; // Should not happen if data is well-formed
+
+    return (
+      <div className="flex items-center justify-center w-full h-full bg-black rounded-[1.875rem]">
+        <p className="text-white">Media not available</p>
+      </div>
+    );
   };
 
   return (
@@ -165,33 +172,31 @@ export function PortofolioContentCarousel({
         plugins={plugins}
       >
         <CarouselContent>
-          {(portofoliosMedia || []).map((portofolio, i) => {
-            // Determine if it's a Mux video or a Strapi image for click handling
-            const isMuxVideo = !!portofolio.muxVideo?.data.attributes.playbackId;
-            const isImage = portofolio.media[0]?.mime?.startsWith("image");
+          {(portofoliosMedia || []).map((portofolio, index) => {
+            const isImage = portofolio.media && portofolio.media[0]?.mime?.startsWith("image");
 
             return (
               <CarouselItem
-                key={`${portofolio.id}-${i}`} // Use portofolio.id for key
+                key={portofolio.id}
                 className="flex flex-col justify-evenly items-center max-w-[16.375rem] p-5 sm:rounded-none basis-full sm:basis-1/3 md:basis-1/4 lg:basis-1/5 xl:basis-1/6"
               >
                 <div
                   className="flex justify-center items-center w-full h-48 overflow-hidden bg-black rounded-[1.875rem]"
                   onClick={() => {
-                    if (isImage && !isMuxVideo) { // Only open lightbox for Strapi images
+                    if (isImage) {
                       setOpen(true);
                       const imageIndex = slides.findIndex(
-                        (slide) => slide.src === portofolio.media[0]?.url
+                        (slide) => slide.src === portofolio.media![0]?.url
                       );
                       if (imageIndex !== -1) {
                         setIndex(imageIndex);
                       }
                     }
                   }}
-                  role={(isImage && !isMuxVideo) ? "button" : "presentation"}
-                  tabIndex={(isImage && !isMuxVideo) ? 0 : -1}
+                  role={isImage ? "button" : "presentation"}
+                  tabIndex={isImage ? 0 : -1}
                 >
-                  {renderMedia(portofolio)}
+                  {renderMedia(portofolio, index)}
                 </div>
 
                 <div className="text-center text-slate-50 mt-4">

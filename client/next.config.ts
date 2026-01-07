@@ -24,9 +24,9 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  compiler: {
+  /*compiler: {
     removeConsole: true,
-  },
+  },*/
   async headers() {
     return [
       {
@@ -42,7 +42,7 @@ const nextConfig: NextConfig = {
           },
           {
             key: "Content-Security-Policy",
-            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' localhost:1337 cms.padelix.co.id data:; font-src 'self';",
+            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' localhost:1337 cms.padelix.co.id data:; font-src 'self'; media-src 'self' *.mux.com blob:;",
           },
         ],
       },
