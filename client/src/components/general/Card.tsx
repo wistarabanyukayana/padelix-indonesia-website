@@ -6,6 +6,7 @@ import { StrapiImage } from "./StrapiImage";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
+import rehypeSanitize from "rehype-sanitize";
 import { cn } from "@/lib/utils";
 
 export interface CardProps {
@@ -81,7 +82,7 @@ export function Card({
           <div className="w-full hidden sm:block ">
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
-              rehypePlugins={[rehypeRaw]}
+              rehypePlugins={[rehypeRaw, rehypeSanitize]}
               components={{
                 ul: (props) => <ul className="list-disc pl-6" {...props} />,
                 ol: (props) => <ol className="list-decimal pl-6" {...props} />,

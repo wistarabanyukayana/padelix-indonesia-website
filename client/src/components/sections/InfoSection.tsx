@@ -5,6 +5,7 @@ import { InfoSectionProps } from "@/types";
 import { getBackgroundColor } from "@/utils/get-backgrounColor";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
+import rehypeSanitize from "rehype-sanitize";
 
 export function InfoSection({
   reversed,
@@ -32,7 +33,7 @@ export function InfoSection({
           <div className="max-w-[32.813rem]">
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
-              rehypePlugins={[rehypeRaw]}
+              rehypePlugins={[rehypeRaw, rehypeSanitize]}
               components={{
                 ul: (props) => <ul className="list-disc pl-6" {...props} />,
                 ol: (props) => <ol className="list-decimal pl-6" {...props} />,
@@ -56,7 +57,7 @@ export function InfoSection({
           <div className="hidden sm:block max-w-[32.813rem]">
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
-              rehypePlugins={[rehypeRaw]}
+              rehypePlugins={[rehypeRaw, rehypeSanitize]}
               components={{
                 ul: (props) => <ul className="list-disc pl-6" {...props} />,
                 ol: (props) => <ol className="list-decimal pl-6" {...props} />,
