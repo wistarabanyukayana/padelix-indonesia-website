@@ -5,7 +5,7 @@
   "description": "A Strapi application",
   "scripts": {
     "compile": "tsc -p tsconfig.json",
-    "build": "strapi build",
+    "build": "tsc -p tsconfig.json && strapi build",
     "console": "strapi console",
     "deploy": "strapi deploy",
     "dev": "strapi develop",
