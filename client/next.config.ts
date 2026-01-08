@@ -7,14 +7,8 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: "http",
-        hostname: "localhost",
+        hostname: "127.0.0.1",
         port: "1337",
-        pathname: "/uploads/**",
-      },
-      {
-        protocol: "http",
-        hostname: "localhost",
-        port: "3000",
         pathname: "/uploads/**",
       },
       {
@@ -22,11 +16,18 @@ const nextConfig: NextConfig = {
         hostname: "cms.padelix.co.id",
         pathname: "/uploads/**",
       },
+      {
+        protocol: "https",
+        hostname: "firebasestorage.googleapis.com",
+        pathname: "/v0/b/**",
+      },
     ],
   },
-  /*compiler: {
-    removeConsole: true,
-  },*/
+  compiler: {
+    removeConsole: {
+      exclude: ['error', 'warn'],
+    },
+  },
   async headers() {
     return [
       {
@@ -42,21 +43,9 @@ const nextConfig: NextConfig = {
           },
           {
             key: "Content-Security-Policy",
-            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' localhost:1337 cms.padelix.co.id data:; font-src 'self'; media-src 'self' *.mux.com blob:;",
+            value: "default-src 'self'; connect-src 'self' http://127.0.0.1:1337 https://cms.padelix.co.id https://firestore.googleapis.com https://identitytoolkit.googleapis.com; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' http://127.0.0.1:1337 https://cms.padelix.co.id https://firebasestorage.googleapis.com data: blob:; font-src 'self'; media-src 'self' *.mux.com blob:;",
           },
         ],
-      },
-    ];
-  },
-  async rewrites() {
-    return [
-      {
-        source: "/uploads/:path*",
-        destination: "http://localhost:1337/uploads/:path*",
-      },
-      {
-        source: "/api/:path*",
-        destination: "http://localhost:1337/api/:path*",
       },
     ];
   },

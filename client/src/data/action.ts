@@ -1,7 +1,13 @@
 "use server";
 import { z } from "zod";
-import { contactSignupService, type ContactSignupProps } from "./service";
+import { submitContactForm } from "@/lib/db/repositories/contacts";
 import { ContactSignupForm, ContactSignupState } from "@/types";
+
+interface ContactSignupProps {
+    name: string;
+    contact: string;
+    message: string;
+}
 
 const contactSignupSchema = z.object({
   name: z
@@ -59,7 +65,7 @@ export async function contactSignupAction(
     ...validatedFields.data,
   };
 
-  const responseData = await contactSignupService(dataToSend);
+  const responseData = await submitContactForm(dataToSend);
 
   if (!responseData) {
     return {
@@ -73,7 +79,7 @@ export async function contactSignupAction(
   if (responseData.error) {
     return {
       ...prevState,
-      strapiErrors: responseData.error,
+      strapiErrors: { error: "Failed to submit" }, // Mock strapi error structure
       zodErrors: null,
       formData: {
         ...formDataObject,

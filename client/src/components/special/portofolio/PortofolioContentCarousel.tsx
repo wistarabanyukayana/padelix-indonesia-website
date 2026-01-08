@@ -117,7 +117,6 @@ export function PortofolioContentCarousel({
   }[];
 
   const renderMedia = (portofolio: MediaPlayerProps, index: number) => {
-    console.log("DEBUG: Portofolio Media Object:", JSON.stringify(portofolio));
     // Prioritize Mux video
     if (portofolio.muxVideo) {
       const { isReady, playback_id, playbackId } = portofolio.muxVideo;
