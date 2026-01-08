@@ -1,7 +1,7 @@
 import { ImageProps } from "@/types";
 
 import Link from "next/link";
-import { StrapiImage } from "./StrapiImage";
+import { AppImage } from "./AppImage";
 
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -53,7 +53,7 @@ export function Card({
           <span className="text-muted-foreground">{code}</span>
         </div>
       </div>
-      <StrapiImage
+      <AppImage
         src={image.url}
         alt={image.alternativeText || "No alternative text provided"}
         width={1080}

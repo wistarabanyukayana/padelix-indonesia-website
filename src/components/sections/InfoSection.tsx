@@ -1,4 +1,4 @@
-import { StrapiImage } from "@/components/general/StrapiImage";
+import { AppImage } from "@/components/general/AppImage";
 import ReactMarkdown from "react-markdown";
 
 import { InfoSectionProps } from "@/types";
@@ -44,7 +44,7 @@ export function InfoSection({
             </ReactMarkdown>
           </div>
         </div>
-        <StrapiImage
+        <AppImage
           src={image.url}
           alt={image.alternativeText || "No alternative text provided"}
           width={1080}

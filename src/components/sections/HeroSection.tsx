@@ -1,4 +1,4 @@
-import { StrapiImage } from "@/components/general/StrapiImage";
+import { AppImage } from "@/components/general/AppImage";
 import { HeroSectionProps } from "@/types";
 import { getBackgroundColor } from "@/utils/get-backgrounColor";
 import ReactMarkdown from "react-markdown";
@@ -17,7 +17,7 @@ export function HeroSection({
     >
       <div className="wrapper items-center justify-center h-auto">
         <div className="relative w-full">
-          <StrapiImage
+          <AppImage
             src={image.url}
             alt={image.alternativeText || "No alternative text provided"}
             width={1280}

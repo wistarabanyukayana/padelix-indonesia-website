@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useActionState } from "react";
-import { StrapiImage } from "@/components/general/StrapiImage";
+import { AppImage } from "@/components/general/AppImage";
 import { ContactSectionProps } from "@/types";
 import { getBackgroundColor } from "@/utils/get-backgrounColor";
 import { TextInput } from "@/components/ui/textInput";
@@ -111,7 +111,7 @@ export function ContactSection({
                 target={item.link.isExternal ? "_blank" : "_self"}
                 className="flex justify-start items-center gap-4"
               >
-                <StrapiImage
+                <AppImage
                   src={item.logo.image.url}
                   alt={
                     item.logo.image.alternativeText ||

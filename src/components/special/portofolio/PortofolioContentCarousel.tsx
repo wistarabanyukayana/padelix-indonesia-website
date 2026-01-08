@@ -16,7 +16,7 @@ import {
 
 import { MediaPlayerProps } from "@/types";
 import ReactMarkdown from "react-markdown";
-import { StrapiImage } from "@/components/general/StrapiImage";
+import { AppImage } from "@/components/general/AppImage";
 
 // MuxPlayer component
 const MuxPlayer = ({ playbackId }: { playbackId: string }) => {
@@ -137,7 +137,7 @@ export function PortofolioContentCarousel({
       const firstMedia = portofolio.media[0];
       if (firstMedia.mime?.startsWith("image")) {
         return (
-          <StrapiImage
+          <AppImage
             src={firstMedia.url || ""}
             alt={firstMedia.alternativeText || "…"}
             height={1080}

@@ -1,4 +1,4 @@
-import { StrapiImage } from "@/components/general/StrapiImage";
+import { AppImage } from "@/components/general/AppImage";
 import ReactMarkdown from "react-markdown";
 
 import { CertificateSectionProps } from "@/types";
@@ -23,7 +23,7 @@ export function CertificateSection({
             key={certificate.id}
             className="w-full flex flex-col justify-around items-center bg-gray-100 sm:bg-transparent p-2 sm:p-0 rounded-[1.875rem] sm:rounded-none"
           >
-            <StrapiImage
+            <AppImage
               src={certificate.image.url}
               alt={
                 certificate.image.alternativeText ||

@@ -3,7 +3,7 @@ import Link from "next/link";
 
 import { useState } from "react";
 
-import { StrapiImage } from "@/components/general/StrapiImage";
+import { AppImage } from "@/components/general/AppImage";
 import { LinkProps, LogoProps } from "@/types";
 import { getBackgroundColor } from "@/utils/get-backgrounColor";
 
@@ -40,7 +40,7 @@ export function Header({ data }: HeaderProps) {
     >
       <div className="wrapper flex-row md:flex-col lg:flex-row justify-between items-center gap-7 xl:gap-0">
         <Link href="/">
-          <StrapiImage
+          <AppImage
             src={logo.image.url}
             alt={logo.image.alternativeText || "No alternative text provided"}
             width={100}
@@ -64,7 +64,7 @@ export function Header({ data }: HeaderProps) {
           {/* 3) only show the "hamburger/more" icon when closed */}
           {!open && (
             <SheetTrigger className="flex items-center justify-center md:hidden">
-              <StrapiImage
+              <AppImage
                 src={moreOptionIcon.image.url}
                 alt={moreOptionIcon.image.alternativeText || "Open menu"}
                 width={40}
@@ -75,7 +75,7 @@ export function Header({ data }: HeaderProps) {
           )}
           {open && (
             <SheetClose className="flex items-center justify-center md:hidden">
-              <StrapiImage
+              <AppImage
                 src={moreOptionIcon.image.url}
                 alt={moreOptionIcon.image.alternativeText || "Close menu"}
                 width={40}

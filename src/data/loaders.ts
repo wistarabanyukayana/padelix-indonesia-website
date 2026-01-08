@@ -112,7 +112,7 @@ function mapSection(section: SectionDTO): Section {
 
   // Fallback for unknown sections - this shouldn't happen if types are aligned
   // For now, return a safe dummy or throw
-  throw new Error(`Unknown section component: ${(section as any).__component}`);
+  throw new Error(`Unknown section component: ${JSON.stringify(section)}`);
 }
 
 function mapProduct(p: ProductDTO) {
