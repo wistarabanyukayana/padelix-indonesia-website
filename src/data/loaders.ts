@@ -1,92 +1,118 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use server";
 
 import * as PageRepo from "@/lib/db/repositories/pages";
 import * as ProductRepo from "@/lib/db/repositories/products";
 import { ProductDTO, SectionDTO, ImageDTO } from "@/lib/db/dto";
-import { Section } from "@/types";
+import { Section, ImageProps, HeroSectionProps, InfoSectionProps, ProductSectionProps, CertificateSectionProps, PortofolioSectionProps, ContactSectionProps } from "@/types";
 
 // --- Mappers ---
 
-function mapImage(img?: ImageDTO) {
-  if (!img) return null;
+function mapImage(img?: ImageDTO): ImageProps {
+  if (!img) return { id: 0, documentId: "", url: "", alternativeText: "" }; // Return empty object instead of null to satisfy stricter types if needed, or update Component to handle null
+  // But ProductProps says image: ImageProps (not optional).
+  // So we must return a valid ImageProps.
+  
   return {
-    ...img,
     id: 0,
     documentId: "img-doc-id",
+    url: img.url,
     alternativeText: img.alt || "",
   };
 }
 
 function mapSection(section: SectionDTO): Section {
-  // Common mapping for all sections
-  const base = {
-    id: 0, // Fake ID
-    ...section,
-    backgroundColor: "white" as const, // Default for all sections
+  const common = {
+    id: 0,
+    documentId: `section-${Math.random()}`,
+    backgroundColor: "white" as const,
   };
 
-  // Specific mappings if properties need adjustment
   if (section.__component === "sections.hero-section") {
-    return {
-      ...base,
-      content: section.subHeading, // Map subHeading to content
-      image: mapImage(section.image)!,
-    } as any;
+    const result: HeroSectionProps = {
+      ...common,
+      __component: "sections.hero-section",
+      heading: section.heading,
+      content: section.subHeading,
+      image: mapImage(section.image),
+    };
+    return result;
   }
+
   if (section.__component === "sections.info-section") {
-    return {
-      ...base,
-      image: mapImage(section.image)!,
-      content: section.content, 
-    } as any;
+    const result: InfoSectionProps = {
+      ...common,
+      __component: "sections.info-section",
+      heading: section.title, // Map title -> heading
+      content: section.content,
+      image: mapImage(section.image),
+      reversed: section.reversed,
+    };
+    return result;
   }
+
+  if (section.__component === "sections.product-section") {
+    const result: ProductSectionProps = {
+      ...common,
+      __component: "sections.product-section",
+      subheading: section.title, // Map title -> subheading
+    };
+    return result;
+  }
+
   if (section.__component === "sections.certificate-section") {
-    return {
-      ...base,
-      subheading: "",
-      certificates: section.images.map((img) => ({
-        id: 0,
+    const result: CertificateSectionProps = {
+      ...common,
+      __component: "sections.certificate-section",
+      subheading: section.title, // Map title -> subheading
+      certificates: section.images.map((img, index) => ({
+        id: index,
         logoText: "",
         backgroundColor: "white",
-        image: mapImage(img)!,
+        image: mapImage(img),
       })),
-    } as any;
+    };
+    return result;
   }
+
   if (section.__component === "sections.portofolio-section") {
-    return {
-      ...base,
-      subheading: "",
-      portofoliosMedia: section.images.map((img) => ({
-        id: 0,
+    const result: PortofolioSectionProps = {
+      ...common,
+      __component: "sections.portofolio-section",
+      subheading: section.title, // Map title -> subheading
+      portofoliosMedia: section.images.map((img, index) => ({
+        id: index,
         mediaText: "",
-        media: [mapImage(img)!],
-        muxVideo: undefined, 
+        media: [mapImage(img)],
+        muxVideo: undefined,
       })),
-    } as any;
+    };
+    return result;
   }
+
   if (section.__component === "sections.contact-section") {
-      // Need to construct nested structure expected by ContactSectionProps
-      return {
-          ...base,
-          subheading: "",
-          contactForm: { heading: section.title },
-          contactInfo: {
-              heading: "Contact Us",
-              logoLink: [] // TODO: Populate if needed from global or specific data
-          }
-      } as any;
+    const result: ContactSectionProps = {
+      ...common,
+      __component: "sections.contact-section",
+      subheading: "", // No obvious mapping, leave empty
+      contactForm: {
+        heading: section.title,
+      },
+      contactInfo: {
+        heading: "Hubungi Kami",
+        logoLink: [
+             // Minimal dummy data to satisfy types if DTO doesn't have it
+             { id: 1, logo: { id: 1, logoText: "Email", backgroundColor: "white", image: { id:0, documentId:"", url:"", alternativeText:""} }, link: { id: 1, text: section.email, href: `mailto:${section.email}`, isExternal: true } },
+             { id: 2, logo: { id: 2, logoText: "Phone", backgroundColor: "white", image: { id:0, documentId:"", url:"", alternativeText:""} }, link: { id: 2, text: section.phone, href: `tel:${section.phone}`, isExternal: true } },
+        ],
+      },
+    };
+    return result;
   }
 
-  // Product section?
-  if (section.__component === "sections.product-section") {
-      return {
-          ...base,
-          subheading: "",
-      } as any;
-  }
-
-  return base as any;
+  // Fallback for unknown sections - this shouldn't happen if types are aligned
+  // For now, return a safe dummy or throw
+  throw new Error(`Unknown section component: ${(section as any).__component}`);
 }
 
 function mapProduct(p: ProductDTO) {
@@ -94,7 +120,7 @@ function mapProduct(p: ProductDTO) {
     ...p,
     id: 0,
     documentId: p.id,
-    image: mapImage(p.image) || { id: 0, documentId: "", url: "", alternativeText: "" },
+    image: mapImage(p.image), // mapImage now returns ImageProps (non-null)
     sections: p.sections?.map(mapSection) || [],
     specification: p.specification || "",
     price: p.price || "0",
@@ -111,7 +137,6 @@ function mapProduct(p: ProductDTO) {
 export async function getGlobalSettings() {
   let data = await PageRepo.getGlobalSettings();
   
-  // If data is missing (e.g. mock mode), use dummy data
   if (!data) {
       data = {
           id: "dummy-global",
@@ -162,6 +187,7 @@ export async function getGlobalSettings() {
     },
   };
 }
+
 export async function getHomePage() {
   const data = await PageRepo.getHomePage();
   if (!data) return { data: null };
@@ -196,7 +222,6 @@ export async function getContentList(
 ) {
   let products = await ProductRepo.getProducts();
 
-  // 1. Filter
   if (featured) {
     products = products.filter((p) => p.featured);
   }
@@ -211,7 +236,6 @@ export async function getContentList(
     );
   }
 
-  // 2. Pagination
   const pageSize = 6;
   const pageNum = parseInt(page || "1", 10);
   const total = products.length;
@@ -242,8 +266,6 @@ export async function getSlugProduct(slug: string) {
   };
 }
 
-// For dynamic sitemap
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function getProductList(path?: string) {
   const products = await ProductRepo.getProducts();
   return {
