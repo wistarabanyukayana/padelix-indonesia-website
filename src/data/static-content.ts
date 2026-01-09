@@ -7,10 +7,10 @@ export const GLOBAL_SETTINGS = {
     logoUrl: "https://cms.padelix.co.id/uploads/Padelix_Logo_Transparent_8925c52968.png",
     moreOptionIconUrl: "https://cms.padelix.co.id/uploads/menu_555df7d115.svg",
     navLinks: [
-      { id: 1, text: "Home", href: "/", isExternal: false },
-      { id: 2, text: "Products", href: "/products", isExternal: false },
-      { id: 3, text: "About Us", href: "/#about", isExternal: false }, 
-      { id: 4, text: "Contact", href: "/#contact", isExternal: false },
+      { id: 1, text: "Beranda", href: "/", isExternal: false },
+      { id: 2, text: "Produk", href: "/products", isExternal: false },
+      { id: 3, text: "Sertifikat", href: "/#sertifikasi-kami", isExternal: false }, 
+      { id: 4, text: "Kontak", href: "/#kontak", isExternal: false },
     ],
   },
   footer: {

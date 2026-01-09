@@ -5,6 +5,7 @@ import Autoplay from "embla-carousel-autoplay";
 import { ProductContentCarousel } from "./ProductContentCarousel";
 import { ProductCarouselCard } from "./ProductCarouselCard";
 import { ProductProps } from "@/types";
+import { EmptyState } from "@/components/general/EmptyState";
 
 interface ProductCarouselProps {
   products: ProductProps[];
@@ -15,6 +16,10 @@ export function ProductCarousel({ products, basePath }: ProductCarouselProps) {
   // Define carousel options and plugins here
   const opts = { loop: true };
   const autoplay = useRef(Autoplay({ delay: 8000, stopOnInteraction: false }));
+
+  if (!products || products.length === 0) {
+    return <EmptyState message="Katalog produk akan segera hadir" />;
+  }
 
   return (
     <ProductContentCarousel

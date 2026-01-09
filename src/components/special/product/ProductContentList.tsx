@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { StimulatedProgress } from "@/components/general/StimulatedProgress";
+import { EmptyState } from "@/components/general/EmptyState";
 
 interface ContentListProps {
   headline: string;
@@ -92,7 +93,7 @@ export function ProductContentList({
       {showSearch && <Search />}
       {loading ? (
         <StimulatedProgress />
-      ) : (
+      ) : products.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 w-full gap-4 p-4 h-full">
           {products.map((product) => (
             <Component
@@ -105,8 +106,10 @@ export function ProductContentList({
             />
           ))}
         </div>
+      ) : (
+        <EmptyState message="Belum ada produk ditemukan" className="my-8" />
       )}
-      {showPagination && <Pagination pageCount={pageCount} />}
+      {showPagination && products.length > 0 && <Pagination pageCount={pageCount} />}
     </section>
   );
 }
