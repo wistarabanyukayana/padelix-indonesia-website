@@ -73,7 +73,7 @@ export default function Home() {
             heading: contact.infoHeading,
             logoLink: contact.links.map(l => ({
               id: l.id,
-              logo: { id: l.id, logoText: l.label, backgroundColor: "white", image: { id: 0, documentId: `link-${l.id}`, url: l.icon, alternativeText: l.label } },
+              logo: { id: l.id, logoText: l.label, backgroundColor: l.color as "white" | "black" | "green" | "red", image: { id: 0, documentId: `link-${l.id}`, url: l.icon, alternativeText: l.label } },
               link: { id: l.id, text: l.text, href: l.href, isExternal: true }
             }))
           }}

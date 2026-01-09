@@ -111,18 +111,18 @@ export function ContactSection({
                 target={item.link.isExternal ? "_blank" : "_self"}
                 className="flex justify-start items-center gap-4"
               >
-                <AppImage
-                  src={item.logo.image.url}
-                  alt={
-                    item.logo.image.alternativeText ||
-                    "No alternative text provided"
-                  }
-                  width={60}
-                  height={60}
-                  className={`size-10 sm:size-auto sm:max-w-15 sm:max-h-15 rounded-full p-2 ${getBackgroundColor(
-                    item.logo.backgroundColor
-                  )}`}
-                />
+                <div className={`flex items-center justify-center w-11 h-11 sm:w-14 sm:h-14 rounded-full p-2 ${getBackgroundColor(item.logo.backgroundColor)}`}>
+                  <AppImage
+                    src={item.logo.image.url}
+                    alt={
+                      item.logo.image.alternativeText ||
+                      "No alternative text provided"
+                    }
+                    width={60}
+                    height={60}
+                    className="w-full h-full object-contain"
+                  />
+                </div>
                 <p className="font-bold">{item.link.text}</p>
               </Link>
             ))}

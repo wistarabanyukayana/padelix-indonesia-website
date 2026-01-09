@@ -123,6 +123,7 @@ export const HOME_PAGE_CONTENT = {
         text: "business@padelix.co.id",
         href: "mailto:business@padelix.co.id",
         icon: "https://cms.padelix.co.id/uploads/Mail_25c2d768ce.svg",
+        color: "red",
       },
       {
         id: 2,
@@ -130,6 +131,7 @@ export const HOME_PAGE_CONTENT = {
         text: "+6282122122250",
         href: "https://wa.me/6282122122250?text=Apakah%20benar%20ini%20dengan%20Padelix%20Indonesia%3F",
         icon: "https://cms.padelix.co.id/uploads/Whatsapp_be61095bb7.svg",
+        color: "green",
       },
       {
         id: 3,
@@ -137,6 +139,7 @@ export const HOME_PAGE_CONTENT = {
         text: "Padelix Indonesia",
         href: "https://www.instagram.com/padelixindonesia/",
         icon: "https://cms.padelix.co.id/uploads/instagram_61548c776c.svg",
+        color: "red",
       },
       {
         id: 4,
@@ -144,6 +147,7 @@ export const HOME_PAGE_CONTENT = {
         text: "Padelix Indonesia",
         href: "https://www.facebook.com/padelixindonesia/",
         icon: "https://cms.padelix.co.id/uploads/facebook_3d726343ef.svg",
+        color: "green",
       },
     ]
   }
