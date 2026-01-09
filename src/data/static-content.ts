@@ -17,6 +17,7 @@ export const GLOBAL_SETTINGS = {
     logoText: "Padelix",
     text: "Padel Starts Here.",
     copy: "© 2025 Padelix Indonesia. All rights reserved.",
+    backgroundColor: "black",
     socialLinks: [
       {
         id: 1,

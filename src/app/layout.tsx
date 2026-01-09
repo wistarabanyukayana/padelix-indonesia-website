@@ -138,7 +138,7 @@ export default async function RootLayout({
   };
 
   const mappedFooter = {
-      backgroundColor: "white" as const,
+      backgroundColor: (footer.backgroundColor || "black") as "white" | "black" | "green" | "red",
       logoText: footer.logoText,
       text: footer.text,
       copy: footer.copy,
