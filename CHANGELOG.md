@@ -2,7 +2,7 @@
 
 All notable changes to the "Padelix Indonesia Website" project will be documented in this file.
 
-## [3.0.0] - 2025-01-09
+## [3.0.0] - 2026-01-09
 
 ### 🚀 Major Architectural Changes
 *   **Removed Strapi CMS:** Completely removed the `server/` directory and all Strapi dependencies. The project is no longer a monorepo.
@@ -38,8 +38,36 @@ All notable changes to the "Padelix Indonesia Website" project will be documente
 
 ---
 
-## [1.x.x] - Legacy
+## [1.2.0] - 2026-01-07
 
-*   **Architecture:** Monorepo (Client: Next.js 14, Server: Strapi 4).
-*   **Hosting:** Shared Hosting (Rumahweb).
-*   **Database:** MySQL.
+### 🚀 Major Release
+*   **Video & Audio Support:** Added support for video (Mux) and audio in the portfolio section.
+*   **Image Zoom:** Added lightbox/zoom functionality to portfolio items.
+*   **Security:** Updated Content Security Policy (CSP) to allow Mux video streaming.
+*   **Performance:** Improved LCP by adding priority loading to the first image in the portfolio carousel.
+
+### 📚 Documentation
+*   Comprehensive update of README files with deployment strategies (cPanel vs alternatives).
+*   Added local development guides for Mux Webhooks.
+
+---
+
+## [1.1.0] - 2026-01-07
+
+### ✨ Features
+*   **WhatsApp Button:** Added a floating WhatsApp chat button.
+*   **CMS Admin:** Modified Strapi Admin panel for production readiness.
+*   **Role Permissions:** Fixed Public Role data fetching issues for media objects.
+
+### 🛠️ Chores
+*   Updated `.vscode` configuration.
+*   Refactored folder structure and adjusted file organization.
+
+---
+
+## [1.0.0] - 2025-08-08
+
+### 🎉 Initial Release
+*   **Initial Launch:** Fullstack application with Next.js Frontend and Strapi Backend.
+*   **Features:** Basic B2B and B2C informational pages.
+*   **Architecture:** Monorepo structure deployed on Shared Hosting (cPanel).
