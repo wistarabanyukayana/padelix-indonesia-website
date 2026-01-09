@@ -22,7 +22,7 @@ export function HeroSection({
             alt={image.alternativeText || "No alternative text provided"}
             width={1280}
             height={720}
-            className="image-responsive sm:rounded-[1.875rem] h-[calc(100svh-4.75rem)] sm:max-h-[43.75rem]"
+            className="image-responsive sm:rounded-brand h-[calc(100svh-4.75rem)] sm:max-h-[43.75rem]"
             priority={true}
             loading="eager"
           />

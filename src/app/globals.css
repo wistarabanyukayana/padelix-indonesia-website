@@ -46,6 +46,7 @@
   --radius-md: calc(var(--radius) - 0.125rem);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 0.25rem);
+  --radius-brand: 1.875rem;
 }
 
 @layer components {

@@ -49,7 +49,7 @@ export function InfoSection({
           alt={image.alternativeText || "No alternative text provided"}
           width={1080}
           height={1080}
-          className="w-full object-cover object-center rounded-[1.875rem] max-w-[32.625rem] md:max-w-[22.625rem] lg:max-w-[32.625rem] xl:max-w-[42.625rem]"
+          className="w-full object-cover object-center rounded-brand max-w-[32.625rem] md:max-w-[22.625rem] lg:max-w-[32.625rem] xl:max-w-[42.625rem]"
         />
         <div className="relative w-full text-slate-50 flex flex-col items-start justify-center gap-2 sm:gap-6">
           <h3 className="subheading">{subheading}</h3>

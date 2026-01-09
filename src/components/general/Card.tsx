@@ -59,7 +59,7 @@ export function Card({
         width={1080}
         height={1080}
         className={cn(
-          "image-responsive rounded-[1.875rem] max-w-[17.375rem] lg:max-w-[25.375rem] xl:max-w-[29.375rem]",
+          "image-responsive rounded-brand max-w-[17.375rem] lg:max-w-[25.375rem] xl:max-w-[29.375rem]",
           itemImageClassName
         )}
       />

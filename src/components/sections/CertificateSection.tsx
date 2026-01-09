@@ -21,7 +21,7 @@ export function CertificateSection({
         {certificates.map((certificate) => (
           <div
             key={certificate.id}
-            className="w-full flex flex-col justify-around items-center bg-gray-100 sm:bg-transparent p-2 sm:p-0 rounded-[1.875rem] sm:rounded-none"
+            className="w-full flex flex-col justify-around items-center bg-gray-100 sm:bg-transparent p-2 sm:p-0 rounded-brand sm:rounded-none"
           >
             <AppImage
               src={certificate.image.url}
@@ -31,7 +31,7 @@ export function CertificateSection({
               }
               height={100}
               width={100}
-              className="w-full object-cover object-center rounded-[1.875rem] max-w-[9.375rem]"
+              className="w-full object-cover object-center rounded-brand max-w-[9.375rem]"
             />
             <div className="text-center sm:text-slate-50 mt-4">
               <ReactMarkdown>{certificate.logoText}</ReactMarkdown>

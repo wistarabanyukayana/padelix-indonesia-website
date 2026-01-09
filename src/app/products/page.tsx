@@ -14,7 +14,7 @@ export default function ProductRoute() {
       component={ProductListCard}
       showSearch
       showPagination
-      itemClassName="bg-lime-400 p-4 rounded-[1.875rem] xl:h-auto"
+      itemClassName="bg-lime-400 p-4 rounded-brand xl:h-auto"
       showSpecification={false}
       itemImageClassName="lg:max-w-[15.375rem] xl:lg:max-w-[17.375rem]"
       headlineAlignment="center"

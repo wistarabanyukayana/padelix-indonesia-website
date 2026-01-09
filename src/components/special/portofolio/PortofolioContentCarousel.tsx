@@ -70,7 +70,7 @@ const MuxPlayer = ({ playbackId }: { playbackId: string }) => {
     <video
       ref={videoRef}
       controls
-      className="w-full h-full object-contain object-center rounded-[1.875rem]"
+      className="w-full h-full object-cover object-center"
     />
   );
 };
@@ -93,15 +93,15 @@ export function PortofolioContentCarousel({
   const [open, setOpen] = useState(false);
   const [index, setIndex] = useState(0);
 
+  // Prepare slides for Lightbox (only images)
   const slides = (portofoliosMedia || [])
     .map((portofolio) => {
-      // Handle Strapi images
       if (portofolio.media && portofolio.media.length > 0) {
         const firstMedia = portofolio.media[0];
         if (firstMedia.mime?.startsWith("image")) {
           return {
-            src: firstMedia.url,
-            alt: firstMedia.alternativeText || "…",
+            src: firstMedia.url || "",
+            alt: firstMedia.alternativeText || "Portfolio Image",
             width: 1920,
             height: 1080,
           };
@@ -109,12 +109,7 @@ export function PortofolioContentCarousel({
       }
       return null;
     })
-    .filter((slide) => slide !== null) as {
-    src: string;
-    alt: string;
-    width: number;
-    height: number;
-  }[];
+    .filter((slide): slide is NonNullable<typeof slide> => slide !== null);
 
   const renderMedia = (portofolio: MediaPlayerProps, index: number) => {
     // Prioritize Mux video
@@ -126,8 +121,8 @@ export function PortofolioContentCarousel({
         return <MuxPlayer playbackId={effectivePlaybackId} />;
       }
       return (
-        <div className="flex items-center justify-center w-full h-full bg-black rounded-[1.875rem]">
-          <p className="text-white text-center p-4">Video is processing, please check back later.</p>
+        <div className="flex items-center justify-center w-full h-full bg-neutral-900">
+          <p className="text-white text-xs text-center p-2">Video processing...</p>
         </div>
       );
     }
@@ -139,17 +134,17 @@ export function PortofolioContentCarousel({
         return (
           <AppImage
             src={firstMedia.url || ""}
-            alt={firstMedia.alternativeText || "…"}
-            height={1080}
-            width={1920}
-            className="w-full h-full object-contain object-center rounded-[1.875rem]"
+            alt={firstMedia.alternativeText || "Portfolio"}
+            width={600}
+            height={450}
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
             priority={index === 0}
           />
         );
       }
       if (firstMedia.mime?.startsWith("audio")) {
         return (
-          <div className="flex flex-col items-center justify-center w-full h-full bg-gray-900 rounded-[1.875rem] p-4">
+          <div className="flex flex-col items-center justify-center w-full h-full bg-neutral-900 p-4">
             <audio src={firstMedia.url} controls className="w-full" />
           </div>
         );
@@ -157,8 +152,8 @@ export function PortofolioContentCarousel({
     }
 
     return (
-      <div className="flex items-center justify-center w-full h-full bg-black rounded-[1.875rem]">
-        <p className="text-white">Media not available</p>
+      <div className="flex items-center justify-center w-full h-full bg-neutral-900">
+        <p className="text-white text-xs">No Media</p>
       </div>
     );
   };
@@ -166,58 +161,72 @@ export function PortofolioContentCarousel({
   return (
     <>
       <Carousel
-        className="wrapper flex-col justify-evenly h-full sm:h-auto"
-        opts={opts}
+        className="wrapper flex-col justify-evenly h-full w-full"
+        opts={{
+          align: "start",
+          loop: true,
+          ...opts,
+        }}
         plugins={plugins}
       >
-        <CarouselContent>
+        <CarouselContent className="-ml-4">
           {(portofoliosMedia || []).map((portofolio, index) => {
-            const isImage = portofolio.media && portofolio.media[0]?.mime?.startsWith("image");
+            const isImage = portofolio.media?.[0]?.mime?.startsWith("image");
 
             return (
               <CarouselItem
                 key={portofolio.id}
-                className="flex flex-col justify-evenly items-center max-w-[16.375rem] p-5 sm:rounded-none basis-full sm:basis-1/3 md:basis-1/4 lg:basis-1/5 xl:basis-1/6"
+                className="pl-4 basis-full sm:basis-1/2 md:basis-1/3 lg:basis-1/4"
               >
-                <div
-                  className="flex justify-center items-center w-full h-48 overflow-hidden bg-black rounded-[1.875rem]"
-                  onClick={() => {
-                    if (isImage) {
-                      setOpen(true);
-                      const imageIndex = slides.findIndex(
-                        (slide) => slide.src === portofolio.media![0]?.url
-                      );
-                      if (imageIndex !== -1) {
-                        setIndex(imageIndex);
+                <div className="flex flex-col gap-4">
+                  {/* Media Container */}
+                  <div
+                    className="relative aspect-[4/3] w-full overflow-hidden rounded-brand bg-neutral-800 group"
+                    onClick={() => {
+                      if (isImage) {
+                        const slideIndex = slides.findIndex(
+                          (slide) => slide.src === portofolio.media![0]?.url
+                        );
+                        if (slideIndex !== -1) {
+                          setIndex(slideIndex);
+                          setOpen(true);
+                        }
                       }
-                    }
-                  }}
-                  role={isImage ? "button" : "presentation"}
-                  tabIndex={isImage ? 0 : -1}
-                >
-                  {renderMedia(portofolio, index)}
-                </div>
+                    }}
+                    role={isImage ? "button" : "presentation"}
+                    tabIndex={isImage ? 0 : -1}
+                  >
+                    {renderMedia(portofolio, index)}
+                    
+                    {/* Hover Icon for Images */}
+                    {isImage && (
+                      <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-10 h-10 text-white">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM10.5 7.5v6m3-3h-6" />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
 
-                <div className="text-center text-slate-50 mt-4">
-                  <ReactMarkdown>{portofolio.mediaText}</ReactMarkdown>
+                  {/* Caption */}
+                  <div className="text-center">
+                    <div className="text-white font-medium text-sm sm:text-base">
+                      <ReactMarkdown>{portofolio.mediaText}</ReactMarkdown>
+                    </div>
+                  </div>
                 </div>
               </CarouselItem>
             );
           })}
         </CarouselContent>
-        <div className="flex justify-around items-center w-full">
-          <CarouselPrevious
-            className="relative items-center justify-center top-auto left-auto translate-0 md:left-0 md:top-1/2 md:-translate-y-1/2 z-10 text-white md:absolute"
-            variant="link"
-            iconSizes={[60, 1]}
-          />
-          <CarouselNext
-            className="relative items-center justify-center top-auto right-auto translate-0 md:right-0 md:top-1/2 md:-translate-y-1/2 z-10 text-white md:absolute"
-            variant="link"
-            iconSizes={[60, 1]}
-          />
+        
+        {/* Navigation Controls */}
+        <div className="flex justify-center gap-4 mt-8">
+          <CarouselPrevious className="static translate-y-0 bg-white/10 hover:bg-white/20 border-0 text-white" />
+          <CarouselNext className="static translate-y-0 bg-white/10 hover:bg-white/20 border-0 text-white" />
         </div>
       </Carousel>
+
       <Lightbox
         open={open}
         close={() => setOpen(false)}

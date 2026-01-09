@@ -53,7 +53,7 @@ export function ContactSection({
               id="name"
               label="Nama"
               name="name"
-              className="h-12 sm:h-14 rounded-[1.875rem] bg-neutral-300 placeholder:text-neutral-600 placeholder:text-[1.125rem] p-4"
+              className="h-12 sm:h-14 rounded-brand bg-neutral-300 placeholder:text-neutral-600 placeholder:text-[1.125rem] p-4"
               error={zodErrors?.name?.[0]}
               defaultValue={
                 typeof formState?.formData?.name === "string"
@@ -66,7 +66,7 @@ export function ContactSection({
               label="Email/WA"
               name="contact"
               type="text"
-              className="h-12 sm:h-14 rounded-[1.875rem] bg-neutral-300 placeholder:text-neutral-600 placeholder:text-[1.125rem] p-4"
+              className="h-12 sm:h-14 rounded-brand bg-neutral-300 placeholder:text-neutral-600 placeholder:text-[1.125rem] p-4"
               error={zodErrors?.contact?.[0]}
               defaultValue={
                 !zodErrors?.contact?.[0]
@@ -81,7 +81,7 @@ export function ContactSection({
               label="Pesan"
               name="message"
               textArea
-              className="h-29 sm:h-48 rounded-[1.875rem] bg-neutral-300 placeholder:text-neutral-600 placeholder:text-[1.125rem] p-4"
+              className="h-29 sm:h-48 rounded-brand bg-neutral-300 placeholder:text-neutral-600 placeholder:text-[1.125rem] p-4"
               error={zodErrors?.message?.[0]}
               defaultValue={
                 typeof formState?.formData?.message === "string"
@@ -91,7 +91,7 @@ export function ContactSection({
             />
             <div className="w-1/3 flex items-center gap-8 text-nowrap">
               <SubmitButton
-                className="rounded-[1.875rem] uppercase font-bold bg-red-500 text-neutral-950 h-12 sm:h-14 w-4/5 text-[1.125rem]"
+                className="rounded-brand uppercase font-bold bg-red-500 text-neutral-950 h-12 sm:h-14 w-4/5 text-[1.125rem]"
                 text="Kirim"
               />
               {strapiErrors && <p className="text-red-500">{strapiErrors}</p>}

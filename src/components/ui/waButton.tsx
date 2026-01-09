@@ -7,21 +7,7 @@ export function WAButton() {
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Chat via WhatsApp"
-      style={{
-        position: "fixed",
-        right: "1.5rem",
-        bottom: "1.5rem",
-        zIndex: 50,
-        background: "#25D366",
-        borderRadius: "50%",
-        width: "56px",
-        height: "56px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-        cursor: "pointer",
-      }}
+      className="fixed bottom-6 right-6 z-50 bg-[#25D366] rounded-full w-14 h-14 flex items-center justify-center shadow-lg hover:bg-[#20ba5a] transition-colors cursor-pointer"
     >
       <svg
         width="32"
