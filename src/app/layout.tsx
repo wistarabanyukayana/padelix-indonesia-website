@@ -3,35 +3,23 @@ import { Lato, Inter } from "next/font/google";
 import "./globals.css";
 
 import { Header } from "@/components/layout/Header";
-import { getGlobalSettings } from "@/data/loaders";
 import { Footer } from "@/components/layout/Footer";
-import { getClientUrl } from "@/utils/get-client-url";
 import { WAButton } from "@/components/ui/waButton";
-
-const BASE_URL = getClientUrl();
+import { GLOBAL_SETTINGS } from "@/data/static-content";
 
 const lato = Lato({
   variable: "--font-lato",
   subsets: ["latin"],
-  weight: ["100", "300", "400", "700", "900"],
+  weight: ["100", "300", "400", "700", "900"]
 });
 
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
-  weight: ["100", "300", "400", "700", "900"],
+  weight: ["100", "300", "400", "700", "900"]
 });
 
-async function loader() {
-  const { data } = await getGlobalSettings();
-  if (!data) throw new Error("Failed to fetch global settings");
-  return {
-    title: data?.title,
-    description: data?.description,
-    header: data?.header,
-    footer: data?.footer,
-  };
-}
+const BASE_URL = process.env.NEXT_PUBLIC_URL_PUBLIC || "https://padelix.co.id";
 
 export const metadata: Metadata = {
   metadataBase: new URL(`${BASE_URL}`),
@@ -39,12 +27,11 @@ export const metadata: Metadata = {
   description: "Padel Starts Here.",
 
   appleWebApp: {
-    capable: true, // turns on standalone mode in iOS
-    title: "Padelix Indonesia", // label under the icon
-    statusBarStyle: "black-translucent", // optional styling of iOS status bar
+    capable: true,
+    title: "Padelix Indonesia",
+    statusBarStyle: "black-translucent",
   },
 
-  // 1. Favicon + shortcut icon is directly in /app folder
   icons: {
     icon: [
       {
@@ -63,12 +50,9 @@ export const metadata: Metadata = {
       },
     ],
 
-    // 2. Apple touch icon (fallback if you just want one)
     apple: "/apple-icon-180x180.png",
 
-    // 3. The “other” array is where you list _every_ custom link:
     other: [
-      // Apple
       { rel: "apple-touch-icon", url: "/apple-icon-57x57.png", sizes: "57x57" },
       { rel: "apple-touch-icon", url: "/apple-icon-60x60.png", sizes: "60x60" },
       { rel: "apple-touch-icon", url: "/apple-icon-72x72.png", sizes: "72x72" },
@@ -99,7 +83,6 @@ export const metadata: Metadata = {
         sizes: "180x180",
       },
 
-      // Android / general PNG icons
       {
         rel: "icon",
         url: "/android-icon-192x192.png",
@@ -127,7 +110,6 @@ export const metadata: Metadata = {
     ],
   },
 
-  // 4. Web App Manifest
   manifest: "/manifest.json",
 
   openGraph: {
@@ -146,16 +128,31 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const { header, footer } = await loader();
+  const { header, footer } = GLOBAL_SETTINGS;
+
+  const mappedHeader = {
+      backgroundColor: "white" as const,
+      logo: { id: 0, logoText: header.logoText, backgroundColor: "white" as const, image: { id: 0, documentId: "logo", url: "", alternativeText: header.logoText } },
+      navigation: header.navLinks,
+      moreOptionIcon: { id: 0, logoText: "More", backgroundColor: "white" as const, image: { id: 0, documentId: "more", url: "", alternativeText: "More" } }
+  };
+
+  const mappedFooter = {
+      backgroundColor: "white" as const,
+      logoText: footer.logoText,
+      text: footer.text,
+      copy: footer.copy,
+      socialLinks: footer.socialLinks
+  };
 
   return (
     <html lang="id">
       <body
         className={`${lato.variable} ${inter.variable} antialiased flex flex-col items-center bg-white`}
       >
-        <Header data={header} />
+        <Header data={mappedHeader} />
         {children}
-        <Footer data={footer} />
+        <Footer data={mappedFooter} />
         <WAButton />
       </body>
     </html>
