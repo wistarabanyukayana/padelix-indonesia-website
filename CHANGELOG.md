@@ -40,15 +40,18 @@ All notable changes to the "Padelix Indonesia Website" project will be documente
 
 ## [1.2.0] - 2026-01-07
 
-### 🚀 Major Release
-*   **Video & Audio Support:** Added support for video (Mux) and audio in the portfolio section.
-*   **Image Zoom:** Added lightbox/zoom functionality to portfolio items.
-*   **Security:** Updated Content Security Policy (CSP) to allow Mux video streaming.
-*   **Performance:** Improved LCP by adding priority loading to the first image in the portfolio carousel.
-
-### 📚 Documentation
-*   Comprehensive update of README files with deployment strategies (cPanel vs alternatives).
-*   Added local development guides for Mux Webhooks.
+### 🚀 Features & Fixes
+*   **Docs:** Comprehensive update and refinement of all README.md files (root, client, server) with detailed project analysis, deployment strategies (including cPanel and recommended alternatives), and environment variable guidance.
+*   **Feat:** Introduced a root `.gitignore` file for improved version control.
+*   **Fix:** Updated `server/.gitignore` to explicitly ignore the `.tmp/` directory.
+*   **Fix:** Addressed Largest Contentful Paint (LCP) warning by adding priority prop to the first image in `PortofolioContentCarousel`.
+*   **Fix:** Updated Content Security Policy in `client/next.config.ts` to allow `*.mux.com` and `blob:` for Mux video streaming.
+*   **Docs:** Added Mux Webhooks (Local Development) section to `server/README.md` for local Mux integration setup using SMEE.
+*   **Refactor:** Streamlined Getting Started instructions across all README.md files to leverage npm workspaces.
+*   **Config:** Updated `server/README.md` and `server/.env.example` to prefer MariaDB/MySQL for local development database setup, matching production.
+*   **Fix:** Addressed critical to low-severity CVEs and improved crash handling.
+*   **Feat:** Added support for video and audio in the portfolio section.
+*   **Feat:** Added image zoom functionality to the portfolio and enhanced security measures.
 
 ---
 
@@ -57,10 +60,11 @@ All notable changes to the "Padelix Indonesia Website" project will be documente
 ### ✨ Features
 *   **WhatsApp Button:** Added a floating WhatsApp chat button.
 *   **CMS Admin:** Modified Strapi Admin panel for production readiness.
-*   **Role Permissions:** Fixed Public Role data fetching issues for media objects.
+*   **Role Permissions:** Fixed Public Role data fetching issues, enabling successful data reception for media objects.
 
 ### 🛠️ Chores
 *   Updated `.vscode` configuration.
+*   Updated `.gitignore` and uploaded initial images.
 *   Refactored folder structure and adjusted file organization.
 
 ---
