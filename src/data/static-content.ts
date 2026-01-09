@@ -4,6 +4,8 @@
 export const GLOBAL_SETTINGS = {
   header: {
     logoText: "Padelix",
+    logoUrl: "https://cms.padelix.co.id/uploads/Padelix_Logo_Transparent_8925c52968.png",
+    moreOptionIconUrl: "https://cms.padelix.co.id/uploads/menu_555df7d115.svg",
     navLinks: [
       { id: 1, text: "Home", href: "/", isExternal: false },
       { id: 2, text: "Products", href: "/products", isExternal: false },
@@ -117,7 +119,7 @@ export const HOME_PAGE_CONTENT = {
     links: [
       {
         id: 1,
-        label: "Email",
+        label: "Mail",
         text: "business@padelix.co.id",
         href: "mailto:business@padelix.co.id",
         icon: "https://cms.padelix.co.id/uploads/Mail_25c2d768ce.svg",

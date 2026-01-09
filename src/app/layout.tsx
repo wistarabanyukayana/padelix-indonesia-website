@@ -132,9 +132,9 @@ export default async function RootLayout({
 
   const mappedHeader = {
       backgroundColor: "white" as const,
-      logo: { id: 0, logoText: header.logoText, backgroundColor: "white" as const, image: { id: 0, documentId: "logo", url: "", alternativeText: header.logoText } },
+      logo: { id: 0, logoText: header.logoText, backgroundColor: "white" as const, image: { id: 0, documentId: "logo", url: header.logoUrl, alternativeText: header.logoText } },
       navigation: header.navLinks,
-      moreOptionIcon: { id: 0, logoText: "More", backgroundColor: "white" as const, image: { id: 0, documentId: "more", url: "", alternativeText: "More" } }
+      moreOptionIcon: { id: 0, logoText: "More", backgroundColor: "white" as const, image: { id: 0, documentId: "more", url: header.moreOptionIconUrl, alternativeText: "More" } }
   };
 
   const mappedFooter = {
