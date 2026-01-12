@@ -1,0 +1,35 @@
+{
+  "node": {
+    "0065f74676de6a3b4836339edb2ac076d7e582b0d6": {
+      "workers": {
+        "app/admin/(dashboard)/categories/page": {
+          "moduleId": 66816,
+          "async": false,
+          "exportedName": "logout",
+          "filename": "src/actions/auth.ts"
+        }
+      },
+      "layer": {
+        "app/admin/(dashboard)/categories/page": "action-browser"
+      },
+      "exportedName": "logout",
+      "filename": "src/actions/auth.ts"
+    },
+    "40430925668f708c3ed6be948fca747311d9128b3b": {
+      "workers": {
+        "app/admin/(dashboard)/categories/page": {
+          "moduleId": 66816,
+          "async": false,
+          "exportedName": "deleteCategory",
+          "filename": "src/actions/categories.ts"
+        }
+      },
+      "layer": {
+        "app/admin/(dashboard)/categories/page": "action-browser"
+      },
+      "exportedName": "deleteCategory",
+      "filename": "src/actions/categories.ts"
+    }
+  },
+  "edge": {}
+}

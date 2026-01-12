@@ -10,6 +10,7 @@ export const relations = defineRelations(schema, (r) => ({
 	},
 	users: {
 		auditLogs: r.many.auditLogs(),
+		portfolios: r.many.portfolios(),
 		products: r.many.products(),
 		roles: r.many.roles(),
 	},
@@ -17,12 +18,33 @@ export const relations = defineRelations(schema, (r) => ({
 		category: r.one.categories({
 			from: r.categories.parentId,
 			to: r.categories.id,
-			alias: "categories_categories"
+			alias: "categories_parentId_categories_id"
 		}),
 		categories: r.many.categories({
-			alias: "categories_categories"
+			alias: "categories_parentId_categories_id"
 		}),
 		products: r.many.products(),
+	},
+	medias: {
+		productMedias: r.many.productMedias(),
+		portfolioMedias: r.many.portfolioMedias(),
+	},
+	portfolios: {
+		user: r.one.users({
+			from: r.portfolios.createdBy,
+			to: r.users.id
+		}),
+		portfolioMedias: r.many.portfolioMedias(),
+	},
+	portfolioMedias: {
+		portfolio: r.one.portfolios({
+			from: r.portfolioMedias.portfolioId,
+			to: r.portfolios.id
+		}),
+		media: r.one.medias({
+			from: r.portfolioMedias.mediaId,
+			to: r.medias.id
+		}),
 	},
 	products: {
 		brand: r.one.brands({
@@ -37,17 +59,21 @@ export const relations = defineRelations(schema, (r) => ({
 			from: r.products.createdBy,
 			to: r.users.id
 		}),
-		productImages: r.many.productImages(),
+		productMedias: r.many.productMedias(),
 		productSpecifications: r.many.productSpecifications(),
 		productVariants: r.many.productVariants(),
 	},
 	brands: {
 		products: r.many.products(),
 	},
-	productImages: {
+	productMedias: {
 		product: r.one.products({
-			from: r.productImages.productId,
+			from: r.productMedias.productId,
 			to: r.products.id
+		}),
+		media: r.one.medias({
+			from: r.productMedias.mediaId,
+			to: r.medias.id
 		}),
 	},
 	productSpecifications: {

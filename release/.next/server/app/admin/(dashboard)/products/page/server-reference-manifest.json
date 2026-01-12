@@ -1,0 +1,80 @@
+{
+  "node": {
+    "0065f74676de6a3b4836339edb2ac076d7e582b0d6": {
+      "workers": {
+        "app/admin/(dashboard)/products/page": {
+          "moduleId": 41875,
+          "async": false,
+          "exportedName": "logout",
+          "filename": "src/actions/auth.ts"
+        }
+      },
+      "layer": {
+        "app/admin/(dashboard)/products/page": "action-browser"
+      },
+      "exportedName": "logout",
+      "filename": "src/actions/auth.ts"
+    },
+    "403644fa86f0783befafc81c6ac0f95b126b22d6a2": {
+      "workers": {
+        "app/admin/(dashboard)/products/page": {
+          "moduleId": 41875,
+          "async": false,
+          "exportedName": "deleteProduct",
+          "filename": "src/actions/products.ts"
+        }
+      },
+      "layer": {
+        "app/admin/(dashboard)/products/page": "rsc"
+      },
+      "exportedName": "deleteProduct",
+      "filename": "src/actions/products.ts"
+    },
+    "6084267b08e4a533fab282622dab8534381898172a": {
+      "workers": {
+        "app/admin/(dashboard)/products/page": {
+          "moduleId": 41875,
+          "async": false,
+          "exportedName": "createProduct",
+          "filename": "src/actions/products.ts"
+        }
+      },
+      "layer": {
+        "app/admin/(dashboard)/products/page": "rsc"
+      },
+      "exportedName": "createProduct",
+      "filename": "src/actions/products.ts"
+    },
+    "609ff3918006d0893c54e360a90a19ec2f9cdf4b94": {
+      "workers": {
+        "app/admin/(dashboard)/products/page": {
+          "moduleId": 41875,
+          "async": false,
+          "exportedName": "toggleProductFeatured",
+          "filename": "src/actions/products.ts"
+        }
+      },
+      "layer": {
+        "app/admin/(dashboard)/products/page": "rsc"
+      },
+      "exportedName": "toggleProductFeatured",
+      "filename": "src/actions/products.ts"
+    },
+    "70eb3ba3e38c77a4a9baf36b877c65e4d805e7af6c": {
+      "workers": {
+        "app/admin/(dashboard)/products/page": {
+          "moduleId": 41875,
+          "async": false,
+          "exportedName": "updateProduct",
+          "filename": "src/actions/products.ts"
+        }
+      },
+      "layer": {
+        "app/admin/(dashboard)/products/page": "rsc"
+      },
+      "exportedName": "updateProduct",
+      "filename": "src/actions/products.ts"
+    }
+  },
+  "edge": {}
+}

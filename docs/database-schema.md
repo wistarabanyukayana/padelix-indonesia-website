@@ -42,6 +42,7 @@
     *   `slug`: URL-friendly unique identifier.
     *   `description`: Detailed marketing text (HTML/Markdown supported).
     *   `base_price`: Starting price before variant adjustments.
+    *   `show_price`: Flag to control whether the price is displayed on the public frontend.
     *   `is_active`: Controls visibility on the public frontend.
     *   `is_featured`: If true, the item appears in homepage highlights.
     *   `brand_id/category_id`: Foreign keys for organization.
@@ -75,7 +76,28 @@
 
 ---
 
-## Domain 3: Content Management (CM)
+## Domain 3: Universal Media Library (UML)
+*Focus: Centralized asset management for images, videos, and documents.*
+
+### **Table: medias**
+*   **Description:** Central repository for all physical assets used across the platform.
+*   **Attributes:**
+    *   `name`: Original filename or display name.
+    *   `file_key`: Unique internal identifier (e.g., local filename or provider ID).
+    *   `type`: Categorization (`image`, `video`, `document`, `audio`, `other`).
+    *   `provider`: Origin of the asset (`local`, `mux`).
+    *   `mime_type`: Standard file format identifier (e.g., `application/pdf`).
+    *   `file_size`: Size in bytes.
+    *   `url`: Publicly accessible link to the asset.
+    *   `metadata`: JSON field containing type-specific data (Mux IDs, dimensions, etc.).
+
+### **Junction Tables:**
+*   **product_medias:** Maps products to medias with `is_primary` and `sort_order`.
+*   **portfolio_medias:** Maps portfolios to medias with `is_primary` and `sort_order`.
+
+---
+
+## Domain 4: Content Management (CM)
 *Focus: Showcasing completed projects and marketing content.*
 
 ### **Table: portfolios**
@@ -87,12 +109,9 @@
     *   `is_featured`: Controls visibility in the "Featured Projects" section.
     *   `created_by`: Reference to the user who documented the project.
 
-### **Table: portfolio_images**
-*   **Description:** Gallery of photos showcasing the specific portfolio project.
-
 ---
 
-## Domain 4: System Administration (SA)
+## Domain 5: System Administration (SA)
 *Focus: Logging, auditing, and maintenance.*
 
 ### **Table: audit_logs**
