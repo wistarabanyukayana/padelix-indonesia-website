@@ -79,9 +79,9 @@ async function main() {
   }
   fs.mkdirSync(RELEASE_DIR);
 
-  console.log('🏗️  Building project (Lint + Build)...');
+  console.log('🏗️  Building project (Lint + Build with Webpack)...');
   runCommand('pnpm lint');
-  runCommand('pnpm build');
+  runCommand('pnpm build --webpack');
 
   console.log('📂 Copying Standalone files...');
   copyRecursiveSync(STANDALONE_DIR, RELEASE_DIR);
@@ -103,23 +103,6 @@ async function main() {
       copyRecursiveSync(srcDbDir, releaseDbDir);
   }
   fs.writeFileSync(path.join(releaseDbDir, 'seed_super_admin.sql'), SUPER_ADMIN_SQL);
-
-  // 7. Copy Lockfile & Generate package-lock.json for npm compatibility
-  console.log('🔒 Handling lockfiles...');
-  if (fs.existsSync(path.join(ROOT_DIR, 'pnpm-lock.yaml'))) {
-      fs.copyFileSync(path.join(ROOT_DIR, 'pnpm-lock.yaml'), path.join(RELEASE_DIR, 'pnpm-lock.yaml'));
-      
-      console.log('🔄 Generating package-lock.json for npm compatibility...');
-      try {
-        // We run this inside the release folder so it uses the release package.json
-        execSync('npm install --package-lock-only', { cwd: RELEASE_DIR, stdio: 'ignore' });
-        console.log('   ✅ package-lock.json generated.');
-      } catch (e) {
-        console.warn('   ⚠️ Failed to generate package-lock.json. Production install will rely on package.json semver.');
-      }
-  } else if (fs.existsSync(path.join(ROOT_DIR, 'package-lock.json'))) {
-      fs.copyFileSync(path.join(ROOT_DIR, 'package-lock.json'), path.join(RELEASE_DIR, 'package-lock.json'));
-  }
 
   console.log('🔑 Copying .env.prod as .env...');
   const envProdPath = path.join(ROOT_DIR, '.env.prod');
