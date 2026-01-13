@@ -272,34 +272,50 @@ Not implemented yet, but planned for the future.
 
 ---
 
-## Changelog
+# Changelog
 
-### v1.2.0 - 2026-01-07
+All notable changes to this project will be documented in this file.
 
-*   **Fix:** Addressed critical to low-severity CVEs, improved crash handling, and improve security overall.
-*   **Feat:** Added support for video and audio in the portfolio section.
-*   **Feat:** Added image zoom functionality to the portfolio and enhanced security measures.
-*   **Docs:** Comprehensive update and refinement of all `README.md` files (root, client, server) with detailed project analysis, deployment strategies (including cPanel and recommended alternatives), and environment variable guidance.
-*   **Feat:** Introduced a root `.gitignore` file for improved version control.
-*   **Fix:** Updated `server/.gitignore` to explicitly ignore the `.tmp/` directory.
-*   **Fix:** Addressed Largest Contentful Paint (LCP) warning by adding `priority` prop to the first image in `PortofolioContentCarousel`.
-*   **Fix:** Updated Content Security Policy in `client/next.config.ts` to allow `*.mux.com` and `blob:` for Mux video streaming.
-*   **Docs:** Added `Mux Webhooks (Local Development)` section to `server/README.md` for local Mux integration setup using SMEE.
-*   **Refactor:** Streamlined `Getting Started` instructions across all `README.md` files to leverage `npm workspaces`.
-*   **Config:** Updated `server/README.md` and `server/.env.example` to prefer MariaDB/MySQL for local development database setup, matching production.
+The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/)**, and this project adheres to **[Semantic Versioning](https://semver.org/spec/v2.0.0.html)**.
 
-### v1.1.0 - 2026-01-07
+## [1.2.0] - 2026-01-07
 
-*   **Feat:** Added a floating WhatsApp button.
-*   **Feat:** Modified CMS Admin for production readiness.
-*   **Feat:** Resolved Public Role data fetching issues, enabling successful data reception for media objects.
-*   **Docs:** Updated README.md and package.json.
-*   **Chore:** Updated .vscode configuration.
-*   **Chore:** Updated .gitignore and uploaded initial images.
-*   **Refactor:** Renamed folders and adjusted files for improved structure.
+### Added
+- Portfolio support for **video and audio** content.
+- Image zoom capability in portfolio.
+- Root `.gitignore` for improved version control hygiene.
+- Documentation updates across READMEs (project analysis, env vars, and deployment strategies including cPanel constraints).
+- Local development guidance for Mux webhooks (SMEE).
 
-### v1.0.0 - Initial Release
+### Changed
+- Streamlined “Getting Started” to leverage npm workspaces.
 
-*   Initial fullstack web application deployment.
-*   Next.js frontend with Strapi CMS backend.
-*   Support for B2B, B2C, and planned advertising features.
+### Fixed
+- Security: addressed multiple CVEs (critical → low), and improved crash handling.
+- LCP improvement by prioritizing the first carousel image.
+- CSP updates to allow Mux streaming (`*.mux.com`, `blob:`).
+- `server/.gitignore` updated to ignore `.tmp/`.
+
+## [1.1.0] - 2026-01-07
+
+### Added
+- Floating WhatsApp button.
+
+### Changed
+- CMS admin adjustments for production readiness.
+- Repo structure cleanup and folder renaming.
+
+### Fixed
+- Public Role data fetching reliability for media objects.
+
+## [1.0.0] - Initial Release
+
+### Added
+- Initial full-stack deployment:
+  - Next.js frontend
+  - Strapi CMS backend
+- Baseline support for B2B, B2C, and planned advertising features.
+
+[1.2.0]: https://github.com/wistarabanyukayana/padelix-indonesia-website/releases/tag/v1.2.0
+[1.1.0]: https://github.com/wistarabanyukayana/padelix-indonesia-website/releases/tag/v1.1.0
+[1.0.0]: https://github.com/wistarabanyukayana/padelix-indonesia-website/releases/tag/v1.0.0
