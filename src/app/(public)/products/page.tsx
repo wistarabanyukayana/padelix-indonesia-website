@@ -6,6 +6,8 @@ import Link from "next/link";
 import { TreeNode } from "@/components/ui/CollapsibleTree";
 import { ProductCategorySidebar } from "@/components/products/ProductCategorySidebar";
 
+export const dynamic = "force-dynamic";
+
 interface PageProps {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }

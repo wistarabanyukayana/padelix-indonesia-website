@@ -1,12 +1,18 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
 import { login } from "@/actions/auth";
 import { Button } from "@/components/ui/Button";
 import { ActionState } from "@/types";
 
 export default function LoginPage() {
   const [state, action, isPending] = useActionState(login, {} as ActionState);
+
+  useEffect(() => {
+    if (state?.redirectTo) {
+      window.location.assign(state.redirectTo);
+    }
+  }, [state?.redirectTo]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-neutral-100 px-4">

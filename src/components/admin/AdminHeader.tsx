@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { logout } from "@/actions/auth";
 import { Button } from "@/components/ui/Button";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useTransition } from "react";
 import { usePathname } from "next/navigation";
 import { Menu, X, ExternalLink, ChevronDown } from "lucide-react";
 import { SessionPayload, NavSection, NavItem } from "@/types";
@@ -19,6 +19,7 @@ export function AdminHeader({ user, navStructure }: AdminHeaderProps) {
   const [mobileExpandedGroups, setMobileExpandedGroups] = useState<string[]>([]);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
+  const [isLoggingOut, startLogout] = useTransition();
 
   // Reset menus on route change
   const [lastPathname, setLastPathname] = useState(pathname);
@@ -56,6 +57,15 @@ export function AdminHeader({ user, navStructure }: AdminHeaderProps) {
 
   const isGroupActive = (items: NavItem[]) => {
     return items.some(item => isActive(item.href));
+  };
+
+  const handleLogout = () => {
+    startLogout(async () => {
+      const result = await logout();
+      if (result?.redirectTo) {
+        window.location.assign(result.redirectTo);
+      }
+    });
   };
 
   const toggleDropdown = (label: string) => {
@@ -149,11 +159,16 @@ export function AdminHeader({ user, navStructure }: AdminHeaderProps) {
                     {(user.permissions ?? []).includes('manage_users') ? 'Super Admin' : 'Editor'}
                 </span>
             </div>
-            <form action={logout}>
-              <Button variant="outline" size="sm" className="text-red-600 border-red-200 hover:bg-red-50">
-                Logout
-              </Button>
-            </form>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="text-red-600 border-red-200 hover:bg-red-50"
+              onClick={handleLogout}
+              disabled={isLoggingOut}
+            >
+              Logout
+            </Button>
           </div>
 
           {/* Mobile Menu Button */}
@@ -258,14 +273,14 @@ export function AdminHeader({ user, navStructure }: AdminHeaderProps) {
               </div>
             </div>
             <div className="mt-3 px-2 space-y-1">
-              <form action={logout} className="w-full">
-                <button
-                  type="submit"
-                  className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-red-600 hover:text-red-800 hover:bg-red-50"
-                >
-                  Logout
-                </button>
-              </form>
+              <button
+                type="button"
+                className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-red-600 hover:text-red-800 hover:bg-red-50"
+                onClick={handleLogout}
+                disabled={isLoggingOut}
+              >
+                Logout
+              </button>
             </div>
           </div>
         </div>

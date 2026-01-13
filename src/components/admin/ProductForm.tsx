@@ -23,6 +23,12 @@ export function ProductForm({ action, initialData, categories, brands, allMedias
   const [detailMedia, setDetailMedia] = useState<DBMedia | null>(null);
 
   useEffect(() => {
+    if (state?.redirectTo) {
+      window.location.assign(state.redirectTo);
+    }
+  }, [state?.redirectTo]);
+
+  useEffect(() => {
     if (state?.message) {
       if (state.success) {
         toast.success(state.message);

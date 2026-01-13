@@ -1,3 +1,4 @@
+import "server-only";
 import { SignJWT, jwtVerify, JWTPayload } from "jose";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
@@ -76,7 +77,10 @@ export async function updateSession(request: NextRequest) {
       name: "session",
       value: await encrypt(parsed),
       httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
       expires: parsed.expires,
+      sameSite: "lax",
+      path: "/",
     });
     return res;
   } catch {

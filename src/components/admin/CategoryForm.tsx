@@ -19,6 +19,12 @@ export function CategoryForm({ action, initialData, categories, allMedias }: Cat
   const [detailMedia, setDetailMedia] = useState<DBMedia | null>(null);
 
   useEffect(() => {
+    if (state?.redirectTo) {
+      window.location.assign(state.redirectTo);
+    }
+  }, [state?.redirectTo]);
+
+  useEffect(() => {
     if (state?.message) {
       if (state.success) {
         toast.success(state.message);

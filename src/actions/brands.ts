@@ -4,7 +4,6 @@ import { db } from "@/lib/db";
 import { brands } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { ActionState } from "@/types";
@@ -61,7 +60,7 @@ export async function createBrand(prevState: ActionState, formData: FormData): P
   revalidatePath("/admin/brands", "layout");
   revalidatePath("/admin/products", "layout");
   revalidatePath("/products", "layout");
-  redirect(`/admin/brands/${newId}/edit`);
+  return { success: true, redirectTo: `/admin/brands/${newId}/edit` };
 }
 
 export async function updateBrand(id: number, prevState: ActionState, formData: FormData): Promise<ActionState> {

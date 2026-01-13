@@ -17,6 +17,12 @@ export function RoleForm({ action, initialData, permissions }: RoleFormProps) {
   const [state, formAction, isPending] = useActionState(action, {} as ActionState);
   
   useEffect(() => {
+    if (state?.redirectTo) {
+      window.location.assign(state.redirectTo);
+    }
+  }, [state?.redirectTo]);
+
+  useEffect(() => {
     if (state?.message) {
       if (state.success) {
         toast.success(state.message);

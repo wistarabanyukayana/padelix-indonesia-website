@@ -1,3 +1,4 @@
+import "server-only";
 import { db } from "@/lib/db";
 import { auditLogs } from "@/db/schema";
 import { getSession } from "@/lib/auth";

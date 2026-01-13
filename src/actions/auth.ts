@@ -4,9 +4,7 @@ import { db } from "@/lib/db";
 import { users, usersRoles, rolesPermissions, permissions } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { compare } from "bcryptjs";
-import { encrypt } from "@/lib/auth";
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
+import { createSession, deleteSession } from "@/lib/session";
 import { z } from "zod";
 
 import { ActionState } from "@/types";
@@ -56,28 +54,20 @@ export async function login(prevState: ActionState, formData: FormData): Promise
   const permissionSlugs = Array.from(new Set(userPermissions.map((p) => p.slug)));
 
   // Create session
-  const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
-  const session = await encrypt({ 
-    user: { 
-        id: user.id, 
-        username: user.username, 
-        email: user.email,
-        permissions: permissionSlugs 
-    }, 
-    expires 
+  await createSession({
+    id: user.id,
+    username: user.username,
+    email: user.email,
+    permissions: permissionSlugs,
   });
-
-  const cookieStore = await cookies();
-  cookieStore.set("session", session, { expires, httpOnly: true });
 
   await createAuditLog("AUTH_LOGIN_SUCCESS", user.id, `User logged in: ${user.username}`, { id: user.id, username: user.username });
 
-  redirect("/admin");
+  return { success: true, redirectTo: "/admin" };
 }
 
 export async function logout() {
   await createAuditLog("AUTH_LOGOUT");
-  const cookieStore = await cookies();
-  cookieStore.delete("session");
-  redirect("/admin/login");
+  await deleteSession();
+  return { success: true, redirectTo: "/admin/login" };
 }

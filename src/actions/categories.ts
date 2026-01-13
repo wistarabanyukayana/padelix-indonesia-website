@@ -4,7 +4,6 @@ import { db } from "@/lib/db";
 import { categories } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { ActionState } from "@/types";
@@ -64,7 +63,7 @@ export async function createCategory(prevState: ActionState, formData: FormData)
   revalidatePath("/admin/categories", "layout");
   revalidatePath("/admin/products", "layout");
   revalidatePath("/products", "layout");
-  redirect(`/admin/categories/${newId}/edit`);
+  return { success: true, redirectTo: `/admin/categories/${newId}/edit` };
 }
 
 export async function updateCategory(id: number, prevState: ActionState, formData: FormData): Promise<ActionState> {

@@ -4,7 +4,6 @@ import { db } from "@/lib/db";
 import { portfolios, portfolioMedias } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { ActionState, MediaPayload } from "@/types";
@@ -101,7 +100,7 @@ export async function createPortfolio(prevState: ActionState, formData: FormData
 
   revalidatePath("/admin/portfolios", "layout");
   revalidatePath("/");
-  redirect(`/admin/portfolios/${newId}/edit`);
+  return { success: true, redirectTo: `/admin/portfolios/${newId}/edit` };
 }
 
 export async function updatePortfolio(id: number, prevState: ActionState, formData: FormData): Promise<ActionState> {

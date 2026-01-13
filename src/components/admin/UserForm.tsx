@@ -17,6 +17,12 @@ export function UserForm({ action, initialData, roles }: UserFormProps) {
   const [state, formAction, isPending] = useActionState(action, {} as ActionState);
   
   useEffect(() => {
+    if (state?.redirectTo) {
+      window.location.assign(state.redirectTo);
+    }
+  }, [state?.redirectTo]);
+
+  useEffect(() => {
     if (state?.message) {
       if (state.success) {
         toast.success(state.message);

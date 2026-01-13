@@ -9,6 +9,8 @@ import { siteConfig } from "@/config/site";
 import { Mail } from "lucide-react";
 import { SiWhatsapp, SiInstagram } from "@icons-pack/react-simple-icons";
 
+export const dynamic = "force-dynamic";
+
 // Content Configuration
 const HERO_CONTENT = {
   heading: "Selamat datang di Padelix Indonesia!",

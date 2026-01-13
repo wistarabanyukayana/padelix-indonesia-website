@@ -4,7 +4,6 @@ import { db } from "@/lib/db";
 import { roles, rolesPermissions } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { z } from "zod";
 import { ActionState } from "@/types";
 import { checkPermission, getSession } from "@/lib/auth";
@@ -67,7 +66,7 @@ export async function createRole(prevState: ActionState, formData: FormData): Pr
 
   revalidatePath("/admin/users");
   revalidatePath("/admin/roles");
-  redirect(`/admin/roles/${newId}/edit`);
+  return { success: true, redirectTo: `/admin/roles/${newId}/edit` };
 }
 
 export async function updateRole(id: number, prevState: ActionState, formData: FormData): Promise<ActionState> {

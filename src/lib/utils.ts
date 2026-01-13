@@ -40,10 +40,12 @@ export function parseMetadata(val: unknown): MediaMetadata {
 /**
  * Resolves the correct display URL for a media item (handles Mux video thumbnails)
  */
-export function getDisplayUrl(media: { url: string; type: string; metadata?: unknown }) {
-  if (media.type === "video" && media.url.includes("mux.com")) {
+export function getDisplayUrl(media: { url: string; type: string; metadata?: unknown } | null | undefined) {
+  if (!media || !media.url) return "";
+  
+  if (media.type === "video" && typeof media.url === "string" && media.url.includes("mux.com")) {
     const meta = parseMetadata(media.metadata);
-    const playbackId = meta?.playbackId || media.url.split("/").pop()?.split(".")[0];
+    const playbackId = meta?.playbackId || (media.url.split("/").pop()?.split(".")[0]);
     if (playbackId) {
       return `https://image.mux.com/${playbackId}/thumbnail.jpg`;
     }

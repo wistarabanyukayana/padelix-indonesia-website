@@ -1,4 +1,4 @@
-# Padelix Indonesia Website v2.0.0
+# Padelix Indonesia Website v2.0.1
 
 A unified fullstack web application for Padelix Indonesia, built with Next.js 15+, Drizzle ORM, and MySQL. This version represents a complete architectural shift from the previous Next.js/Strapi decoupled setup to a more efficient, single-repo fullstack solution.
 
@@ -9,7 +9,7 @@ A unified fullstack web application for Padelix Indonesia, built with Next.js 15
 ## Production Status
 
 -   **Live:** [https://padelix.co.id](https://padelix.co.id)
--   **Current Version:** 2.0.0 (Unified Fullstack)
+-   **Current Version:** 2.0.1 (Unified Fullstack)
 -   **Previous Version:** 1.2.0 (Next.js + Strapi)
 
 ---
@@ -193,6 +193,15 @@ This will:
 
 > **Note:** See the generated `DEPLOY_README.md` inside the `release` folder for specific details.
 
+### Production Note (cPanel/LiteSpeed)
+
+On the shared cPanel + LiteSpeed environment, we observed intermittent client-side exceptions after auth or form submits (e.g., login/logout/create). The browser requested stale chunk IDs that no longer existed, and a hard refresh fixed it. The current workaround is to force a full page reload after these server actions:
+
+- Server actions return `{ redirectTo: "/admin/..." }` instead of `redirect(...)`.
+- Client forms detect `redirectTo` and call `window.location.assign(...)`.
+
+If you remove this behavior, the issue may return in that hosting setup.
+
 ### File Persistence
 Ensure that `public/uploads` is **persisted** (not overwritten) during subsequent deployments, as it stores user-uploaded media.
 
@@ -214,7 +223,12 @@ Admin users with the `view_audit_logs` permission can view these records in the 
 
 ## Changelog
 
-### v2.0.0 - 2026-01-12 (Current)
+### v2.0.1 - 2026-01-13 (Current)
+
+*   **A. Production Workaround:** Server actions now return `redirectTo` and admin forms perform full-page reloads after auth or create flows to avoid client-side chunk mismatch in the cPanel + LiteSpeed environment.
+*   **B. Codebase Updates:** Dependency cleanup (removed unused bcrypt types), lint/build alignment, admin auth/session helpers refactor, safer media URL helper, middleware routing update, and admin layout/template adjustments.
+
+### v2.0.0 - 2026-01-12
 
 *   **Major Architecture Shift:** Migrated from Strapi CMS to a custom unified Next.js Fullstack architecture.
 *   **Database:** Switched to MariaDB with Drizzle ORM for better type safety and performance.

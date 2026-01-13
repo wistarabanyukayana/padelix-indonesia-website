@@ -53,6 +53,7 @@ export interface ActionState {
   success?: boolean;
   message?: string;
   error?: Record<string, string[]>;
+  redirectTo?: string;
 }
 
 export type FormAction = (state: ActionState, payload: FormData) => Promise<ActionState>;

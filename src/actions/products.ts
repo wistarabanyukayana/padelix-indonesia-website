@@ -4,7 +4,6 @@ import { db } from "@/lib/db";
 import { products, productMedias, productVariants, productSpecifications } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { z } from "zod";
 import { ActionState, MediaPayload, ProductVariantUI, ProductSpecUI } from "@/types";
 import { checkPermission, getSession } from "@/lib/auth";
@@ -148,7 +147,7 @@ export async function createProduct(prevState: ActionState, formData: FormData):
   revalidatePath("/admin/products", "layout");
   revalidatePath("/");
   revalidatePath("/products", "layout");
-  redirect(`/admin/products/${newId}/edit`);
+  return { success: true, redirectTo: `/admin/products/${newId}/edit` };
 }
 
 export async function updateProduct(id: number, prevState: ActionState, formData: FormData): Promise<ActionState> {
