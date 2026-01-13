@@ -272,3 +272,7 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
 
 ## [1.2.0] - 2026-01-07
 - **Legacy version (Next.js + Strapi):** See `OLD.md` for details.
+
+[2.0.1]: https://github.com/wistarabanyukayana/padelix-indonesia-website/compare/v2.0.0...v2.0.1
+[2.0.0]: https://github.com/wistarabanyukayana/padelix-indonesia-website/compare/v1.2.0...v2.0.0
+[1.2.0]: https://github.com/wistarabanyukayana/padelix-indonesia-website/releases/tag/v1.2.0
