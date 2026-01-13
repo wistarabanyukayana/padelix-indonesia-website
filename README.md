@@ -221,27 +221,54 @@ Admin users with the `view_audit_logs` permission can view these records in the 
 
 ---
 
-## Changelog
+# Changelog
 
-### v2.0.1 - 2026-01-13 (Current)
+All notable changes to this project will be documented in this file.
 
-*   **A. Production Workaround:** Server actions now return `redirectTo` and admin forms perform full-page reloads after auth or create flows to avoid client-side chunk mismatch in the cPanel + LiteSpeed environment.
-*   **B. Codebase Updates:** Dependency cleanup (removed unused bcrypt types), lint/build alignment, admin auth/session helpers refactor, safer media URL helper, middleware routing update, and admin layout/template adjustments.
+The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/)**, and this project adheres to **[Semantic Versioning](https://semver.org/spec/v2.0.0.html)**.
 
-### v2.0.0 - 2026-01-12
+## [2.0.1] - 2026-01-13
 
-*   **Major Architecture Shift:** Migrated from Strapi CMS to a custom unified Next.js Fullstack architecture.
-*   **Database:** Switched to MariaDB with Drizzle ORM for better type safety and performance.
-*   **Deployment:** Added `pnpm package` script for one-step production artifact generation.
-*   **Audit Logging:** Implemented a system-wide audit trail for all administrative actions.
-*   **Admin Dashboard:** Fully custom-built Admin UI for managing all entities (Products, Categories, Brands, Portfolios, Users, Roles).
-*   **Media Library:** Enhanced universal media library with batch selection/deletion and improved folder management.
-*   **Mux Integration:** Implemented Mux Webhooks for automated video status updates.
-*   **Production Readiness:** Configured Standalone output for efficient deployment on shared hosting/VPS.
-*   **Mobile UX:** Significant improvements to mobile accessibility across the site and admin panel.
-*   **Toasts:** Integrated Sonner for high-quality, non-intrusive notifications.
-*   **Security:** Enhanced session management with immediate database-backed lockout for deactivated users.
-*   **Clean-up:** Removed all legacy Strapi dependencies and workspace configurations.
+### Added
+- **Production safety note for shared hosting:** documented a cPanel + LiteSpeed-specific mitigation for intermittent “stale chunk” client-side exceptions after auth and create flows.
 
-### v1.2.0 - 2026-01-07
-*   Legacy version (Next.js + Strapi). See `OLD.md` for details.
+### Changed
+- **Production workaround (cPanel + LiteSpeed):** server actions no longer call `redirect(...)` directly. Instead, they return a `{ redirectTo }` payload and the client performs a hard navigation via `window.location.assign(...)` after successful auth/create flows.
+  - Rationale: when the hosting layer serves mismatched/static chunk references, a full navigation guarantees the browser reloads the correct asset graph.
+- **Session/auth structure:** introduced a dedicated `src/lib/session.ts` (JWT cookie creation/decrypt/update/delete) and shifted login/logout server actions to use `createSession()` / `deleteSession()` for clearer separation of concerns.
+- **Admin shell rendering:** moved auth+nav assembly into `src/app/admin/(dashboard)/template.tsx`, leaving `layout.tsx` minimal. This better matches Next.js App Router patterns for auth-gated UI composition.
+- **Middleware routing:** rewired the proxy logic to use the new session decrypt function and a broader matcher that excludes static assets and common binary file types (to avoid unnecessary middleware execution).
+- **Build tooling alignment:** removed the explicit `--webpack` build flag in favor of the default `next build` path.
+
+### Fixed
+- **Media URL helper hardening:** `getDisplayUrl` now tolerates `null/undefined` and missing URLs without throwing.
+- **Modal hydration safety:** avoids relying on a client “mounted” flag and instead guards against `document` being undefined.
+- **Cookie hardening:** session cookie flags now include `secure` (in production), `sameSite: "lax"`, and `path: "/"` for more predictable browser behavior.
+
+### Removed
+- **Redundant typings:** removed `@types/bcryptjs` (bcryptjs ships its own types).
+
+## [2.0.0] - 2026-01-12
+
+### Added
+- **Unified full-stack architecture:** replaced the prior split setup (Next.js frontend + Strapi CMS backend) with a single Next.js App Router codebase serving both public site and admin surface.
+- **Database layer:** introduced MariaDB as the primary datastore with Drizzle ORM for typed schema, queries, and migrations.
+- **Admin dashboard (custom CMS):** implemented a first-party admin UI to manage:
+  - Products, Categories, Brands, Portfolios
+  - Users and Roles (permission-based access control)
+- **Audit logging:** added a system-wide audit trail for administrative actions to support traceability and operational accountability.
+- **Media library:** implemented a unified media system (including improved folder management and batch operations).
+- **Mux integration:** added webhook-based automation for media/video status updates.
+- **Deployment packaging:** added a `pnpm package` workflow to generate a production artifact (`/release`) suitable for shared hosting/VPS deployments.
+- **Production output mode:** configured Next.js standalone output for more portable deployments.
+- **UX improvements:** improved mobile usability across the site and admin, and integrated Sonner for non-intrusive notifications.
+
+### Changed
+- **Security model:** moved to custom session/auth handling with database-backed enforcement (e.g., immediate lockout when a user is deactivated).
+- **Project structure:** consolidated configs and removed workspace-era assumptions to reflect a single-repo full-stack application.
+
+### Removed
+- **Strapi dependency surface:** removed legacy Strapi packages, conventions, and related workspace configuration as part of the migration.
+
+## [1.2.0] - 2026-01-07
+- **Legacy version (Next.js + Strapi):** See `OLD.md` for details.
