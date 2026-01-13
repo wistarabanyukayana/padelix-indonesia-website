@@ -1,0 +1,95 @@
+@import "tailwindcss";
+
+@theme inline {
+  --font-lato: var(--font-lato);
+  --font-inter: var(--font-inter);
+  
+  --radius-brand: 1.875rem;
+  
+  --color-brand-green: #a3e635; /* bg-lime-400 */
+  --color-brand-red: #ef4444;   /* bg-red-500 */
+  --color-brand-dark: #171717;  /* bg-neutral-900 */
+  --color-brand-light: #f8fafc; /* bg-slate-50 */
+}
+
+@layer base {
+  body {
+    @apply bg-white text-neutral-900 overflow-x-hidden;
+    font-family: var(--font-lato), sans-serif;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+}
+
+@layer components {
+  .section {
+    @apply w-full flex flex-col items-center justify-center py-12 px-6 sm:py-20 sm:px-12 md:px-20 lg:px-32 scroll-mt-20;
+  }
+  
+  .wrapper {
+    @apply w-full max-w-7xl flex flex-col;
+  }
+
+  .h1 {
+    @apply text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight;
+  }
+
+  .h2 {
+    @apply text-2xl sm:text-3xl lg:text-4xl font-bold leading-snug;
+  }
+
+  .subheading {
+    @apply text-sm font-bold uppercase tracking-widest text-neutral-500;
+  }
+  
+  .nav-link {
+    @apply font-inter text-lg font-bold hover:text-lime-500 transition-colors;
+  }
+
+  /* Lightbox Fixes */
+  .yarl__container, 
+  .yarl__full_screen_container, 
+  .yarl__slide,
+  .yarl__root {
+    background-color: rgba(0, 0, 0, 0.95) !important;
+  }
+
+  .yarl__toolbar,
+  .yarl__navigation_prev,
+  .yarl__navigation_next,
+  .yarl__button {
+    background-color: transparent !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+  
+  .yarl__slide_image {
+    border: none !important;
+    outline: none !important;
+    background-color: transparent !important;
+    vertical-align: middle;
+    display: block; /* Helps with gaps */
+    margin: auto;
+  }
+
+  .yarl__button {
+    filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.5));
+  }
+
+  /* Fix for potential thin white gap at bottom */
+  .yarl__canvas {
+    background-color: #000 !important;
+  }
+
+  /* Toaster Positioning Fixes */
+  .toaster {
+    z-index: 60 !important;
+  }
+
+  /* Ensure toasts don't overlap with safe areas if they are on the side */
+  .group[data-sonner-toaster] {
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+}
