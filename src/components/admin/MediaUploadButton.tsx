@@ -10,6 +10,7 @@ import { toast } from "sonner";
 export function MediaUploadButton({ currentFolder }: { currentFolder?: string | null }) {
   const [isUploading, setIsUploading] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [queueStatus, setQueueStatus] = useState<{ current: number; total: number } | null>(null);
   const router = useRouter();
   const xhrRef = useRef<XMLHttpRequest | null>(null);
   const pendingMediaIdRef = useRef<number | null>(null);
@@ -27,13 +28,13 @@ export function MediaUploadButton({ currentFolder }: { currentFolder?: string | 
 
         setIsUploading(false);
         setProgress(0);
+        setQueueStatus(null);
         toast.info("Unggahan dibatalkan");
     }
   };
 
-  const handleUpload = async (file: File) => {
+  const uploadSingle = async (file: File) => {
     if (!file) return;
-    setIsUploading(true);
     setProgress(0);
 
     try {
@@ -98,19 +99,41 @@ export function MediaUploadButton({ currentFolder }: { currentFolder?: string | 
       if (error === 'ABORTED') return;
       console.error("Upload error:", error);
       toast.error("Gagal mengunggah file.");
+    }
+  };
+
+  const handleUploads = async (files: FileList) => {
+    const uploadList = Array.from(files);
+    if (uploadList.length === 0) return;
+
+    setIsUploading(true);
+    setQueueStatus({ current: 1, total: uploadList.length });
+
+    try {
+      for (let i = 0; i < uploadList.length; i += 1) {
+        setQueueStatus({ current: i + 1, total: uploadList.length });
+        await uploadSingle(uploadList[i]);
+      }
     } finally {
       setIsUploading(false);
       setProgress(0);
+      setQueueStatus(null);
     }
   };
 
   return (
-    <div className="relative flex items-center gap-2">
+    <div className="relative flex items-center gap-2 text-nowrap lg:text-wrap w-auto">
       <input
         type="file"
         id="media-upload"
         className="hidden"
-        onChange={(e) => e.target.files?.[0] && handleUpload(e.target.files[0])}
+        multiple
+        onChange={(e) => {
+          if (e.target.files?.length) {
+            handleUploads(e.target.files);
+            e.target.value = "";
+          }
+        }}
         disabled={isUploading}
       />
       <label 
@@ -120,7 +143,10 @@ export function MediaUploadButton({ currentFolder }: { currentFolder?: string | 
         {isUploading ? (
           <>
             <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            <span>{progress > 0 ? `${progress}%` : "Mengunggah..."}</span>
+            <span>
+              {queueStatus ? `Mengunggah ${queueStatus.current}/${queueStatus.total}` : "Mengunggah..."}
+              {progress > 0 ? ` · ${progress}%` : ""}
+            </span>
           </>
         ) : (
           <>

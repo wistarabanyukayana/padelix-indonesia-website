@@ -79,7 +79,7 @@ export async function createUser(prevState: ActionState, formData: FormData): Pr
   }
 
   revalidatePath("/admin/users");
-  return { success: true, redirectTo: `/admin/users/${newId}/edit` };
+  return { success: true, redirectTo: `/admin/users/${newId}/edit?new=1` };
 }
 
 export async function updateUser(id: number, prevState: ActionState, formData: FormData): Promise<ActionState> {

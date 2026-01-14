@@ -35,6 +35,21 @@ CREATE TABLE `categories` (
 	CONSTRAINT `categories_uq_slug` UNIQUE INDEX(`slug`)
 );
 --> statement-breakpoint
+CREATE TABLE `medias` (
+	`id` int AUTO_INCREMENT PRIMARY KEY,
+	`name` varchar(255) NOT NULL,
+	`file_key` varchar(255) NOT NULL,
+	`type` enum('image','video','document','audio','other') NOT NULL,
+	`provider` varchar(20) NOT NULL,
+	`mime_type` varchar(100) NOT NULL,
+	`file_size` bigint NOT NULL,
+	`url` text NOT NULL,
+	`metadata` json DEFAULT (NULL),
+	`created_at` datetime NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+	`updated_at` datetime NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+	CONSTRAINT `medias_uq_file_key` UNIQUE INDEX(`file_key`)
+);
+--> statement-breakpoint
 CREATE TABLE `permissions` (
 	`id` int AUTO_INCREMENT PRIMARY KEY,
 	`slug` varchar(50) NOT NULL,
@@ -44,12 +59,12 @@ CREATE TABLE `permissions` (
 	CONSTRAINT `permissions_uq_slug` UNIQUE INDEX(`slug`)
 );
 --> statement-breakpoint
-CREATE TABLE `portfolio_images` (
+CREATE TABLE `portfolio_medias` (
 	`id` int AUTO_INCREMENT PRIMARY KEY,
 	`portfolio_id` int NOT NULL,
+	`media_id` int NOT NULL,
 	`is_primary` boolean NOT NULL,
-	`image_url` varchar(255) NOT NULL,
-	`alt_text` varchar(150) DEFAULT (NULL),
+	`alt_text` varchar(255) DEFAULT (NULL),
 	`sort_order` int NOT NULL,
 	`created_at` datetime NOT NULL DEFAULT (CURRENT_TIMESTAMP),
 	`updated_at` datetime NOT NULL DEFAULT (CURRENT_TIMESTAMP)
@@ -71,12 +86,12 @@ CREATE TABLE `portfolios` (
 	CONSTRAINT `portfolios_uq_title` UNIQUE INDEX(`title`)
 );
 --> statement-breakpoint
-CREATE TABLE `product_images` (
+CREATE TABLE `product_medias` (
 	`id` int AUTO_INCREMENT PRIMARY KEY,
 	`product_id` int NOT NULL,
+	`media_id` int NOT NULL,
 	`is_primary` boolean NOT NULL,
-	`image_url` varchar(255) NOT NULL,
-	`alt_text` varchar(150) DEFAULT (NULL),
+	`alt_text` varchar(255) DEFAULT (NULL),
 	`sort_order` int NOT NULL,
 	`created_at` datetime NOT NULL DEFAULT (CURRENT_TIMESTAMP),
 	`updated_at` datetime NOT NULL DEFAULT (CURRENT_TIMESTAMP)
@@ -97,7 +112,7 @@ CREATE TABLE `product_variants` (
 	`is_active` boolean NOT NULL DEFAULT true,
 	`name` varchar(100) NOT NULL,
 	`sku` varchar(50) DEFAULT (NULL),
-	`price_adjustment` decimal(10,2) NOT NULL DEFAULT (0),
+	`price_adjustment` decimal(20,2) NOT NULL DEFAULT (0),
 	`stock_quantity` decimal(10,2) NOT NULL DEFAULT (0),
 	`is_unlimited_stock` boolean NOT NULL DEFAULT false,
 	`created_at` datetime NOT NULL DEFAULT (CURRENT_TIMESTAMP),
@@ -115,7 +130,8 @@ CREATE TABLE `products` (
 	`is_featured` boolean NOT NULL DEFAULT false,
 	`is_active` boolean NOT NULL DEFAULT false,
 	`description` longtext DEFAULT (NULL),
-	`base_price` decimal(10,2) NOT NULL DEFAULT (0),
+	`base_price` decimal(20,2) NOT NULL DEFAULT (0),
+	`show_price` boolean NOT NULL DEFAULT true,
 	`created_at` datetime NOT NULL DEFAULT (CURRENT_TIMESTAMP),
 	`updated_at` datetime NOT NULL DEFAULT (CURRENT_TIMESTAMP),
 	CONSTRAINT `products_uq_name` UNIQUE INDEX(`name`),
@@ -160,9 +176,11 @@ CREATE TABLE `users_roles` (
 --> statement-breakpoint
 ALTER TABLE `audit_logs` ADD CONSTRAINT `audit_logs_users` FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;--> statement-breakpoint
 ALTER TABLE `categories` ADD CONSTRAINT `categories_parent_categories` FOREIGN KEY (`parent_id`) REFERENCES `categories`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;--> statement-breakpoint
-ALTER TABLE `portfolio_images` ADD CONSTRAINT `portfolio_images_portfolios` FOREIGN KEY (`portfolio_id`) REFERENCES `portfolios`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
+ALTER TABLE `portfolio_medias` ADD CONSTRAINT `portfolio_images_portfolios` FOREIGN KEY (`portfolio_id`) REFERENCES `portfolios`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
+ALTER TABLE `portfolio_medias` ADD CONSTRAINT `portfolio_medias_medias` FOREIGN KEY (`media_id`) REFERENCES `medias`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
 ALTER TABLE `portfolios` ADD CONSTRAINT `portfolios_users` FOREIGN KEY (`created_by`) REFERENCES `users`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;--> statement-breakpoint
-ALTER TABLE `product_images` ADD CONSTRAINT `product_images_products` FOREIGN KEY (`product_id`) REFERENCES `products`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
+ALTER TABLE `product_medias` ADD CONSTRAINT `product_images_products` FOREIGN KEY (`product_id`) REFERENCES `products`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
+ALTER TABLE `product_medias` ADD CONSTRAINT `product_medias_medias` FOREIGN KEY (`media_id`) REFERENCES `medias`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
 ALTER TABLE `product_specifications` ADD CONSTRAINT `product_specifications_products` FOREIGN KEY (`product_id`) REFERENCES `products`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
 ALTER TABLE `product_variants` ADD CONSTRAINT `product_variants_products` FOREIGN KEY (`product_id`) REFERENCES `products`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
 ALTER TABLE `products` ADD CONSTRAINT `products_brands` FOREIGN KEY (`brand_id`) REFERENCES `brands`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;--> statement-breakpoint

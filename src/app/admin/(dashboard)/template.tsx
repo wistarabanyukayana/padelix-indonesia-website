@@ -1,4 +1,5 @@
 import { AdminHeader } from "@/components/admin/AdminHeader";
+import { AdminBodyScrollLock } from "@/components/admin/AdminBodyScrollLock";
 import { AdminStickyBarWatcher } from "@/components/admin/AdminStickyBarWatcher";
 import { PERMISSIONS, Permission } from "@/config/permissions";
 import { verifySession } from "@/lib/dal";
@@ -81,12 +82,14 @@ export default async function AdminDashboardTemplate({
     .filter((n): n is NavSection => n !== null);
 
   return (
-    <div className="h-screen bg-neutral-50 flex flex-col overflow-hidden">
+    <div className="h-screen bg-neutral-50 flex flex-col">
+      <AdminBodyScrollLock />
       <AdminStickyBarWatcher />
-      <AdminHeader user={user} navStructure={filteredNav} />
 
       {/* Main Content - Scrollable */}
       <div className="flex-1 overflow-y-auto flex flex-col">
+        <AdminHeader user={user} navStructure={filteredNav} />
+
         <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {children}
         </main>

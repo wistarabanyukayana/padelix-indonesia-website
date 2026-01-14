@@ -1,13 +1,52 @@
 import { db } from "@/lib/db";
 import { auditLogs } from "@/db/schema";
-import { desc } from "drizzle-orm";
+import { desc, like, or, asc, and } from "drizzle-orm";
 import { checkPermission } from "@/lib/auth";
 import { PERMISSIONS } from "@/config/permissions";
+import { Button } from "@/components/ui/Button";
 
-export default async function AuditLogsPage() {
+interface PageProps {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}
+
+export default async function AuditLogsPage({ searchParams }: PageProps) {
   await checkPermission(PERMISSIONS.VIEW_AUDIT_LOGS);
 
-  const logs = await db.select().from(auditLogs).orderBy(desc(auditLogs.id)).limit(100);
+  const params = await searchParams;
+  const rawQuery = typeof params.q === "string" ? params.q : "";
+  const rawSort = typeof params.sort === "string" ? params.sort : "id";
+  const rawDir = typeof params.dir === "string" ? params.dir : "desc";
+  const searchQuery = rawQuery.trim();
+  const sortKey = rawSort;
+  const sortDir = rawDir === "asc" ? "asc" : "desc";
+
+  const sortMap = {
+    id: auditLogs.id,
+    time: auditLogs.createdAt,
+    action: auditLogs.action,
+    user: auditLogs.usernameSnapshot,
+  };
+  const sortColumn = sortMap[sortKey as keyof typeof sortMap] ?? auditLogs.id;
+
+  const filters = [];
+  if (searchQuery) {
+    filters.push(
+      or(
+        like(auditLogs.action, `%${searchQuery}%`),
+        like(auditLogs.usernameSnapshot, `%${searchQuery}%`),
+        like(auditLogs.details, `%${searchQuery}%`)
+      )
+    );
+  }
+
+  let auditQuery = db.select().from(auditLogs);
+  if (filters.length) {
+    auditQuery = auditQuery.where(and(...filters));
+  }
+
+  const logs = await auditQuery
+    .orderBy(sortDir === "asc" ? asc(sortColumn) : desc(sortColumn))
+    .limit(200);
   const formatDateTime = (value: Date | string | null) => {
     if (!value) return "-";
     const raw = value instanceof Date ? value.toISOString() : value;
@@ -17,8 +56,46 @@ export default async function AuditLogsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col gap-4">
         <h1 className="h2 text-neutral-900">Catatan Audit</h1>
+      </div>
+      <div
+        className="sticky z-30 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-3 bg-neutral-50/95 backdrop-blur border-b border-neutral-200"
+        style={{ top: "var(--app-header-height, 0px)" }}
+      >
+        <form method="get" className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-1 gap-2">
+            <input
+              name="q"
+              defaultValue={searchQuery}
+              placeholder="Cari audit..."
+              className="w-full rounded border border-neutral-200 px-3 py-2 text-sm"
+            />
+            <Button type="submit" variant="outline" size="sm">
+              Cari
+            </Button>
+          </div>
+          <div className="flex gap-2">
+            <select
+              name="sort"
+              defaultValue={sortKey}
+              className="rounded border border-neutral-200 px-3 py-2 text-sm"
+            >
+              <option value="id">ID</option>
+              <option value="time">Waktu</option>
+              <option value="action">Aksi</option>
+              <option value="user">Pengguna</option>
+            </select>
+            <select
+              name="dir"
+              defaultValue={sortDir}
+              className="rounded border border-neutral-200 px-3 py-2 text-sm"
+            >
+              <option value="desc">Desc</option>
+              <option value="asc">Asc</option>
+            </select>
+          </div>
+        </form>
       </div>
 
       <div className="bg-white rounded-brand shadow-sm border border-neutral-200 overflow-hidden">

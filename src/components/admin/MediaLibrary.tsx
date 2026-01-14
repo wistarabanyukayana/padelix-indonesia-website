@@ -1,7 +1,7 @@
 "use client";
 
 import { MediaMetadata } from "@/types";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { DBMedia } from "@/types";
 import { AppImage } from "@/components/general/AppImage";
 import { Button } from "@/components/ui/Button";
@@ -59,10 +59,13 @@ export function MediaLibrary({ initialMedias, onSelect, allowSelection = false, 
   const [physicalFolders, setPhysicalFolders] = useState<string[]>([]);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
+  const [sortKey, setSortKey] = useState("name");
+  const [sortDir, setSortDir] = useState("asc");
   const [currentFolder, setCurrentFolder] = useState<string | null>(null);
   const [isSyncing, setIsSyncing] = useState<number | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const router = useRouter();
+  const breadcrumbRef = useRef<HTMLDivElement>(null);
 
   // Selection State (Admin Mode)
   const [selectedFolders, setSelectedFolders] = useState<Set<string>>(new Set());
@@ -91,6 +94,15 @@ export function MediaLibrary({ initialMedias, onSelect, allowSelection = false, 
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialMedias]);
+
+  useEffect(() => {
+    const container = breadcrumbRef.current;
+    if (!container) return;
+    const raf = requestAnimationFrame(() => {
+      container.scrollTo({ left: container.scrollWidth, behavior: "smooth" });
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [currentFolder]);
 
   // Clear selection on folder change
   useEffect(() => {
@@ -173,6 +185,34 @@ export function MediaLibrary({ initialMedias, onSelect, allowSelection = false, 
     const matchesSearch = m.name.toLowerCase().includes(search.toLowerCase());
     const matchesType = typeFilter === "all" || m.type === typeFilter;
     return inCurrentFolder && matchesSearch && matchesType;
+  });
+  const sortedMedias = [...filteredMedias].sort((a, b) => {
+    const normalizeDate = (value: Date | string | null) => {
+      if (!value) return 0;
+      const raw = value instanceof Date ? value.toISOString() : value;
+      const normalized = /Z$|[+-]\d{2}:\d{2}$/.test(raw) ? raw : `${raw}Z`;
+      return new Date(normalized).getTime();
+    };
+    let valueA: string | number = 0;
+    let valueB: string | number = 0;
+    switch (sortKey) {
+      case "created":
+        valueA = normalizeDate(a.createdAt);
+        valueB = normalizeDate(b.createdAt);
+        break;
+      case "updated":
+        valueA = normalizeDate(a.updatedAt);
+        valueB = normalizeDate(b.updatedAt);
+        break;
+      case "name":
+      default:
+        valueA = a.name.toLowerCase();
+        valueB = b.name.toLowerCase();
+        break;
+    }
+    if (valueA < valueB) return sortDir === "asc" ? -1 : 1;
+    if (valueA > valueB) return sortDir === "asc" ? 1 : -1;
+    return 0;
   });
 
   const handleDelete = async (id: number) => {
@@ -380,36 +420,38 @@ export function MediaLibrary({ initialMedias, onSelect, allowSelection = false, 
         onMove={setMediaToMove}
       />
 
-      {/* Controls - Sticky */}
       <div
-        className="sticky top-0 z-20 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-3 bg-neutral-50 border-b border-neutral-200 transition-all duration-300"
-        style={stickyOffset ? { top: stickyOffset } : undefined}
+        className="sticky z-20 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-3 bg-neutral-50 border-b border-neutral-200 transition-all duration-300"
+        style={{ top: stickyOffset ?? "var(--app-header-height, 0px)" }}
       >
-        <div className="max-w-7xl mx-auto flex flex-col gap-3">
-            {/* Breadcrumbs */}
-            <div className="flex items-center gap-1.5 text-[11px] font-bold text-neutral-400 overflow-x-auto no-scrollbar whitespace-nowrap pb-0.5">
-                <button 
-                    onClick={() => setCurrentFolder(null)}
-                    className={`hover:text-brand-green transition-colors flex items-center gap-1 ${!currentFolder ? 'text-brand-green' : ''}`}
-                >
-                    <Folder size={14} /> Root
-                </button>
-                {currentFolder?.split('/').map((part, i, arr) => (
-                    <div key={i} className="flex items-center gap-2">
-                        <ChevronRight size={12} className="shrink-0" />
+        <div className="max-w-7xl mx-auto">
+            <div className="flex flex-col gap-4 justify-between items-center bg-white p-3 rounded-xl border border-neutral-200 shadow-sm">
+                <div className="w-full">
+                    <div
+                      ref={breadcrumbRef}
+                      className="flex items-center gap-1.5 text-[11px] font-bold text-neutral-400 overflow-x-auto no-scrollbar whitespace-nowrap pb-0.5"
+                    >
                         <button 
-                            onClick={() => setCurrentFolder(arr.slice(0, i + 1).join('/'))}
-                            className={`hover:text-brand-green transition-colors ${i === arr.length - 1 ? 'text-brand-green' : ''}`}
+                            onClick={() => setCurrentFolder(null)}
+                            className={`hover:text-brand-green transition-colors flex items-center gap-1 ${!currentFolder ? 'text-brand-green' : ''}`}
                         >
-                            {part}
+                            <Folder size={14} /> Root
                         </button>
+                        {currentFolder?.split('/').map((part, i, arr) => (
+                            <div key={i} className="flex items-center gap-2">
+                                <ChevronRight size={12} className="shrink-0" />
+                                <button 
+                                    onClick={() => setCurrentFolder(arr.slice(0, i + 1).join('/'))}
+                                    className={`hover:text-brand-green transition-colors ${i === arr.length - 1 ? 'text-brand-green' : ''}`}
+                                >
+                                    {part}
+                                </button>
+                            </div>
+                        ))}
                     </div>
-                ))}
-            </div>
-
-            <div className="flex flex-col md:flex-row gap-4 justify-between items-center bg-white p-3 rounded-xl border border-neutral-200 shadow-sm">
-                <div className="flex flex-col md:flex-row gap-4 flex-1 w-full md:w-auto">
-                    <div className="relative w-full md:w-80">
+                </div>
+                <div className="flex flex-col gap-4 flex-1 w-full">
+                    <div className="relative w-full">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" size={18} />
                         <input
                             type="text"
@@ -419,8 +461,12 @@ export function MediaLibrary({ initialMedias, onSelect, allowSelection = false, 
                             onChange={(e) => setSearch(e.target.value)}
                         />
                     </div>
-                    <div className="flex items-center gap-2 w-full md:w-auto">
-                        <Filter size={16} className="text-neutral-400" />
+                    
+                </div>
+
+                <div className="flex flex-col md:flex-row items-center gap-2 w-full justify-evenly md:justify-between align-middle">
+                    <div className="flex items-center w-full md:w-auto gap-2 justify-between">
+                        <Filter className="text-neutral-400 w-16 sm:w-8 md:w-4" />
                         <select
                             className="p-2.5 border rounded-lg text-sm md:text-base bg-white min-w-[120px] focus:ring-2 focus:ring-brand-green/20 w-full md:w-auto outline-none cursor-pointer"
                             value={typeFilter}
@@ -432,32 +478,49 @@ export function MediaLibrary({ initialMedias, onSelect, allowSelection = false, 
                             <option value="document">Dokumen</option>
                             <option value="audio">Audio</option>
                         </select>
+                        <select
+                            className="p-2.5 border rounded-lg text-sm md:text-base bg-white focus:ring-2 focus:ring-brand-green/20 w-full sm:w-auto outline-none cursor-pointer"
+                            value={sortKey}
+                            onChange={(e) => setSortKey(e.target.value)}
+                        >
+                            <option value="name">Urutkan: Nama</option>
+                            <option value="created">Urutkan: Dibuat</option>
+                            <option value="updated">Urutkan: Diubah</option>
+                        </select>
+                        <select
+                            className="p-2.5 border rounded-lg text-sm md:text-base bg-white focus:ring-2 focus:ring-brand-green/20 w-full sm:w-auto outline-none cursor-pointer"
+                            value={sortDir}
+                            onChange={(e) => setSortDir(e.target.value)}
+                        >
+                            <option value="asc">Asc</option>
+                            <option value="desc">Desc</option>
+                        </select>
                     </div>
-                </div>
-                
-                <div className="flex items-center gap-2 w-full md:w-auto justify-end">
+                    
+                    <div className="flex items-center w-full md:w-auto gap-2 justify-around">
                     <Button 
                         type="button" 
                         variant="outline" 
                         size="sm" 
                         onClick={handleSyncFS} 
                         disabled={isRefreshing}
-                        className="gap-2 text-neutral-600 border-neutral-200"
+                        className="gap-2 text-neutral-600 border-neutral-200 w-full lg:w-auto"
                     >
                         <RefreshCcw size={16} className={isRefreshing ? "animate-spin" : ""} />
-                        <span className="hidden lg:inline">Sinkron Assets</span>
+                        <span className="hidden sm:inline md:hidden lg:inline">Sinkron Assets</span>
                     </Button>
                     <Button 
                         type="button" 
                         variant="outline" 
                         size="sm" 
                         onClick={() => setIsFolderDialogOpen(true)} 
-                        className="gap-2 text-neutral-600 border-neutral-200"
+                        className="gap-2 text-neutral-600 border-neutral-200 w-full lg:w-auto"
                     >
                         <FolderPlus size={16} />
-                        <span className="hidden lg:inline">Folder Baru</span>
+                        <span className="hidden sm:inline md:hidden lg:inline">Folder Baru</span>
                     </Button>
                     <MediaUploadButton currentFolder={currentFolder} />
+                    </div>
                 </div>
             </div>
         </div>
@@ -511,7 +574,7 @@ export function MediaLibrary({ initialMedias, onSelect, allowSelection = false, 
           )})}
 
           {/* Medias */}
-          {filteredMedias.map((m) => {
+          {sortedMedias.map((m) => {
             const meta = parseMetadata(m.metadata);
             
             const muxStatus = meta.status;

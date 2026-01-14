@@ -60,7 +60,7 @@ export async function createBrand(prevState: ActionState, formData: FormData): P
   revalidatePath("/admin/brands", "layout");
   revalidatePath("/admin/products", "layout");
   revalidatePath("/products", "layout");
-  return { success: true, redirectTo: `/admin/brands/${newId}/edit` };
+  return { success: true, redirectTo: `/admin/brands/${newId}/edit?new=1` };
 }
 
 export async function updateBrand(id: number, prevState: ActionState, formData: FormData): Promise<ActionState> {

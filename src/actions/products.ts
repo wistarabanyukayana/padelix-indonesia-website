@@ -147,7 +147,7 @@ export async function createProduct(prevState: ActionState, formData: FormData):
   revalidatePath("/admin/products", "layout");
   revalidatePath("/");
   revalidatePath("/products", "layout");
-  return { success: true, redirectTo: `/admin/products/${newId}/edit` };
+  return { success: true, redirectTo: `/admin/products/${newId}/edit?new=1` };
 }
 
 export async function updateProduct(id: number, prevState: ActionState, formData: FormData): Promise<ActionState> {

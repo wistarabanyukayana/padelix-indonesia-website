@@ -39,19 +39,19 @@ function TreeItem({
         className={`flex items-center ${rowClassName}`}
         style={{ paddingLeft: `${level * indentSize}px` }}
       >
+        <div className="flex-1 min-w-0">
+          {renderLabel(node)}
+        </div>
         {hasChildren && (
           <button
             type="button"
             onClick={() => setIsExpanded(!isExpanded)}
-            className={`p-1 rounded hover:bg-neutral-100 text-neutral-400 transition-colors ${toggleClassName ?? ""}`}
+            className={`p-0.5 rounded hover:bg-neutral-100 text-neutral-400 transition-colors ${toggleClassName ?? ""}`}
+            aria-label={isExpanded ? "Collapse" : "Expand"}
           >
             {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
           </button>
         )}
-
-        <div className="flex-1 min-w-0">
-          {renderLabel(node)}
-        </div>
       </div>
 
       {hasChildren && isExpanded && (

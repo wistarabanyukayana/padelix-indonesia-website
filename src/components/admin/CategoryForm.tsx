@@ -11,9 +11,12 @@ import { MediaDetailsModal } from "./MediaDetailsModal";
 import { CollapsibleTree, TreeNode } from "@/components/ui/CollapsibleTree";
 import { toast } from "sonner";
 import { getDisplayUrl } from "@/lib/utils";
+import { useNewItemToast } from "./useNewItemToast";
 
 export function CategoryForm({ action, initialData, categories, allMedias }: CategoryFormProps) {
   const [state, formAction, isPending] = useActionState(action, {} as ActionState);
+  const { hasNew, clearNewParam } = useNewItemToast("Kategori berhasil dibuat");
+  const lastToastRef = useRef<string | null>(null);
   
   // Details Modal State
   const [detailMedia, setDetailMedia] = useState<DBMedia | null>(null);
@@ -25,14 +28,21 @@ export function CategoryForm({ action, initialData, categories, allMedias }: Cat
   }, [state?.redirectTo]);
 
   useEffect(() => {
-    if (state?.message) {
-      if (state.success) {
-        toast.success(state.message);
-      } else {
-        toast.error(state.message);
-      }
+    if (isPending) lastToastRef.current = null;
+  }, [isPending]);
+
+  useEffect(() => {
+    if (!state?.message) return;
+    const toastKey = `${state.success}-${state.message}`;
+    if (lastToastRef.current === toastKey) return;
+    lastToastRef.current = toastKey;
+    if (state.success) {
+      toast.success(state.message);
+      if (hasNew) clearNewParam();
+    } else {
+      toast.error(state.message);
     }
-  }, [state]);
+  }, [clearNewParam, hasNew, state]);
 
   // Slug Logic
   const [name, setName] = useState(initialData?.name || "");
@@ -221,13 +231,13 @@ export function CategoryForm({ action, initialData, categories, allMedias }: Cat
           {state?.error?.parentId && <p className="text-red-500 text-sm">{state.error.parentId[0]}</p>}
 
           <div className="flex flex-col gap-2 md:col-span-2">
-            <label className="text-sm font-bold text-neutral-700">Deskripsi</label>
+            <label className="text-sm font-bold text-neutral-700">Deskripsi (Opsional)</label>
             <textarea name="description" defaultValue={initialData?.description ?? ""} className="p-2.5 border rounded h-24 text-sm md:text-base" />
             {state?.error?.description && <p className="text-red-500 text-sm">{state.error.description[0]}</p>}
           </div>
 
           <div className="flex flex-col gap-2 md:col-span-2">
-            <label className="text-sm font-bold text-neutral-700">Gambar Kategori</label>
+            <label className="text-sm font-bold text-neutral-700">Gambar Kategori (Opsional)</label>
             <div className="flex flex-col sm:flex-row gap-6 items-start p-6 bg-neutral-50 rounded-xl border border-neutral-200">
                 <div 
                     className={`relative w-32 h-32 flex-shrink-0 rounded-lg bg-white border border-neutral-200 shadow-inner overflow-hidden flex items-center justify-center group/preview ${imageUrl ? 'cursor-pointer' : ''}`}

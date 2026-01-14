@@ -10,9 +10,12 @@ import { MediaSelector } from "./MediaSelector";
 import { MediaDetailsModal } from "./MediaDetailsModal";
 import { toast } from "sonner";
 import { getDisplayUrl } from "@/lib/utils";
+import { useNewItemToast } from "./useNewItemToast";
 
 export function BrandForm({ action, initialData, allMedias }: BrandFormProps) {
   const [state, formAction, isPending] = useActionState(action, {} as ActionState);
+  const { hasNew, clearNewParam } = useNewItemToast("Brand berhasil dibuat");
+  const lastToastRef = useRef<string | null>(null);
   
   // Details Modal State
   const [detailMedia, setDetailMedia] = useState<DBMedia | null>(null);
@@ -24,14 +27,21 @@ export function BrandForm({ action, initialData, allMedias }: BrandFormProps) {
   }, [state?.redirectTo]);
 
   useEffect(() => {
-    if (state?.message) {
-      if (state.success) {
-        toast.success(state.message);
-      } else {
-        toast.error(state.message);
-      }
+    if (isPending) lastToastRef.current = null;
+  }, [isPending]);
+
+  useEffect(() => {
+    if (!state?.message) return;
+    const toastKey = `${state.success}-${state.message}`;
+    if (lastToastRef.current === toastKey) return;
+    lastToastRef.current = toastKey;
+    if (state.success) {
+      toast.success(state.message);
+      if (hasNew) clearNewParam();
+    } else {
+      toast.error(state.message);
     }
-  }, [state]);
+  }, [clearNewParam, hasNew, state]);
 
   // Slug Logic
   const [name, setName] = useState(initialData?.name || "");

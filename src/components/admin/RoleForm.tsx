@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect, useActionState } from "react";
+import { useState, useEffect, useActionState, useRef } from "react";
 import { Button } from "@/components/ui/Button";
 import { Save, ShieldCheck, Key, X } from "lucide-react";
 import { toast } from "sonner";
 import { ActionState, DBPermission, DBRole, FormAction } from "@/types";
 import Link from "next/link";
+import { useNewItemToast } from "./useNewItemToast";
 
 interface RoleFormProps {
   action: FormAction;
@@ -15,6 +16,8 @@ interface RoleFormProps {
 
 export function RoleForm({ action, initialData, permissions }: RoleFormProps) {
   const [state, formAction, isPending] = useActionState(action, {} as ActionState);
+  const { hasNew, clearNewParam } = useNewItemToast("Role berhasil dibuat");
+  const lastToastRef = useRef<string | null>(null);
   
   useEffect(() => {
     if (state?.redirectTo) {
@@ -23,14 +26,21 @@ export function RoleForm({ action, initialData, permissions }: RoleFormProps) {
   }, [state?.redirectTo]);
 
   useEffect(() => {
-    if (state?.message) {
-      if (state.success) {
-        toast.success(state.message);
-      } else {
-        toast.error(state.message);
-      }
+    if (isPending) lastToastRef.current = null;
+  }, [isPending]);
+
+  useEffect(() => {
+    if (!state?.message) return;
+    const toastKey = `${state.success}-${state.message}`;
+    if (lastToastRef.current === toastKey) return;
+    lastToastRef.current = toastKey;
+    if (state.success) {
+      toast.success(state.message);
+      if (hasNew) clearNewParam();
+    } else {
+      toast.error(state.message);
     }
-  }, [state]);
+  }, [clearNewParam, hasNew, state]);
 
   const [selectedPermissions, setSelectedPermissions] = useState<number[]>(initialData?.permissions || []);
 
