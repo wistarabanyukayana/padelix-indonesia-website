@@ -38,7 +38,7 @@ export default async function AdminPortfoliosPage({ searchParams }: PageProps) {
     filters.push(or(like(portfolios.title, `%${searchQuery}%`), like(portfolios.slug, `%${searchQuery}%`)));
   }
 
-  let portfoliosQuery = db.select().from(portfolios);
+  let portfoliosQuery = db.select().from(portfolios).$dynamic();
   if (filters.length) {
     portfoliosQuery = portfoliosQuery.where(and(...filters));
   }

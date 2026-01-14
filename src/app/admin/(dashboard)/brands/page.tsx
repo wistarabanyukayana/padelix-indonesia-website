@@ -35,7 +35,7 @@ export default async function AdminBrandsPage({ searchParams }: PageProps) {
     filters.push(or(like(brands.name, `%${searchQuery}%`), like(brands.slug, `%${searchQuery}%`)));
   }
 
-  let brandsQuery = db.select().from(brands);
+  let brandsQuery = db.select().from(brands).$dynamic();
   if (filters.length) {
     brandsQuery = brandsQuery.where(and(...filters));
   }

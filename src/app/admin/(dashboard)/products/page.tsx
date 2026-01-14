@@ -50,7 +50,8 @@ export default async function AdminProductsPage({ searchParams }: PageProps) {
       categoryName: categories.name,
     })
     .from(products)
-    .leftJoin(categories, eq(products.categoryId, categories.id));
+    .leftJoin(categories, eq(products.categoryId, categories.id))
+    .$dynamic();
 
   if (filters.length) {
     productsQuery = productsQuery.where(and(...filters));

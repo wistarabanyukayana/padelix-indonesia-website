@@ -39,7 +39,7 @@ export default async function AdminUsersPage({ searchParams }: PageProps) {
     filters.push(or(like(users.username, `%${searchQuery}%`), like(users.email, `%${searchQuery}%`)));
   }
 
-  let usersQuery = db.select().from(users);
+  let usersQuery = db.select().from(users).$dynamic();
   if (filters.length) {
     usersQuery = usersQuery.where(and(...filters));
   }
