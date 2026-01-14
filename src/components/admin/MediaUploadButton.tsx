@@ -38,7 +38,7 @@ export function MediaUploadButton({ currentFolder }: { currentFolder?: string | 
 
     try {
       if (file.type.startsWith("video/")) {
-        const uploadInfo = await createMuxUpload(file.name, currentFolder);
+        const uploadInfo = await createMuxUpload(file.name, currentFolder, file.size);
         
         // Link record ID for potential cleanup
         const initialRecord = await getMuxMediaByUploadId(uploadInfo.id);

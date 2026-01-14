@@ -99,7 +99,7 @@ export async function updateUser(id: number, prevState: ActionState, formData: F
     password: formData.get("password"),
   };
 
-  const selectedRoles: number[] = JSON.parse(formData.get("roles") as string || "[]");
+  let selectedRoles: number[] = JSON.parse(formData.get("roles") as string || "[]");
 
   const validated = userSchema.safeParse(rawData);
   if (!validated.success) {
@@ -109,6 +109,28 @@ export async function updateUser(id: number, prevState: ActionState, formData: F
   const { data } = validated;
 
   try {
+    const isSelfUpdate = session.user.id === id;
+    const isSuperAdmin = (session.user.permissions ?? []).includes(PERMISSIONS.MANAGE_USERS);
+
+    if (isSelfUpdate && !isSuperAdmin) {
+      const [currentUser] = await db
+        .select({ isActive: users.isActive })
+        .from(users)
+        .where(eq(users.id, id))
+        .limit(1);
+
+      if (!currentUser) {
+        return { message: "Pengguna tidak ditemukan" };
+      }
+
+      data.isActive = currentUser.isActive;
+      const currentRoles = await db
+        .select({ roleId: usersRoles.rolesId })
+        .from(usersRoles)
+        .where(eq(usersRoles.usersId, id));
+      selectedRoles = currentRoles.map(r => r.roleId);
+    }
+
     const updateData: {
       username: string;
       email: string;

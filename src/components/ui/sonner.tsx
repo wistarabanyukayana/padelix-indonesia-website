@@ -5,34 +5,48 @@ import { useEffect, useState } from "react"
 
 type ToasterProps = React.ComponentProps<typeof Sonner>
 
-interface MobileMenuEvent extends CustomEvent {
-  detail: { isOpen: boolean };
-}
-
 const Toaster = ({ ...props }: ToasterProps) => {
-  const [position, setPosition] = useState<ToasterProps["position"]>("bottom-center");
+  const [position, setPosition] = useState<ToasterProps["position"]>("top-right");
 
   useEffect(() => {
-    const handleToggle = (e: Event) => {
-      const customEvent = e as MobileMenuEvent;
-      setPosition(customEvent.detail.isOpen ? "top-center" : "bottom-center");
+    const media = window.matchMedia("(max-width: 768px)");
+    const update = () => {
+      setPosition(media.matches ? "bottom-center" : "top-right");
     };
 
-    window.addEventListener('mobileMenuToggle', handleToggle);
-    return () => window.removeEventListener('mobileMenuToggle', handleToggle);
+    update();
+    if (media.addEventListener) {
+      media.addEventListener("change", update);
+      return () => media.removeEventListener("change", update);
+    }
+    media.addListener(update);
+    return () => media.removeListener(update);
   }, []);
 
   return (
     <Sonner
       className="toaster group"
       position={position}
-      style={{
-        // h-20 is 5rem (80px). We add a bit more for breathing room.
-        // We set z-index to 40 so it's below the Header (z-50) 
-        // but above most content.
-        top: position === "top-center" ? "5.5rem" : undefined,
-        zIndex: 40,
-      } as React.CSSProperties}
+      richColors
+      offset={
+        position === "bottom-center"
+          ? {
+              bottom: "calc(var(--admin-sticky-bar-height, 7.5rem) + 16px)",
+              right: "16px",
+              left: "16px",
+            }
+          : {
+              top: "calc(var(--app-header-height, 5.5rem) + 12px)",
+              right: "16px",
+            }
+      }
+      mobileOffset={
+        position === "bottom-center"
+          ? {
+              bottom: "calc(var(--admin-sticky-bar-height, 7.5rem) + 16px)",
+            }
+          : undefined
+      }
       toastOptions={{
         classNames: {
           toast:

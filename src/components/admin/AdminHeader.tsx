@@ -18,6 +18,7 @@ export function AdminHeader({ user, navStructure }: AdminHeaderProps) {
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [mobileExpandedGroups, setMobileExpandedGroups] = useState<string[]>([]);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLElement>(null);
   const pathname = usePathname();
   const [isLoggingOut, startLogout] = useTransition();
 
@@ -39,6 +40,28 @@ export function AdminHeader({ user, navStructure }: AdminHeaderProps) {
   useEffect(() => {
     window.dispatchEvent(new CustomEvent('mobileMenuToggle', { detail: { isOpen: isMobileMenuOpen } }));
   }, [isMobileMenuOpen]);
+
+  useEffect(() => {
+    const header = headerRef.current;
+    if (!header) {
+      return;
+    }
+
+    const updateHeight = () => {
+      const height = header.getBoundingClientRect().height;
+      document.documentElement.style.setProperty("--app-header-height", `${height}px`);
+    };
+
+    updateHeight();
+    const resizeObserver = new ResizeObserver(updateHeight);
+    resizeObserver.observe(header);
+    window.addEventListener("resize", updateHeight);
+
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener("resize", updateHeight);
+    };
+  }, []);
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -73,7 +96,10 @@ export function AdminHeader({ user, navStructure }: AdminHeaderProps) {
   };
 
   return (
-    <header className="bg-white border-b border-neutral-200 z-50 flex-none relative pt-[env(safe-area-inset-top)]">
+    <header
+      ref={headerRef}
+      className="bg-white border-b border-neutral-200 z-50 flex-none relative pt-[env(safe-area-inset-top)]"
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
           {/* Logo */}

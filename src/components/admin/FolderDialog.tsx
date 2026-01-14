@@ -32,7 +32,7 @@ export function FolderDialog({ isOpen, onClose, onCreate, currentPath }: FolderD
                 <input 
                     autoFocus
                     type="text" 
-                    className="p-2 border rounded-lg flex-1" 
+                    className="p-2.5 border rounded-lg flex-1 text-sm md:text-base" 
                     placeholder="Contoh: products" 
                     value={folderName}
                     onChange={(e) => setFolderName(e.target.value)}
@@ -41,8 +41,8 @@ export function FolderDialog({ isOpen, onClose, onCreate, currentPath }: FolderD
             <p className="text-xs text-neutral-500">Folder hanya akan tersimpan jika berisi file.</p>
         </div>
         <div className="flex justify-end gap-2 mt-4">
-            <Button type="button" variant="outline" onClick={onClose}>Batal</Button>
-            <Button type="submit" disabled={!folderName.trim()}>Buat Folder</Button>
+            <Button type="button" variant="outline" size="sm" onClick={onClose}>Batal</Button>
+            <Button type="submit" size="sm" disabled={!folderName.trim()}>Buat Folder</Button>
         </div>
       </form>
     </Modal>

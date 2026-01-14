@@ -1,4 +1,5 @@
 import { AdminHeader } from "@/components/admin/AdminHeader";
+import { AdminStickyBarWatcher } from "@/components/admin/AdminStickyBarWatcher";
 import { PERMISSIONS, Permission } from "@/config/permissions";
 import { verifySession } from "@/lib/dal";
 import { NavSection } from "@/types";
@@ -81,6 +82,7 @@ export default async function AdminDashboardTemplate({
 
   return (
     <div className="h-screen bg-neutral-50 flex flex-col overflow-hidden">
+      <AdminStickyBarWatcher />
       <AdminHeader user={user} navStructure={filteredNav} />
 
       {/* Main Content - Scrollable */}

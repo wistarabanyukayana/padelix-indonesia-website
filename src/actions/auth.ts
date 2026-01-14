@@ -61,6 +61,8 @@ export async function login(prevState: ActionState, formData: FormData): Promise
     permissions: permissionSlugs,
   });
 
+  await db.update(users).set({ lastLogin: new Date() }).where(eq(users.id, user.id));
+
   await createAuditLog("AUTH_LOGIN_SUCCESS", user.id, `User logged in: ${user.username}`, { id: user.id, username: user.username });
 
   return { success: true, redirectTo: "/admin" };

@@ -24,6 +24,18 @@ export function MediaDetailsModal({ isOpen, onClose, media, onMove, onDelete }: 
   
   if (!media) return null;
 
+  const formatBytes = (bytes: number) => {
+    if (!bytes) return "Tidak tersedia";
+    const units = ["B", "KB", "MB", "GB", "TB"];
+    let size = bytes;
+    let unitIndex = 0;
+    while (size >= 1024 && unitIndex < units.length - 1) {
+      size /= 1024;
+      unitIndex += 1;
+    }
+    return `${size.toFixed(size >= 10 || unitIndex === 0 ? 0 : 1)} ${units[unitIndex]}`;
+  };
+
   const copyToClipboard = () => {
     navigator.clipboard.writeText(media.url);
     toast.success("URL disalin ke clipboard!");
@@ -71,7 +83,7 @@ export function MediaDetailsModal({ isOpen, onClose, media, onMove, onDelete }: 
         <div className="grid grid-cols-2 gap-4 text-sm">
             <div className="flex flex-col gap-1">
                 <span className="text-neutral-500 text-xs flex items-center gap-1"><HardDrive size={12}/> Ukuran File</span>
-                <span className="font-medium text-neutral-900">{(media.fileSize / 1024).toFixed(2)} KB</span>
+                <span className="font-medium text-neutral-900">{formatBytes(media.fileSize)}</span>
             </div>
             <div className="flex flex-col gap-1">
                 <span className="text-neutral-500 text-xs flex items-center gap-1"><FileType size={12}/> Tipe MIME</span>

@@ -6,7 +6,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
-import { checkPermission } from "@/lib/auth";
+import { checkPermission, getSession } from "@/lib/auth";
 import { PERMISSIONS } from "@/config/permissions";
 
 interface EditUserPageProps {
@@ -36,6 +36,8 @@ export default async function EditUserPage({ params }: EditUserPageProps) {
   };
 
   const updateUserWithId = updateUser.bind(null, userId);
+  const session = await getSession();
+  const isSuperAdmin = (session?.user.permissions ?? []).includes(PERMISSIONS.MANAGE_USERS);
 
   return (
     <div className="flex flex-col gap-6">
@@ -46,7 +48,13 @@ export default async function EditUserPage({ params }: EditUserPageProps) {
         </Link>
       </div>
 
-      <UserForm action={updateUserWithId} initialData={initialData} roles={roleList} />
+      <UserForm
+        action={updateUserWithId}
+        initialData={initialData}
+        roles={roleList}
+        currentUserId={session?.user.id ?? null}
+        isSuperAdmin={isSuperAdmin}
+      />
     </div>
   );
 }

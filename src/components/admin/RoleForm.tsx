@@ -62,7 +62,7 @@ export function RoleForm({ action, initialData, permissions }: RoleFormProps) {
                         <input 
                             name="name" 
                             defaultValue={initialData?.name} 
-                            className="p-2 border rounded" 
+                            className="p-2.5 border rounded text-sm md:text-base" 
                             required 
                             placeholder="Contoh: Editor Konten"
                         />
@@ -74,7 +74,7 @@ export function RoleForm({ action, initialData, permissions }: RoleFormProps) {
                         <textarea 
                             name="description" 
                             defaultValue={initialData?.description ?? ""} 
-                            className="p-2 border rounded h-24 text-sm" 
+                            className="p-2.5 border rounded h-24 text-sm md:text-base" 
                             placeholder="Jelaskan apa yang bisa dilakukan oleh peran ini..."
                         />
                     </div>
@@ -126,13 +126,13 @@ export function RoleForm({ action, initialData, permissions }: RoleFormProps) {
       </div>
 
       {/* Mobile Floating Save Bar */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-md border-t border-neutral-200 p-4 z-40 flex justify-center shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
+      <div data-admin-sticky className="md:hidden fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-md border-t border-neutral-200 p-4 z-40 flex justify-center shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
         <div className="w-full flex items-center justify-between gap-4 px-4">
             <Link href="/admin/roles" className="text-sm font-bold text-neutral-500 hover:text-neutral-700 flex items-center gap-1 transition-colors">
                 <X size={16} /> Batal
             </Link>
-            <Button variant="dark" size="lg" type="submit" disabled={isPending} className="shadow-lg shadow-brand-green/20 px-8">
-                <Save size={18} className="mr-2" />
+            <Button variant="dark" size="md" type="submit" disabled={isPending} className="shadow-lg shadow-brand-green/20">
+                <Save size={16} className="mr-2" />
                 {isPending ? "Simpan..." : "Simpan"}
             </Button>
         </div>

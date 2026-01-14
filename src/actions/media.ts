@@ -262,7 +262,7 @@ export async function updateMediaFolder(id: number, folder: string | null): Prom
   }
 }
 
-export async function syncFileSystemMedias(): Promise<ActionState & { addedCount?: number }> {
+export async function syncFileSystemMedias(): Promise<ActionState & { addedCount?: number; muxUpdatedCount?: number }> {
   const session = await getSession();
   if (!session) return { message: "Sesi berakhir, silakan login kembali" };
 
@@ -272,6 +272,7 @@ export async function syncFileSystemMedias(): Promise<ActionState & { addedCount
     const publicDir = join(process.cwd(), "public");
     const foldersToSync = ["uploads"];
     let addedCount = 0;
+    let muxUpdatedCount = 0;
 
     // Fetch all existing media URLs once
     const existingMedias = await db.select({ url: medias.url }).from(medias);
@@ -333,10 +334,104 @@ export async function syncFileSystemMedias(): Promise<ActionState & { addedCount
       }
     }
 
-    await createAuditLog("MEDIA_SYNC", undefined, `Synchronized filesystem. Added ${addedCount} files.`);
+    const muxMedias = await db.select().from(medias).where(eq(medias.provider, "mux"));
+    for (const media of muxMedias) {
+      const meta = parseMetadata(media.metadata);
+      let assetId = meta?.assetId;
+      const uploadId = typeof meta?.uploadId === "string" ? meta.uploadId : null;
+      let playbackId = meta?.playbackId;
+
+      if (!assetId && uploadId) {
+        try {
+          const upload = await mux.video.uploads.retrieve(uploadId);
+          if (upload?.asset_id) {
+            assetId = upload.asset_id;
+          } else if (upload?.status === "errored" || upload?.status === "cancelled" || upload?.status === "timed_out") {
+            await db.update(medias).set({
+              metadata: {
+                ...meta,
+                status: "errored",
+                uploadStatus: upload.status,
+                error: `Mux upload ${upload.status}`,
+              },
+            }).where(eq(medias.id, media.id));
+            muxUpdatedCount += 1;
+            continue;
+          } else if (upload?.status) {
+            const createdAt = media.createdAt ? new Date(media.createdAt).getTime() : 0;
+            const ageMs = createdAt ? Math.max(0, Date.now() - createdAt) : 0;
+            const staleThresholdMs = 60 * 60 * 1000;
+
+            if (ageMs && ageMs > staleThresholdMs) {
+              await db.update(medias).set({
+                metadata: {
+                  ...meta,
+                  status: "errored",
+                  uploadStatus: upload.status,
+                  error: `Mux upload stale (${upload.status})`,
+                },
+              }).where(eq(medias.id, media.id));
+              muxUpdatedCount += 1;
+              continue;
+            }
+
+            console.warn(
+              `Mux upload ${uploadId} has no asset yet (status: ${upload.status}, ageMs: ${ageMs}).`
+            );
+          }
+        } catch (error) {
+          console.error(`Failed to retrieve Mux upload ${uploadId}:`, error);
+          await db.update(medias).set({
+            metadata: {
+              ...meta,
+              status: "errored",
+              error: "Mux upload not found",
+            },
+          }).where(eq(medias.id, media.id));
+          muxUpdatedCount += 1;
+          continue;
+        }
+      }
+
+      if (!assetId) continue;
+
+      try {
+        const asset = await mux.video.assets.retrieve(assetId);
+        const assetPlaybackId = asset.playback_ids?.[0]?.id;
+        if (assetPlaybackId) playbackId = assetPlaybackId;
+        await db.update(medias).set({
+          fileKey: assetId,
+          url: playbackId ? `https://stream.mux.com/${playbackId}.m3u8` : media.url,
+          metadata: {
+            ...meta,
+            assetId,
+            uploadId: uploadId ?? meta.uploadId,
+            playbackId,
+            status: asset.status,
+            duration: asset.duration ?? meta.duration,
+            aspectRatio: asset.aspect_ratio ?? meta.aspectRatio,
+          },
+        }).where(eq(medias.id, media.id));
+        muxUpdatedCount += 1;
+      } catch (error) {
+        console.error(`Failed to sync Mux media ${media.id}:`, error);
+      }
+    }
+
+    await createAuditLog(
+      "MEDIA_SYNC",
+      undefined,
+      `Synchronized filesystem. Added ${addedCount} files. Synced ${muxUpdatedCount} Mux items.`
+    );
 
     revalidatePath("/admin", "layout");
-    return { success: true, message: `Sinkronisasi selesai. ${addedCount} file baru ditambahkan.`, addedCount };
+    const muxSuffix = muxUpdatedCount > 0 ? ` Status ${muxUpdatedCount} video Mux diperbarui.` : "";
+    return {
+      success: true,
+      message: `Sinkronisasi selesai. ${addedCount} file baru ditambahkan.${muxSuffix}`,
+      addedCount,
+      muxUpdatedCount,
+    };
   } catch (error: unknown) {
     console.error("Sync error:", error);
     const message = error instanceof Error ? error.message : "Terjadi kesalahan";

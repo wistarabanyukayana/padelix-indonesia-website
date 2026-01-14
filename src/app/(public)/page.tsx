@@ -7,7 +7,7 @@ import { Contact } from "@/components/sections/Contact";
 import { getFeaturedProducts, getFeaturedPortfolios } from "@/data/public";
 import { siteConfig } from "@/config/site";
 import { Mail } from "lucide-react";
-import { SiWhatsapp, SiInstagram } from "@icons-pack/react-simple-icons";
+import { SiWhatsapp, SiInstagram, SiFacebook } from "@icons-pack/react-simple-icons";
 
 export const dynamic = "force-dynamic";
 
@@ -48,6 +48,7 @@ const CONTACT_CONTENT = {
     { id: 1, label: "Email", text: siteConfig.contact.email, href: `mailto:${siteConfig.contact.email}`, icon: Mail, color: "bg-brand-red" },
     { id: 2, label: "Whatsapp", text: siteConfig.contact.whatsappDisplay, href: siteConfig.links.whatsapp, icon: SiWhatsapp, color: "bg-brand-green" },
     { id: 3, label: "Instagram", text: `@${siteConfig.contact.instagram}`, href: siteConfig.contact.instagramUrl, icon: SiInstagram, color: "bg-brand-red" },
+    { id: 4, label: "Facebook", text: `${siteConfig.contact.facebook}`, href: siteConfig.contact.facebookUrl, icon: SiFacebook, color: "bg-brand-green" },
   ]
 };
 

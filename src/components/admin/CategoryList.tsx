@@ -35,15 +35,20 @@ function CategoryItem({ node, level = 0 }: { node: CategoryTreeNode; level?: num
 
   return (
     <div className="flex flex-col select-none">
-      <div className="flex items-center hover:bg-neutral-50 transition-colors border-b border-neutral-100 group">
+      <div className="relative flex items-center hover:bg-neutral-50 transition-colors border-b border-neutral-100 group">
+        <Link
+          href={`/admin/categories/${node.id}/edit`}
+          className="absolute inset-0 z-0"
+          aria-label={`Edit kategori ${node.name}`}
+        />
         {/* Indentation */}
-        <div className="flex shrink-0">
+        <div className="flex shrink-0 relative z-10">
             {Array.from({ length: level }).map((_, i) => (
-                <div key={i} className="w-8 h-14 border-r border-neutral-200/50" />
+                <div key={i} className="w-10 h-16 border-r border-neutral-200/50" />
             ))}
         </div>
 
-        <div className="flex-1 flex items-center gap-3 py-2 px-4 min-w-0">
+        <div className="flex-1 flex items-center gap-4 py-3 px-5 min-w-0 relative z-10">
             {/* Toggle Button */}
             <button
                 type="button"
@@ -55,7 +60,7 @@ function CategoryItem({ node, level = 0 }: { node: CategoryTreeNode; level?: num
             </button>
 
             {/* Icon */}
-            <div className="relative w-10 h-10 shrink-0 rounded bg-neutral-100 border border-neutral-200 overflow-hidden">
+            <div className="relative w-12 h-12 shrink-0 rounded-lg bg-neutral-100 border border-neutral-200 overflow-hidden">
                 {node.imageUrl ? (
                     <AppImage src={node.imageUrl} alt={node.name} fill className="object-cover" />
                 ) : (
@@ -64,23 +69,23 @@ function CategoryItem({ node, level = 0 }: { node: CategoryTreeNode; level?: num
             </div>
             
             {/* Info */}
-            <Link href={`/admin/categories/${node.id}/edit`} className="flex-1 flex flex-col min-w-0 cursor-pointer">
+            <div className="flex-1 flex flex-col min-w-0">
                 <div className="flex items-center gap-2">
-                    <h3 className="font-bold text-neutral-900 truncate text-sm">{node.name}</h3>
+                    <h3 className="font-bold text-neutral-900 truncate text-base">{node.name}</h3>
                     {hasChildren && (
                         <span className="text-[10px] bg-neutral-100 text-neutral-500 px-1.5 py-0.5 rounded-full font-bold uppercase">
                             {node.children!.length} Sub
                         </span>
                     )}
                 </div>
-                <p className="text-[10px] text-neutral-400 font-mono">/{node.slug}</p>
-            </Link>
+                <p className="text-xs text-neutral-400 font-mono">/{node.slug}</p>
+            </div>
 
             {/* Actions */}
             <div className="ml-auto flex items-center gap-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                 <Link href={`/admin/categories/${node.id}/edit`}>
                     <Button variant="outline" size="sm" className="h-8 px-2 text-blue-600 border-blue-200 hover:bg-blue-50">
-                        <Edit size={14} className="mr-1" /> <span className="hidden sm:inline">Edit</span>
+                        <Edit size={16} className="mr-1" /> <span className="hidden sm:inline">Edit</span>
                     </Button>
                 </Link>
                 <DeleteCategoryButton id={node.id} name={node.name} />

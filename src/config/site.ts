@@ -11,6 +11,8 @@ export const siteConfig = {
     email: "business@padelix.co.id",
     instagram: "padelixindonesia",
     instagramUrl: "https://www.instagram.com/padelixindonesia/",
+    facebook: "Padelix Indonesia",
+    facebookUrl: "https://www.facebook.com/padelixindonesia"
   },
   links: {
     whatsapp: `https://wa.me/6282122122250`,

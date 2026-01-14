@@ -41,7 +41,7 @@ export default async function AdminCategoriesPage() {
 
       <div className="flex justify-end mt-4">
         <Link href="/admin/categories/new">
-          <Button variant="dark" className="flex items-center gap-2 shadow-lg">
+          <Button variant="dark" size="sm" className="flex items-center gap-2 shadow-lg sm:px-6 sm:py-3 sm:text-base">
             <Plus size={16} />
             <span>Tambah Kategori</span>
           </Button>

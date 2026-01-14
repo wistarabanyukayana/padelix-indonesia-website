@@ -21,7 +21,7 @@ export default async function MediaManagerPage() {
         <p className="text-neutral-500 text-sm">Kelola semua aset gambar, video, dan dokumen di satu tempat.</p>
       </div>
 
-      <MediaLibrary initialMedias={medias} />
+      <MediaLibrary initialMedias={medias} stickyOffset="-2rem" />
     </div>
   );
 }

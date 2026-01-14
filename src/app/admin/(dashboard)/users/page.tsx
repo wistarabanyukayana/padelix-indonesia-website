@@ -11,6 +11,12 @@ import { PERMISSIONS } from "@/config/permissions";
 export default async function AdminUsersPage() {
   await checkPermission(PERMISSIONS.MANAGE_USERS);
   const userList = await db.select().from(users).orderBy(desc(users.createdAt));
+  const formatDateTime = (value: Date | string | null) => {
+    if (!value) return "-";
+    const raw = value instanceof Date ? value.toISOString() : value;
+    const normalized = /Z$|[+-]\d{2}:\d{2}$/.test(raw) ? raw : `${raw}Z`;
+    return new Date(normalized).toLocaleString("id-ID", { timeZone: "Asia/Jakarta" });
+  };
 
   // Fetch roles for each user
   const usersWithRoles = await Promise.all(
@@ -63,12 +69,12 @@ export default async function AdminUsersPage() {
 
                 <Link href={`/admin/users/${u.id}/edit`} className="block p-4 active:bg-neutral-50 transition-colors">
                     <div className="flex gap-4 items-start pr-10">
-                        <div className="relative w-12 h-12 flex-shrink-0 rounded-full bg-brand-light border border-brand-green/20 flex items-center justify-center text-brand-green font-black text-xl">
+                        <div className="relative w-11 h-11 flex-shrink-0 rounded-full bg-brand-light border border-brand-green/20 flex items-center justify-center text-brand-green font-black text-lg">
                             {u.username.charAt(0).toUpperCase()}
                         </div>
                         
                         <div className="flex flex-col flex-1 min-w-0 gap-1">
-                            <h3 className="font-bold text-neutral-900 text-lg leading-tight truncate">
+                            <h3 className="font-bold text-neutral-900 text-base leading-tight truncate">
                                 {u.username}
                             </h3>
                             <p className="text-xs text-neutral-400 truncate">{u.email}</p>
@@ -78,6 +84,10 @@ export default async function AdminUsersPage() {
                                         {role}
                                     </span>
                                 ))}
+                            </div>
+                            <div className="flex items-center gap-1 text-[10px] text-neutral-400 mt-1">
+                                <Clock size={12} />
+                                <span>Login: {formatDateTime(u.lastLogin)}</span>
                             </div>
                         </div>
                     </div>
@@ -134,14 +144,14 @@ export default async function AdminUsersPage() {
                         <td className="px-6 py-4 text-xs text-neutral-400">
                            <div className="flex items-center gap-1">
                                <Clock size={12} />
-                               {u.lastLogin ? new Date(u.lastLogin).toLocaleString('id-ID') : '-'}
+                               {formatDateTime(u.lastLogin)}
                            </div>
                         </td>
                         <td className="px-6 py-4 text-right">
                           <div className="flex items-center justify-end gap-2">
                             <Link href={`/admin/users/${u.id}/edit`}>
                               <Button variant="outline" size="sm" className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50 border-blue-200">
-                                <Edit size={14} />
+                                <Edit size={16} />
                               </Button>
                             </Link>
                             <DeleteUserButton id={u.id} username={u.username} />

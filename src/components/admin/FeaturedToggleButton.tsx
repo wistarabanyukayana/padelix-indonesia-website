@@ -44,7 +44,7 @@ export function FeaturedToggleButton({ id, isFeatured, onToggle }: FeaturedToggl
       disabled={isPending}
       title={isFeatured ? "Hapus dari Unggulan" : "Jadikan Unggulan"}
     >
-      <Star size={14} fill={isFeatured ? "currentColor" : "none"} />
+      <Star size={16} fill={isFeatured ? "currentColor" : "none"} />
     </Button>
   );
 }

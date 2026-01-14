@@ -18,7 +18,7 @@ export function MediaSelector({ onSelect, allMedias, trigger }: MediaSelectorPro
   return (
     <>
       <div onClick={() => setIsOpen(true)}>
-        {trigger || <Button type="button" variant="outline">Pilih dari Library</Button>}
+        {trigger || <Button type="button" variant="outline" size="sm">Pilih dari Library</Button>}
       </div>
 
       {isOpen && (
@@ -28,18 +28,19 @@ export function MediaSelector({ onSelect, allMedias, trigger }: MediaSelectorPro
           
           {/* Modal */}
           <div className="relative bg-white w-full max-w-6xl max-h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden">
-            <div className="flex justify-between items-center p-6 border-b border-neutral-100">
-              <h3 className="text-xl font-bold text-neutral-900">Pilih Media</h3>
+            <div className="flex justify-between items-center p-4 sm:p-6 border-b border-neutral-100">
+              <h3 className="text-lg sm:text-xl font-bold text-neutral-900">Pilih Media</h3>
               <button onClick={() => setIsOpen(false)} className="text-neutral-400 hover:text-neutral-600 transition-colors">
-                <X size={24} />
+                <X className="h-5 w-5 sm:h-6 sm:w-6" />
               </button>
             </div>
 
             <div className="flex-1 overflow-y-auto">
-              <div className="p-6">
+              <div className="px-4 sm:px-6 pb-6 pt-2">
                 <MediaLibrary
                   initialMedias={allMedias}
                   allowSelection
+                  stickyOffset="-0.5rem"
                   onSelect={(media) => {
                     onSelect(media);
                     setIsOpen(false);

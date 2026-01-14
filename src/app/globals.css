@@ -92,4 +92,22 @@
   .group[data-sonner-toaster] {
     padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
   }
+
+  @media (min-width: 769px) {
+    .toaster[data-sonner-position="top-right"] [data-sonner-toast] {
+      animation: toast-slide-in-right 180ms ease-out;
+      will-change: transform, opacity;
+    }
+  }
+
+  @keyframes toast-slide-in-right {
+    from {
+      opacity: 0;
+      transform: translateX(12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
 }
