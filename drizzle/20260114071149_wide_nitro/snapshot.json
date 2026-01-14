@@ -1,9 +1,9 @@
 {
   "version": "6",
   "dialect": "mysql",
-  "id": "923ebf35-2e67-43de-abd6-8b1414049d2f",
+  "id": "4d3d49d3-3649-40bd-87fd-85060a263623",
   "prevIds": [
-    "512743e7-5100-4a9f-ab0f-91cb1b2bc051"
+    "ec267374-8be6-4085-9a65-eaa59237b733"
   ],
   "ddl": [
     {
@@ -19,11 +19,15 @@
       "entityType": "tables"
     },
     {
+      "name": "medias",
+      "entityType": "tables"
+    },
+    {
       "name": "permissions",
       "entityType": "tables"
     },
     {
-      "name": "portfolio_images",
+      "name": "portfolio_medias",
       "entityType": "tables"
     },
     {
@@ -31,7 +35,7 @@
       "entityType": "tables"
     },
     {
-      "name": "product_images",
+      "name": "product_medias",
       "entityType": "tables"
     },
     {
@@ -344,9 +348,9 @@
     },
     {
       "type": "varchar(255)",
-      "notNull": true,
+      "notNull": false,
       "autoIncrement": false,
-      "default": null,
+      "default": "(NULL)",
       "onUpdateNow": false,
       "onUpdateNowFsp": null,
       "charSet": null,
@@ -358,9 +362,9 @@
     },
     {
       "type": "text",
-      "notNull": true,
+      "notNull": false,
       "autoIncrement": false,
-      "default": null,
+      "default": "(NULL)",
       "onUpdateNow": false,
       "onUpdateNowFsp": null,
       "charSet": null,
@@ -397,6 +401,160 @@
       "name": "updated_at",
       "entityType": "columns",
       "table": "categories"
+    },
+    {
+      "type": "int",
+      "notNull": true,
+      "autoIncrement": true,
+      "default": null,
+      "onUpdateNow": false,
+      "onUpdateNowFsp": null,
+      "charSet": null,
+      "collation": null,
+      "generated": null,
+      "name": "id",
+      "entityType": "columns",
+      "table": "medias"
+    },
+    {
+      "type": "varchar(255)",
+      "notNull": true,
+      "autoIncrement": false,
+      "default": null,
+      "onUpdateNow": false,
+      "onUpdateNowFsp": null,
+      "charSet": null,
+      "collation": null,
+      "generated": null,
+      "name": "name",
+      "entityType": "columns",
+      "table": "medias"
+    },
+    {
+      "type": "varchar(255)",
+      "notNull": true,
+      "autoIncrement": false,
+      "default": null,
+      "onUpdateNow": false,
+      "onUpdateNowFsp": null,
+      "charSet": null,
+      "collation": null,
+      "generated": null,
+      "name": "file_key",
+      "entityType": "columns",
+      "table": "medias"
+    },
+    {
+      "type": "enum('image','video','document','audio','other')",
+      "notNull": true,
+      "autoIncrement": false,
+      "default": null,
+      "onUpdateNow": false,
+      "onUpdateNowFsp": null,
+      "charSet": null,
+      "collation": null,
+      "generated": null,
+      "name": "type",
+      "entityType": "columns",
+      "table": "medias"
+    },
+    {
+      "type": "varchar(20)",
+      "notNull": true,
+      "autoIncrement": false,
+      "default": null,
+      "onUpdateNow": false,
+      "onUpdateNowFsp": null,
+      "charSet": null,
+      "collation": null,
+      "generated": null,
+      "name": "provider",
+      "entityType": "columns",
+      "table": "medias"
+    },
+    {
+      "type": "varchar(100)",
+      "notNull": true,
+      "autoIncrement": false,
+      "default": null,
+      "onUpdateNow": false,
+      "onUpdateNowFsp": null,
+      "charSet": null,
+      "collation": null,
+      "generated": null,
+      "name": "mime_type",
+      "entityType": "columns",
+      "table": "medias"
+    },
+    {
+      "type": "bigint",
+      "notNull": true,
+      "autoIncrement": false,
+      "default": null,
+      "onUpdateNow": false,
+      "onUpdateNowFsp": null,
+      "charSet": null,
+      "collation": null,
+      "generated": null,
+      "name": "file_size",
+      "entityType": "columns",
+      "table": "medias"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoIncrement": false,
+      "default": null,
+      "onUpdateNow": false,
+      "onUpdateNowFsp": null,
+      "charSet": null,
+      "collation": null,
+      "generated": null,
+      "name": "url",
+      "entityType": "columns",
+      "table": "medias"
+    },
+    {
+      "type": "json",
+      "notNull": false,
+      "autoIncrement": false,
+      "default": "(NULL)",
+      "onUpdateNow": false,
+      "onUpdateNowFsp": null,
+      "charSet": null,
+      "collation": null,
+      "generated": null,
+      "name": "metadata",
+      "entityType": "columns",
+      "table": "medias"
+    },
+    {
+      "type": "datetime",
+      "notNull": true,
+      "autoIncrement": false,
+      "default": "(CURRENT_TIMESTAMP)",
+      "onUpdateNow": false,
+      "onUpdateNowFsp": null,
+      "charSet": null,
+      "collation": null,
+      "generated": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "table": "medias"
+    },
+    {
+      "type": "datetime",
+      "notNull": true,
+      "autoIncrement": false,
+      "default": "(CURRENT_TIMESTAMP)",
+      "onUpdateNow": false,
+      "onUpdateNowFsp": null,
+      "charSet": null,
+      "collation": null,
+      "generated": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "table": "medias"
     },
     {
       "type": "int",
@@ -480,7 +638,7 @@
       "generated": null,
       "name": "id",
       "entityType": "columns",
-      "table": "portfolio_images"
+      "table": "portfolio_medias"
     },
     {
       "type": "int",
@@ -494,7 +652,21 @@
       "generated": null,
       "name": "portfolio_id",
       "entityType": "columns",
-      "table": "portfolio_images"
+      "table": "portfolio_medias"
+    },
+    {
+      "type": "int",
+      "notNull": true,
+      "autoIncrement": false,
+      "default": null,
+      "onUpdateNow": false,
+      "onUpdateNowFsp": null,
+      "charSet": null,
+      "collation": null,
+      "generated": null,
+      "name": "media_id",
+      "entityType": "columns",
+      "table": "portfolio_medias"
     },
     {
       "type": "boolean",
@@ -508,24 +680,10 @@
       "generated": null,
       "name": "is_primary",
       "entityType": "columns",
-      "table": "portfolio_images"
+      "table": "portfolio_medias"
     },
     {
       "type": "varchar(255)",
-      "notNull": true,
-      "autoIncrement": false,
-      "default": null,
-      "onUpdateNow": false,
-      "onUpdateNowFsp": null,
-      "charSet": null,
-      "collation": null,
-      "generated": null,
-      "name": "image_url",
-      "entityType": "columns",
-      "table": "portfolio_images"
-    },
-    {
-      "type": "varchar(150)",
       "notNull": false,
       "autoIncrement": false,
       "default": "(NULL)",
@@ -536,7 +694,7 @@
       "generated": null,
       "name": "alt_text",
       "entityType": "columns",
-      "table": "portfolio_images"
+      "table": "portfolio_medias"
     },
     {
       "type": "int",
@@ -550,7 +708,7 @@
       "generated": null,
       "name": "sort_order",
       "entityType": "columns",
-      "table": "portfolio_images"
+      "table": "portfolio_medias"
     },
     {
       "type": "datetime",
@@ -564,7 +722,7 @@
       "generated": null,
       "name": "created_at",
       "entityType": "columns",
-      "table": "portfolio_images"
+      "table": "portfolio_medias"
     },
     {
       "type": "datetime",
@@ -578,7 +736,7 @@
       "generated": null,
       "name": "updated_at",
       "entityType": "columns",
-      "table": "portfolio_images"
+      "table": "portfolio_medias"
     },
     {
       "type": "int",
@@ -746,7 +904,7 @@
       "generated": null,
       "name": "id",
       "entityType": "columns",
-      "table": "product_images"
+      "table": "product_medias"
     },
     {
       "type": "int",
@@ -760,7 +918,21 @@
       "generated": null,
       "name": "product_id",
       "entityType": "columns",
-      "table": "product_images"
+      "table": "product_medias"
+    },
+    {
+      "type": "int",
+      "notNull": true,
+      "autoIncrement": false,
+      "default": null,
+      "onUpdateNow": false,
+      "onUpdateNowFsp": null,
+      "charSet": null,
+      "collation": null,
+      "generated": null,
+      "name": "media_id",
+      "entityType": "columns",
+      "table": "product_medias"
     },
     {
       "type": "boolean",
@@ -774,24 +946,10 @@
       "generated": null,
       "name": "is_primary",
       "entityType": "columns",
-      "table": "product_images"
+      "table": "product_medias"
     },
     {
       "type": "varchar(255)",
-      "notNull": true,
-      "autoIncrement": false,
-      "default": null,
-      "onUpdateNow": false,
-      "onUpdateNowFsp": null,
-      "charSet": null,
-      "collation": null,
-      "generated": null,
-      "name": "image_url",
-      "entityType": "columns",
-      "table": "product_images"
-    },
-    {
-      "type": "varchar(150)",
       "notNull": false,
       "autoIncrement": false,
       "default": "(NULL)",
@@ -802,7 +960,7 @@
       "generated": null,
       "name": "alt_text",
       "entityType": "columns",
-      "table": "product_images"
+      "table": "product_medias"
     },
     {
       "type": "int",
@@ -816,7 +974,7 @@
       "generated": null,
       "name": "sort_order",
       "entityType": "columns",
-      "table": "product_images"
+      "table": "product_medias"
     },
     {
       "type": "datetime",
@@ -830,7 +988,7 @@
       "generated": null,
       "name": "created_at",
       "entityType": "columns",
-      "table": "product_images"
+      "table": "product_medias"
     },
     {
       "type": "datetime",
@@ -844,7 +1002,7 @@
       "generated": null,
       "name": "updated_at",
       "entityType": "columns",
-      "table": "product_images"
+      "table": "product_medias"
     },
     {
       "type": "int",
@@ -1001,7 +1159,7 @@
       "table": "product_variants"
     },
     {
-      "type": "decimal(10,2)",
+      "type": "decimal(20,2)",
       "notNull": true,
       "autoIncrement": false,
       "default": "(0)",
@@ -1197,7 +1355,7 @@
       "table": "products"
     },
     {
-      "type": "decimal(10,2)",
+      "type": "decimal(20,2)",
       "notNull": true,
       "autoIncrement": false,
       "default": "(0)",
@@ -1207,6 +1365,20 @@
       "collation": null,
       "generated": null,
       "name": "base_price",
+      "entityType": "columns",
+      "table": "products"
+    },
+    {
+      "type": "boolean",
+      "notNull": true,
+      "autoIncrement": false,
+      "default": "true",
+      "onUpdateNow": false,
+      "onUpdateNowFsp": null,
+      "charSet": null,
+      "collation": null,
+      "generated": null,
+      "name": "show_price",
       "entityType": "columns",
       "table": "products"
     },
@@ -1551,6 +1723,14 @@
         "id"
       ],
       "name": "PRIMARY",
+      "table": "medias",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "name": "PRIMARY",
       "table": "permissions",
       "entityType": "pks"
     },
@@ -1559,7 +1739,7 @@
         "id"
       ],
       "name": "PRIMARY",
-      "table": "portfolio_images",
+      "table": "portfolio_medias",
       "entityType": "pks"
     },
     {
@@ -1575,7 +1755,7 @@
         "id"
       ],
       "name": "PRIMARY",
-      "table": "product_images",
+      "table": "product_medias",
       "entityType": "pks"
     },
     {
@@ -1681,6 +1861,22 @@
       "name": "categories_uq_slug",
       "entityType": "indexes",
       "table": "categories"
+    },
+    {
+      "columns": [
+        {
+          "value": "file_key",
+          "isExpression": false
+        }
+      ],
+      "isUnique": true,
+      "using": null,
+      "algorithm": null,
+      "lock": null,
+      "nameExplicit": true,
+      "name": "medias_uq_file_key",
+      "entityType": "indexes",
+      "table": "medias"
     },
     {
       "columns": [
@@ -1869,7 +2065,22 @@
       "nameExplicit": true,
       "name": "portfolio_images_portfolios",
       "entityType": "fks",
-      "table": "portfolio_images"
+      "table": "portfolio_medias"
+    },
+    {
+      "columns": [
+        "media_id"
+      ],
+      "tableTo": "medias",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "CASCADE",
+      "nameExplicit": true,
+      "name": "portfolio_medias_medias",
+      "entityType": "fks",
+      "table": "portfolio_medias"
     },
     {
       "columns": [
@@ -1899,7 +2110,22 @@
       "nameExplicit": true,
       "name": "product_images_products",
       "entityType": "fks",
-      "table": "product_images"
+      "table": "product_medias"
+    },
+    {
+      "columns": [
+        "media_id"
+      ],
+      "tableTo": "medias",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "CASCADE",
+      "nameExplicit": true,
+      "name": "product_medias_medias",
+      "entityType": "fks",
+      "table": "product_medias"
     },
     {
       "columns": [

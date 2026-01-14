@@ -15,9 +15,12 @@ import { CollapsibleTree, TreeNode } from "@/components/ui/CollapsibleTree";
 import { useRef } from "react";
 import { toast } from "sonner";
 import { getDisplayUrl, parseMetadata } from "@/lib/utils";
+import { useNewItemToast } from "./useNewItemToast";
 
 export function ProductForm({ action, initialData, categories, brands, allMedias, currentFolder }: ProductFormProps & { currentFolder?: string | null }) {
   const [state, formAction, isPending] = useActionState(action, {} as ActionState);
+  const { hasNew, clearNewParam } = useNewItemToast("Produk berhasil dibuat");
+  const lastToastRef = useRef<string | null>(null);
   
   // Details Modal State
   const [detailMedia, setDetailMedia] = useState<DBMedia | null>(null);
@@ -29,14 +32,21 @@ export function ProductForm({ action, initialData, categories, brands, allMedias
   }, [state?.redirectTo]);
 
   useEffect(() => {
-    if (state?.message) {
-      if (state.success) {
-        toast.success(state.message);
-      } else {
-        toast.error(state.message);
-      }
+    if (isPending) lastToastRef.current = null;
+  }, [isPending]);
+
+  useEffect(() => {
+    if (!state?.message) return;
+    const toastKey = `${state.success}-${state.message}`;
+    if (lastToastRef.current === toastKey) return;
+    lastToastRef.current = toastKey;
+    if (state.success) {
+      toast.success(state.message);
+      if (hasNew) clearNewParam();
+    } else {
+      toast.error(state.message);
     }
-  }, [state]);
+  }, [clearNewParam, hasNew, state]);
 
   const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
   const [uploadProgress, setUploadProgress] = useState<number>(0);

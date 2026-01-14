@@ -15,9 +15,31 @@ const NAV_LINKS = [
 export function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const headerRef = useRef<HTMLElement>(null);
+  const mobileNavRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     window.dispatchEvent(new CustomEvent('mobileMenuToggle', { detail: { isOpen } }));
+    document.body.style.overflow = isOpen ? "hidden" : "";
+    document.body.style.touchAction = isOpen ? "none" : "";
+    return () => {
+      document.body.style.overflow = "";
+      document.body.style.touchAction = "";
+    };
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleScrollOutside = (event: Event) => {
+      const target = event.target as Node | null;
+      if (target && mobileNavRef.current?.contains(target)) return;
+      setIsOpen(false);
+    };
+    document.addEventListener("wheel", handleScrollOutside, { passive: true });
+    document.addEventListener("touchmove", handleScrollOutside, { passive: true });
+    return () => {
+      document.removeEventListener("wheel", handleScrollOutside);
+      document.removeEventListener("touchmove", handleScrollOutside);
+    };
   }, [isOpen]);
 
   useEffect(() => {
@@ -47,6 +69,15 @@ export function Header() {
       ref={headerRef}
       className="sticky top-0 z-50 w-full bg-white border-b border-neutral-200 pt-[env(safe-area-inset-top)]"
     >
+      {isOpen && (
+        <button
+          type="button"
+          aria-label="Tutup menu"
+          onClick={() => setIsOpen(false)}
+          className="fixed left-0 right-0 bottom-0 bg-black/40 md:hidden z-40"
+          style={{ top: "var(--app-header-height)" }}
+        />
+      )}
       <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between relative">
         {/* Logo Container - 1.5x larger visual size with vertical overflow */}
         <div className="w-48 h-10 flex-shrink-0 relative">
@@ -84,10 +115,13 @@ export function Header() {
       </div>
 
       {/* Mobile Nav Dropdown */}
-      <div className={cn(
-        "absolute top-full left-0 w-full bg-white z-40 md:hidden flex flex-col items-center overflow-hidden transition-all duration-300 ease-in-out shadow-xl origin-top",
+      <div
+        ref={mobileNavRef}
+        className={cn(
+        "absolute top-full left-0 w-full bg-white z-50 md:hidden flex flex-col items-center overflow-hidden transition-all duration-300 ease-in-out shadow-xl origin-top",
         isOpen ? "max-h-75 py-4 border-b border-neutral-200 opacity-100" : "max-h-0 py-0 opacity-0"
-      )}>
+      )}
+      >
         {NAV_LINKS.map((link) => (
           <Link 
             key={link.id} 

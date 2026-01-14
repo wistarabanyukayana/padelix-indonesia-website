@@ -1,11 +1,12 @@
 "use client";
 
-import { useActionState, useState, useEffect } from "react";
+import { useActionState, useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/Button";
-import { Save, X, Shield, User as UserIcon } from "lucide-react";
+import { Save, X, Shield, User as UserIcon, Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import { ActionState, DBRole, DetailedUser, FormAction } from "@/types";
 import { toast } from "sonner";
+import { useNewItemToast } from "./useNewItemToast";
 
 interface UserFormProps {
   action: FormAction;
@@ -17,6 +18,8 @@ interface UserFormProps {
 
 export function UserForm({ action, initialData, roles, currentUserId, isSuperAdmin = false }: UserFormProps) {
   const [state, formAction, isPending] = useActionState(action, {} as ActionState);
+  const { hasNew, clearNewParam } = useNewItemToast("Pengguna berhasil dibuat");
+  const lastToastRef = useRef<string | null>(null);
   
   useEffect(() => {
     if (state?.redirectTo) {
@@ -25,19 +28,27 @@ export function UserForm({ action, initialData, roles, currentUserId, isSuperAdm
   }, [state?.redirectTo]);
 
   useEffect(() => {
-    if (state?.message) {
-      if (state.success) {
-        toast.success(state.message);
-      } else {
-        toast.error(state.message);
-      }
+    if (isPending) lastToastRef.current = null;
+  }, [isPending]);
+
+  useEffect(() => {
+    if (!state?.message) return;
+    const toastKey = `${state.success}-${state.message}`;
+    if (lastToastRef.current === toastKey) return;
+    lastToastRef.current = toastKey;
+    if (state.success) {
+      toast.success(state.message);
+      if (hasNew) clearNewParam();
+    } else {
+      toast.error(state.message);
     }
-  }, [state]);
+  }, [clearNewParam, hasNew, state]);
 
   // Selected Roles State
   const [selectedRoles, setSelectedRoles] = useState<number[]>(initialData?.roles || []);
   const isSelfEditing = !!initialData && currentUserId === initialData.id;
   const lockSelfChanges = isSelfEditing && !isSuperAdmin;
+  const [showPassword, setShowPassword] = useState(false);
 
   const toggleRole = (roleId: number) => {
     if (lockSelfChanges) return;
@@ -91,13 +102,23 @@ export function UserForm({ action, initialData, roles, currentUserId, isSuperAdm
 
                     <div className="flex flex-col gap-2 md:col-span-2">
                         <label className="text-sm font-bold text-neutral-700">Password {initialData ? "(Kosongkan jika tidak ingin mengubah)" : ""}</label>
-                        <input 
-                            type="password"
-                            name="password" 
-                            className="p-2.5 border rounded text-sm md:text-base" 
-                            required={!initialData}
-                            placeholder={initialData ? "••••••••" : "Password minimal 6 karakter"}
-                        />
+                        <div className="relative">
+                            <input 
+                                type={showPassword ? "text" : "password"}
+                                name="password" 
+                                className="w-full p-2.5 pr-10 border rounded text-sm md:text-base" 
+                                required={!initialData}
+                                placeholder={initialData ? "••••••••" : "Password minimal 6 karakter"}
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword((value) => !value)}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-700 transition-colors"
+                                aria-label={showPassword ? "Sembunyikan password" : "Tampilkan password"}
+                            >
+                                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                            </button>
+                        </div>
                         {state?.error?.password && <p className="text-red-500 text-sm font-bold">{state.error.password[0]}</p>}
                     </div>
 

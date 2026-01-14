@@ -14,8 +14,14 @@ import { createAuditLog } from "@/lib/audit";
 const categorySchema = z.object({
   name: z.string().min(1, "Nama kategori wajib diisi"),
   slug: z.string().min(1, "Slug wajib diisi"),
-  description: z.string().min(1, "Deskripsi wajib diisi"),
-  imageUrl: z.string().min(1, "Gambar kategori wajib diisi"),
+  description: z.preprocess(
+    (value) => (typeof value === "string" && value.trim() === "" ? null : value),
+    z.string().min(1, "Deskripsi tidak valid").nullable().optional()
+  ),
+  imageUrl: z.preprocess(
+    (value) => (typeof value === "string" && value.trim() === "" ? null : value),
+    z.string().min(1, "Gambar kategori tidak valid").nullable().optional()
+  ),
   parentId: z.number().nullable().optional(),
 });
 
@@ -49,8 +55,8 @@ export async function createCategory(prevState: ActionState, formData: FormData)
     const [result] = await db.insert(categories).values({
         name: validated.data.name,
         slug: validated.data.slug,
-        description: validated.data.description,
-        imageUrl: validated.data.imageUrl,
+        description: validated.data.description ?? null,
+        imageUrl: validated.data.imageUrl ?? null,
         parentId: validated.data.parentId,
     }).$returningId();
     newId = result.id;
@@ -63,7 +69,7 @@ export async function createCategory(prevState: ActionState, formData: FormData)
   revalidatePath("/admin/categories", "layout");
   revalidatePath("/admin/products", "layout");
   revalidatePath("/products", "layout");
-  return { success: true, redirectTo: `/admin/categories/${newId}/edit` };
+  return { success: true, redirectTo: `/admin/categories/${newId}/edit?new=1` };
 }
 
 export async function updateCategory(id: number, prevState: ActionState, formData: FormData): Promise<ActionState> {
@@ -94,8 +100,8 @@ export async function updateCategory(id: number, prevState: ActionState, formDat
     await db.update(categories).set({
         name: validated.data.name,
         slug: validated.data.slug,
-        description: validated.data.description,
-        imageUrl: validated.data.imageUrl,
+        description: validated.data.description ?? null,
+        imageUrl: validated.data.imageUrl ?? null,
         parentId: validated.data.parentId,
     }).where(eq(categories.id, id));
     await createAuditLog("CATEGORY_UPDATE", id, `Updated category: ${validated.data.name}`);

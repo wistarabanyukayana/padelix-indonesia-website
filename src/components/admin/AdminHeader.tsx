@@ -15,12 +15,16 @@ interface AdminHeaderProps {
 
 export function AdminHeader({ user, navStructure }: AdminHeaderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMobileUserMenuOpen, setIsMobileUserMenuOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [mobileExpandedGroups, setMobileExpandedGroups] = useState<string[]>([]);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const mobileUserMenuRef = useRef<HTMLDivElement>(null);
+  const mobileNavRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLElement>(null);
   const pathname = usePathname();
   const [isLoggingOut, startLogout] = useTransition();
+  const [now, setNow] = useState(() => new Date());
 
   // Reset menus on route change
   const [lastPathname, setLastPathname] = useState(pathname);
@@ -29,6 +33,7 @@ export function AdminHeader({ user, navStructure }: AdminHeaderProps) {
     setOpenDropdown(null);
     setIsMobileMenuOpen(false);
     setMobileExpandedGroups([]);
+    setIsMobileUserMenuOpen(false);
   }
 
   const toggleMobileGroup = (label: string) => {
@@ -40,6 +45,11 @@ export function AdminHeader({ user, navStructure }: AdminHeaderProps) {
   useEffect(() => {
     window.dispatchEvent(new CustomEvent('mobileMenuToggle', { detail: { isOpen: isMobileMenuOpen } }));
   }, [isMobileMenuOpen]);
+
+  useEffect(() => {
+    const interval = setInterval(() => setNow(new Date()), 60000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const header = headerRef.current;
@@ -66,13 +76,35 @@ export function AdminHeader({ user, navStructure }: AdminHeaderProps) {
   // Close dropdowns when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      if (dropdownRef.current && !dropdownRef.current.contains(target)) {
         setOpenDropdown(null);
+      }
+      if (mobileUserMenuRef.current && !mobileUserMenuRef.current.contains(target)) {
+        setIsMobileUserMenuOpen(false);
+      }
+      if (mobileNavRef.current && !mobileNavRef.current.contains(target)) {
+        setIsMobileMenuOpen(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (!isMobileMenuOpen) return;
+    const handleScrollOutside = (event: Event) => {
+      const target = event.target as Node | null;
+      if (target && mobileNavRef.current?.contains(target)) return;
+      setIsMobileMenuOpen(false);
+    };
+    document.addEventListener("wheel", handleScrollOutside, { passive: true });
+    document.addEventListener("touchmove", handleScrollOutside, { passive: true });
+    return () => {
+      document.removeEventListener("wheel", handleScrollOutside);
+      document.removeEventListener("touchmove", handleScrollOutside);
+    };
+  }, [isMobileMenuOpen]);
 
   const isActive = (path: string) => {
     return pathname === path || (path !== "/admin" && pathname.startsWith(path));
@@ -98,13 +130,42 @@ export function AdminHeader({ user, navStructure }: AdminHeaderProps) {
   return (
     <header
       ref={headerRef}
-      className="bg-white border-b border-neutral-200 z-50 flex-none relative pt-[env(safe-area-inset-top)]"
+      className="bg-white border-b border-neutral-200 z-50 flex-none relative pt-[env(safe-area-inset-top)] sticky top-0"
     >
+      {isMobileMenuOpen && (
+        <button
+          type="button"
+          aria-label="Tutup menu"
+          onClick={() => {
+            setIsMobileMenuOpen(false);
+          }}
+          className="fixed left-0 right-0 bottom-0 bg-black/40 lg:hidden z-40"
+          style={{ top: "var(--app-header-height)" }}
+        />
+      )}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16 items-center">
+        <div className="relative flex justify-between h-16 items-center">
+          {/* Mobile Menu Button (Left) */}
+          <div className="flex items-center lg:hidden">
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-brand-green"
+            >
+              <span className="sr-only">Buka menu utama</span>
+              {isMobileMenuOpen ? (
+                <X className="block h-6 w-6" aria-hidden="true" />
+              ) : (
+                <Menu className="block h-6 w-6" aria-hidden="true" />
+              )}
+            </button>
+          </div>
+
           {/* Logo */}
           <div className="flex items-center gap-4">
-            <Link href="/admin" className="text-xl font-black text-brand-green tracking-tighter">
+            <Link
+              href="/admin"
+              className="text-xl font-black text-brand-green tracking-tighter absolute left-1/2 -translate-x-1/2 lg:static lg:translate-x-0"
+            >
               PADELIX<span className="text-neutral-900">ADMIN</span>
             </Link>
             <div className="h-6 w-px bg-neutral-200 hidden sm:block" />
@@ -118,7 +179,7 @@ export function AdminHeader({ user, navStructure }: AdminHeaderProps) {
           </div>
 
           {/* Desktop Nav */}
-          <nav className="hidden md:flex space-x-2" ref={dropdownRef}>
+          <nav className="hidden lg:flex space-x-2" ref={dropdownRef}>
             {navStructure.map((section) => {
               if (section.type === "link") {
                 return (
@@ -178,11 +239,14 @@ export function AdminHeader({ user, navStructure }: AdminHeaderProps) {
           </nav>
 
           {/* User / Logout */}
-          <div className="hidden md:flex items-center gap-4">
+          <div className="hidden lg:flex items-center gap-4">
             <div className="flex flex-col items-end">
                 <span className="text-sm font-bold text-neutral-900">{user.username}</span>
                 <span className="text-[10px] text-neutral-400 uppercase font-black tracking-tighter leading-none">
                     {(user.permissions ?? []).includes('manage_users') ? 'Super Admin' : 'Editor'}
+                </span>
+                <span className="text-[10px] text-neutral-400 uppercase font-black tracking-tighter leading-none mt-1">
+                    {new Intl.DateTimeFormat("id-ID", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }).format(now)}
                 </span>
             </div>
             <Button
@@ -197,26 +261,47 @@ export function AdminHeader({ user, navStructure }: AdminHeaderProps) {
             </Button>
           </div>
 
-          {/* Mobile Menu Button */}
-          <div className="flex items-center md:hidden">
-            <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-brand-green"
-            >
-              <span className="sr-only">Buka menu utama</span>
-              {isMobileMenuOpen ? (
-                <X className="block h-6 w-6" aria-hidden="true" />
-              ) : (
-                <Menu className="block h-6 w-6" aria-hidden="true" />
+          {/* Mobile User Menu (Right) */}
+          <div className="flex items-center lg:hidden gap-2">
+            <div className="relative" ref={mobileUserMenuRef}>
+              <button
+                type="button"
+                onClick={() => setIsMobileUserMenuOpen((prev) => !prev)}
+                className="h-9 w-9 rounded-full bg-brand-green text-white text-sm font-black flex items-center justify-center"
+                aria-label="Buka menu pengguna"
+              >
+                {user.username.charAt(0).toUpperCase()}
+              </button>
+              {isMobileUserMenuOpen && (
+                <div className="absolute right-0 mt-2 w-56 rounded-xl border border-neutral-200 bg-white shadow-xl z-50 overflow-hidden">
+                  <div className="px-4 py-3 border-b border-neutral-100">
+                    <div className="text-sm font-bold text-neutral-900">{user.username}</div>
+                    <div className="text-xs text-neutral-500">{user.email}</div>
+                    <div className="text-[10px] text-neutral-400 uppercase font-black tracking-tighter leading-none mt-2">
+                      {(user.permissions ?? []).includes('manage_users') ? 'Super Admin' : 'Editor'}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    className="w-full text-left px-4 py-2 text-sm font-semibold text-red-600 hover:bg-red-50"
+                    onClick={handleLogout}
+                    disabled={isLoggingOut}
+                  >
+                    Logout
+                  </button>
+                </div>
               )}
-            </button>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Mobile Menu */}
       {isMobileMenuOpen && (
-        <div className="md:hidden bg-white border-b border-neutral-200 absolute top-16 left-0 right-0 shadow-lg z-50 max-h-[calc(100vh-4rem)] overflow-y-auto">
+        <div
+          ref={mobileNavRef}
+          className="lg:hidden bg-white border-b border-neutral-200 absolute top-16 left-0 right-0 shadow-lg z-50 max-h-[calc(100vh-4rem)] overflow-y-auto"
+        >
           <div className="pt-2 pb-3 space-y-1 px-2">
             {navStructure.map((section) => {
               if (section.type === "link") {
@@ -279,7 +364,7 @@ export function AdminHeader({ user, navStructure }: AdminHeaderProps) {
                 <Link
                 href="/"
                 target="_blank"
-                className="block px-3 py-2 rounded-md text-base font-medium text-neutral-500 hover:bg-gray-50 hover:text-brand-green"
+                className="block sm:hidden px-3 py-2 rounded-md text-base font-medium text-neutral-500 hover:bg-gray-50 hover:text-brand-green"
                 >
                 Lihat Website <ExternalLink size={14} className="inline ml-1" />
                 </Link>
@@ -287,26 +372,8 @@ export function AdminHeader({ user, navStructure }: AdminHeaderProps) {
           </div>
           
           <div className="pt-4 pb-4 border-t border-neutral-200 bg-gray-50">
-            <div className="flex items-center px-4">
-              <div className="flex-shrink-0">
-                <div className="h-10 w-10 rounded-full bg-brand-green flex items-center justify-center text-white font-bold text-lg">
-                  {user.username.charAt(0).toUpperCase()}
-                </div>
-              </div>
-              <div className="ml-3">
-                <div className="text-base font-bold text-gray-800">{user.username}</div>
-                <div className="text-xs font-medium text-gray-500">{user.email}</div>
-              </div>
-            </div>
-            <div className="mt-3 px-2 space-y-1">
-              <button
-                type="button"
-                className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-red-600 hover:text-red-800 hover:bg-red-50"
-                onClick={handleLogout}
-                disabled={isLoggingOut}
-              >
-                Logout
-              </button>
+            <div className="px-4 text-xs font-semibold text-neutral-500 uppercase tracking-widest">
+              Navigasi Admin
             </div>
           </div>
         </div>

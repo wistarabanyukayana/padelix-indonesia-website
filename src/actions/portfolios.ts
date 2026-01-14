@@ -100,7 +100,7 @@ export async function createPortfolio(prevState: ActionState, formData: FormData
 
   revalidatePath("/admin/portfolios", "layout");
   revalidatePath("/");
-  return { success: true, redirectTo: `/admin/portfolios/${newId}/edit` };
+  return { success: true, redirectTo: `/admin/portfolios/${newId}/edit?new=1` };
 }
 
 export async function updatePortfolio(id: number, prevState: ActionState, formData: FormData): Promise<ActionState> {

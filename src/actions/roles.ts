@@ -66,7 +66,7 @@ export async function createRole(prevState: ActionState, formData: FormData): Pr
 
   revalidatePath("/admin/users");
   revalidatePath("/admin/roles");
-  return { success: true, redirectTo: `/admin/roles/${newId}/edit` };
+  return { success: true, redirectTo: `/admin/roles/${newId}/edit?new=1` };
 }
 
 export async function updateRole(id: number, prevState: ActionState, formData: FormData): Promise<ActionState> {

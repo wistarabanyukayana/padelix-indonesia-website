@@ -40,7 +40,7 @@ export function MediaSelector({ onSelect, allMedias, trigger }: MediaSelectorPro
                 <MediaLibrary
                   initialMedias={allMedias}
                   allowSelection
-                  stickyOffset="-0.5rem"
+                  stickyOffset="0"
                   onSelect={(media) => {
                     onSelect(media);
                     setIsOpen(false);

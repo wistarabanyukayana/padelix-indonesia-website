@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { portfolios, portfolioMedias, medias } from "@/db/schema";
-import { desc, eq, and } from "drizzle-orm";
+import { desc, eq, and, like, or, asc } from "drizzle-orm";
 import { Button } from "@/components/ui/Button";
 import Link from "next/link";
 import { AppImage } from "@/components/general/AppImage";
@@ -12,9 +12,40 @@ import { checkPermission } from "@/lib/auth";
 import { PERMISSIONS } from "@/config/permissions";
 import { getDisplayUrl } from "@/lib/utils";
 
-export default async function AdminPortfoliosPage() {
+interface PageProps {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}
+
+export default async function AdminPortfoliosPage({ searchParams }: PageProps) {
   await checkPermission(PERMISSIONS.MANAGE_PORTFOLIOS);
-  const portfolioList = await db.select().from(portfolios).orderBy(desc(portfolios.createdAt));
+  const params = await searchParams;
+  const rawQuery = typeof params.q === "string" ? params.q : "";
+  const rawSort = typeof params.sort === "string" ? params.sort : "updated";
+  const rawDir = typeof params.dir === "string" ? params.dir : "desc";
+  const searchQuery = rawQuery.trim();
+  const sortKey = rawSort;
+  const sortDir = rawDir === "asc" ? "asc" : "desc";
+
+  const sortMap = {
+    updated: portfolios.updatedAt,
+    created: portfolios.createdAt,
+    name: portfolios.title,
+  };
+  const sortColumn = sortMap[sortKey as keyof typeof sortMap] ?? portfolios.updatedAt;
+
+  const filters = [];
+  if (searchQuery) {
+    filters.push(or(like(portfolios.title, `%${searchQuery}%`), like(portfolios.slug, `%${searchQuery}%`)));
+  }
+
+  let portfoliosQuery = db.select().from(portfolios);
+  if (filters.length) {
+    portfoliosQuery = portfoliosQuery.where(and(...filters));
+  }
+
+  const portfolioList = await portfoliosQuery.orderBy(
+    sortDir === "asc" ? asc(sortColumn) : desc(sortColumn)
+  );
 
   const portfoliosWithImages = await Promise.all(
     portfolioList.map(async (p) => {
@@ -34,8 +65,45 @@ export default async function AdminPortfoliosPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col gap-4">
         <h1 className="h2 text-neutral-900">Manajemen Portofolio</h1>
+      </div>
+      <div
+        className="sticky z-30 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-3 bg-neutral-50/95 backdrop-blur border-b border-neutral-200"
+        style={{ top: "var(--app-header-height, 0px)" }}
+      >
+        <form method="get" className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-1 gap-2">
+            <input
+              name="q"
+              defaultValue={searchQuery}
+              placeholder="Cari portofolio..."
+              className="w-full rounded border border-neutral-200 px-3 py-2 text-sm"
+            />
+            <Button type="submit" variant="outline" size="sm">
+              Cari
+            </Button>
+          </div>
+          <div className="flex gap-2">
+            <select
+              name="sort"
+              defaultValue={sortKey}
+              className="rounded border border-neutral-200 px-3 py-2 text-sm"
+            >
+              <option value="updated">Terakhir Diubah</option>
+              <option value="created">Tanggal Dibuat</option>
+              <option value="name">Nama</option>
+            </select>
+            <select
+              name="dir"
+              defaultValue={sortDir}
+              className="rounded border border-neutral-200 px-3 py-2 text-sm"
+            >
+              <option value="desc">Desc</option>
+              <option value="asc">Asc</option>
+            </select>
+          </div>
+        </form>
       </div>
 
       {portfoliosWithImages.length === 0 ? (

@@ -1,4 +1,4 @@
-# Padelix Indonesia Website v2.0.2
+# Padelix Indonesia Website v2.1.0
 
 A unified fullstack web application for Padelix Indonesia, built with Next.js 15+, Drizzle ORM, and MySQL. This version represents a complete architectural shift from the previous Next.js/Strapi decoupled setup to a more efficient, single-repo fullstack solution.
 
@@ -9,7 +9,7 @@ A unified fullstack web application for Padelix Indonesia, built with Next.js 15
 ## Production Status
 
 -   **Live:** [https://padelix.co.id](https://padelix.co.id)
--   **Current Version:** 2.0.2 (Unified Fullstack)
+-   **Current Version:** 2.1.0 (Unified Fullstack)
 -   **Previous Version:** 1.2.0 (Next.js + Strapi)
 
 ---
@@ -223,8 +223,9 @@ Admin users with the `view_audit_logs` permission can view these records in the 
 ---
 
 ## 🚀 Recent Updates
-**Latest Version: [v2.0.2]** (2026-01-14)
-* Stabilized media handling across cPanel/LiteSpeed and Next Image optimization.
-* Polished admin UX (roles list, categories, audit display, dashboard summary).
+**Latest Version: [v2.1.0]** (2026-01-14)
+* Added admin-wide search + sorting defaults and improved sticky filter bars.
+* Made category images/descriptions optional with safe fallbacks and migration.
+* Refined admin UI behavior (mobile header, media library controls, toast flow).
 
 > 📄 **View the full history in [CHANGELOG.md](./CHANGELOG.md)**

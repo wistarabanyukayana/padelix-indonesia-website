@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 
 The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/)**, and this project adheres to **[Semantic Versioning](https://semver.org/spec/v2.0.0.html)**.
 
+## [2.1.0] - 2026-01-14
+
+### Added
+- **Admin search + sorting:** added keyword search and sort controls for Products, Brands, Categories, Portfolios, Users, Roles, and Audit Logs; Media Library now includes client-side sorting.
+- **User highlight:** the currently logged-in user is pinned to the top of the users list and visually labeled.
+- **Admin UI helpers:** added a reusable body scroll lock component and new-item toast handling for create flows.
+
+### Changed
+- **Category images optional:** category images are no longer required in the admin form, with safe fallbacks for missing visuals.
+- **Category descriptions optional:** descriptions now allow empty values to align with other optional text fields.
+- **Migration:** added a SQL migration to allow `categories.image_url` and `categories.description` to be nullable.
+- **Admin filters:** sticky search/sort bars now align with the admin header for consistent scrolling behavior.
+- **Media library UX:** action card layout, breadcrumbs placement, and sticky behavior improved for deeper folder navigation.
+- **Mobile admin header:** simplified navigation layout with dropdown controls tuned for touch devices.
+
 ## [2.0.2] - 2026-01-14
 
 ### Added
@@ -98,6 +113,7 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
   - Strapi CMS backend
 - Baseline support for B2B, B2C, and planned advertising features.
 
+[2.1.0]: https://github.com/wistarabanyukayana/padelix-indonesia-website/compare/v2.0.2...v2.1.0
 [2.0.2]: https://github.com/wistarabanyukayana/padelix-indonesia-website/compare/v2.0.1...v2.0.2
 [2.0.1]: https://github.com/wistarabanyukayana/padelix-indonesia-website/compare/v2.0.0...v2.0.1
 [2.0.0]: https://github.com/wistarabanyukayana/padelix-indonesia-website/compare/v1.2.0...v2.0.0
