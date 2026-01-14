@@ -114,7 +114,7 @@ export function PortfolioForm({ action, initialData, allMedias, currentFolder }:
 
     try {
         if (file.type.startsWith("video/")) {
-            const uploadInfo = await createMuxUpload(file.name, currentFolder);
+            const uploadInfo = await createMuxUpload(file.name, currentFolder, file.size);
 
             // Link record ID for potential cleanup
             const initialRecord = await getMuxMediaByUploadId(uploadInfo.id);
@@ -214,7 +214,7 @@ export function PortfolioForm({ action, initialData, allMedias, currentFolder }:
                 name="title" 
                 value={title} 
                 onChange={handleTitleChange} 
-                className="p-2 border rounded" 
+                className="p-2.5 border rounded text-sm md:text-base" 
                 required 
             />
             {state?.error?.title && <p className="text-red-500 text-sm">{state.error.title[0]}</p>}
@@ -226,24 +226,24 @@ export function PortfolioForm({ action, initialData, allMedias, currentFolder }:
                 name="slug" 
                 value={slug} 
                 readOnly 
-                className="p-2 border rounded bg-neutral-100 text-neutral-500 cursor-not-allowed" 
+                className="p-2.5 border rounded bg-neutral-100 text-neutral-500 cursor-not-allowed text-sm md:text-base" 
             />
             {state?.error?.slug && <p className="text-red-500 text-sm">{state.error.slug[0]}</p>}
           </div>
 
           <div className="flex flex-col gap-2 md:col-span-2">
             <label className="text-sm font-bold text-neutral-700">Deskripsi</label>
-            <textarea name="description" defaultValue={initialData?.description ?? ""} className="p-2 border rounded h-32 font-mono text-sm" />
+            <textarea name="description" defaultValue={initialData?.description ?? ""} className="p-2.5 border rounded h-32 font-mono text-sm md:text-base" />
           </div>
 
           <div className="flex flex-col gap-2">
             <label className="text-sm font-bold text-neutral-700">Lokasi</label>
-            <input name="location" defaultValue={initialData?.location ?? ""} className="p-2 border rounded" placeholder="Contoh: Jakarta Selatan" />
+            <input name="location" defaultValue={initialData?.location ?? ""} className="p-2.5 border rounded text-sm md:text-base" placeholder="Contoh: Jakarta Selatan" />
           </div>
 
           <div className="flex flex-col gap-2">
             <label className="text-sm font-bold text-neutral-700">Tanggal Selesai</label>
-            <input type="date" name="completionDate" defaultValue={initialData?.completionDate ? new Date(initialData.completionDate).toISOString().split('T')[0] : ''} className="p-2 border rounded" />
+            <input type="date" name="completionDate" defaultValue={initialData?.completionDate ? new Date(initialData.completionDate).toISOString().split('T')[0] : ''} className="p-2.5 border rounded text-sm md:text-base" />
           </div>
 
           <div className="flex flex-wrap gap-x-8 gap-y-4 mt-2 md:col-span-2 p-4 bg-neutral-50 rounded-lg">
@@ -253,7 +253,7 @@ export function PortfolioForm({ action, initialData, allMedias, currentFolder }:
             </label>
             <label className="flex items-center gap-2 cursor-pointer">
               <input type="checkbox" name="isFeatured" value="true" defaultChecked={initialData?.isFeatured} className="w-4 h-4 accent-brand-green" />
-              <span className="text-sm font-medium text-neutral-700">Featured (Unggulan)</span>
+              <span className="text-sm font-medium text-neutral-700">Tandai Unggulan</span>
             </label>
           </div>
         </div>
@@ -364,7 +364,7 @@ export function PortfolioForm({ action, initialData, allMedias, currentFolder }:
                             type="number" 
                             value={m.sortOrder ?? 0} 
                             onChange={(e) => updateMedia(idx, 'sortOrder', parseInt(e.target.value))}
-                            className="p-2 border rounded text-sm w-full" 
+                            className="p-2.5 border rounded text-sm md:text-base w-full" 
                         />
                      </div>
                      <div className="md:col-span-2 flex items-center pt-0 md:pt-6">
@@ -415,13 +415,13 @@ export function PortfolioForm({ action, initialData, allMedias, currentFolder }:
       </div>
 
       {/* --- Mobile Floating Save Bar --- */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-md border-t border-neutral-200 p-4 z-40 flex justify-center shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
+      <div data-admin-sticky className="md:hidden fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-md border-t border-neutral-200 p-4 z-40 flex justify-center shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
         <div className="max-w-4xl w-full flex items-center justify-between gap-4 px-4">
             <Link href="/admin/portfolios" className="text-sm font-bold text-neutral-500 hover:text-neutral-700 flex items-center gap-1 transition-colors">
                 <X size={16} /> Batal
             </Link>
-            <Button variant="dark" size="lg" type="submit" disabled={isPending} className="shadow-lg shadow-brand-green/20 px-8">
-                <Save size={18} className="mr-2" />
+            <Button variant="dark" size="md" type="submit" disabled={isPending} className="shadow-lg shadow-brand-green/20">
+                <Save size={16} className="mr-2" />
                 {isPending ? "Simpan..." : "Simpan"}
             </Button>
         </div>

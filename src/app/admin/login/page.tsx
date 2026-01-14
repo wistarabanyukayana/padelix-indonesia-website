@@ -29,7 +29,7 @@ export default function LoginPage() {
               type="email"
               name="email"
               placeholder="admin@padelix.co.id"
-              className="p-3 bg-neutral-50 border border-neutral-200 rounded-lg outline-none focus:border-brand-green focus:ring-1 focus:ring-brand-green transition-all"
+              className="p-2.5 md:p-3 text-sm md:text-base bg-neutral-50 border border-neutral-200 rounded-lg outline-none focus:border-brand-green focus:ring-1 focus:ring-brand-green transition-all"
               required
             />
             {state?.error?.email && <p className="text-red-500 text-xs font-bold">{state.error.email[0]}</p>}
@@ -41,7 +41,7 @@ export default function LoginPage() {
               type="password"
               name="password"
               placeholder="••••••••"
-              className="p-3 bg-neutral-50 border border-neutral-200 rounded-lg outline-none focus:border-brand-green focus:ring-1 focus:ring-brand-green transition-all"
+              className="p-2.5 md:p-3 text-sm md:text-base bg-neutral-50 border border-neutral-200 rounded-lg outline-none focus:border-brand-green focus:ring-1 focus:ring-brand-green transition-all"
               required
             />
             {state?.error?.password && <p className="text-red-500 text-xs font-bold">{state.error.password[0]}</p>}
@@ -53,7 +53,7 @@ export default function LoginPage() {
             </div>
           )}
 
-          <Button type="submit" variant="dark" className="w-full mt-4 h-12 text-base shadow-lg shadow-neutral-900/10" disabled={isPending}>
+          <Button type="submit" variant="dark" className="w-full mt-4 h-11 md:h-12 text-sm md:text-base shadow-lg shadow-neutral-900/10" disabled={isPending}>
             {isPending ? "Sedang Masuk..." : "Login ke Dashboard"}
           </Button>
         </form>

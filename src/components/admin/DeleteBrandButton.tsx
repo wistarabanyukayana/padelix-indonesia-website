@@ -30,7 +30,7 @@ export function DeleteBrandButton({ id, name }: { id: number; name: string }) {
       onClick={handleDelete}
       disabled={isPending}
     >
-      <Trash2 size={14} />
+      <Trash2 size={16} />
     </Button>
   );
 }

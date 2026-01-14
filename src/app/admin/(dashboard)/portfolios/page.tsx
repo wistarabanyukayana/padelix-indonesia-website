@@ -10,6 +10,7 @@ import { FeaturedToggleButton } from "@/components/admin/FeaturedToggleButton";
 import { togglePortfolioFeatured } from "@/actions/portfolios";
 import { checkPermission } from "@/lib/auth";
 import { PERMISSIONS } from "@/config/permissions";
+import { getDisplayUrl } from "@/lib/utils";
 
 export default async function AdminPortfoliosPage() {
   await checkPermission(PERMISSIONS.MANAGE_PORTFOLIOS);
@@ -18,7 +19,7 @@ export default async function AdminPortfoliosPage() {
   const portfoliosWithImages = await Promise.all(
     portfolioList.map(async (p) => {
       const media = await db
-        .select({ url: medias.url })
+        .select({ url: medias.url, type: medias.type, metadata: medias.metadata })
         .from(portfolioMedias)
         .innerJoin(medias, eq(portfolioMedias.mediaId, medias.id))
         .where(and(eq(portfolioMedias.portfolioId, p.id), eq(portfolioMedias.isPrimary, true)))
@@ -26,7 +27,7 @@ export default async function AdminPortfoliosPage() {
         
       return {
         ...p,
-        imageUrl: media[0]?.url || "",
+        imageUrl: media[0] ? getDisplayUrl(media[0]) : "",
       };
     })
   );
@@ -56,7 +57,7 @@ export default async function AdminPortfoliosPage() {
 
                 <Link href={`/admin/portfolios/${p.id}/edit`} className="block p-4 active:bg-neutral-50 transition-colors">
                     <div className="flex gap-4 items-start pr-10">
-                        <div className="relative w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden bg-neutral-100 border border-neutral-200">
+                        <div className="relative w-16 h-16 flex-shrink-0 rounded-lg overflow-hidden bg-neutral-100 border border-neutral-200">
                             {p.imageUrl ? (
                                 <AppImage src={p.imageUrl} alt={p.title} fill className="object-cover" />
                             ) : (
@@ -65,7 +66,7 @@ export default async function AdminPortfoliosPage() {
                         </div>
                         
                         <div className="flex flex-col flex-1 min-w-0 gap-1">
-                            <h3 className="font-bold text-neutral-900 text-lg leading-tight line-clamp-2">
+                            <h3 className="font-bold text-neutral-900 text-base leading-tight line-clamp-2">
                                 {p.title}
                             </h3>
                             <div className="flex flex-wrap items-center gap-2">
@@ -139,7 +140,7 @@ export default async function AdminPortfoliosPage() {
                           <div className="flex items-center justify-end gap-2">
                             <Link href={`/admin/portfolios/${p.id}/edit`}>
                               <Button variant="outline" size="sm" className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50 border-blue-200">
-                                <Edit size={14} />
+                                <Edit size={16} />
                               </Button>
                             </Link>
                             <DeletePortfolioButton id={p.id} title={p.title} />
@@ -156,7 +157,7 @@ export default async function AdminPortfoliosPage() {
 
       <div className="flex justify-end mt-4">
         <Link href="/admin/portfolios/new">
-          <Button variant="dark" className="flex items-center gap-2 shadow-lg">
+          <Button variant="dark" size="sm" className="flex items-center gap-2 shadow-lg sm:px-6 sm:py-3 sm:text-base">
             <Plus size={16} />
             <span>Tambah Portofolio</span>
           </Button>

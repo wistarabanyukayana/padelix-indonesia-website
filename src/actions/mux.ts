@@ -11,7 +11,7 @@ import { PERMISSIONS } from "@/config/permissions";
 import { revalidatePath } from "next/cache";
 import { createAuditLog } from "@/lib/audit";
 
-export async function createMuxUpload(filename: string, folder?: string | null) {
+export async function createMuxUpload(filename: string, folder?: string | null, fileSize?: number) {
   const session = await getSession();
   if (!session) throw new Error("Unauthorized");
 
@@ -31,7 +31,7 @@ export async function createMuxUpload(filename: string, folder?: string | null) 
       type: "video",
       provider: "mux",
       mimeType: "video/mux",
-      fileSize: 0,
+      fileSize: typeof fileSize === "number" ? fileSize : 0,
       url: "", // Will be updated when asset is created
       metadata: {
         uploadId: upload.id,

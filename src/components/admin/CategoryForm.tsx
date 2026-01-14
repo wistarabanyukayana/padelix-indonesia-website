@@ -145,7 +145,7 @@ export function CategoryForm({ action, initialData, categories, allMedias }: Cat
                 setParentId(node.id === "root" ? null : node.id as number); 
                 setIsDropdownOpen(false); 
             }}
-            className={`flex items-center gap-2 w-full p-1 rounded text-sm text-left hover:bg-neutral-100 transition-all ${isSelected ? 'text-brand-green font-bold' : 'text-neutral-700'}`}
+            className={`flex items-center gap-2 w-full pl-1.5 pr-2 py-1.5 rounded text-sm text-left hover:bg-neutral-100 transition-all ${isSelected ? 'text-brand-green font-bold' : 'text-neutral-700'}`}
         >
             <span>{node.label}</span>
         </button>
@@ -176,7 +176,7 @@ export function CategoryForm({ action, initialData, categories, allMedias }: Cat
                 name="name" 
                 value={name} 
                 onChange={handleNameChange} 
-                className="p-2 border rounded" 
+                className="p-2.5 border rounded text-sm md:text-base" 
                 required 
             />
             {state?.error?.name && <p className="text-red-500 text-sm">{state.error.name[0]}</p>}
@@ -188,7 +188,7 @@ export function CategoryForm({ action, initialData, categories, allMedias }: Cat
                 name="slug" 
                 value={slug} 
                 readOnly 
-                className="p-2 border rounded bg-neutral-100 text-neutral-500 cursor-not-allowed" 
+                className="p-2.5 border rounded bg-neutral-100 text-neutral-500 cursor-not-allowed text-sm md:text-base" 
             />
             {state?.error?.slug && <p className="text-red-500 text-sm">{state.error.slug[0]}</p>}
           </div>
@@ -196,10 +196,10 @@ export function CategoryForm({ action, initialData, categories, allMedias }: Cat
           <div className="flex flex-col gap-2 relative" ref={dropdownRef}>
             <label className="text-sm font-bold text-neutral-700">Parent Kategori (Opsional)</label>
             <div 
-                className="p-2 border rounded flex justify-between items-center cursor-pointer bg-white"
+                className="p-2.5 border rounded flex justify-between items-center cursor-pointer bg-white text-sm md:text-base"
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
             >
-                <span className="text-sm text-neutral-700">
+                <span className="text-sm md:text-base text-neutral-700">
                     {parentId ? selectedCategory?.name : "-- Tanpa Parent --"}
                 </span>
                 {isDropdownOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
@@ -211,6 +211,9 @@ export function CategoryForm({ action, initialData, categories, allMedias }: Cat
                         nodes={treeNodes} 
                         renderLabel={renderLabel} 
                         defaultExpanded={true}
+                        rowClassName="gap-0"
+                        toggleClassName="py-0.5 pl-0.5 pr-0"
+                        indentSize={24}
                     />
                 </div>
             )}
@@ -219,7 +222,7 @@ export function CategoryForm({ action, initialData, categories, allMedias }: Cat
 
           <div className="flex flex-col gap-2 md:col-span-2">
             <label className="text-sm font-bold text-neutral-700">Deskripsi</label>
-            <textarea name="description" defaultValue={initialData?.description ?? ""} className="p-2 border rounded h-24 text-sm" />
+            <textarea name="description" defaultValue={initialData?.description ?? ""} className="p-2.5 border rounded h-24 text-sm md:text-base" />
             {state?.error?.description && <p className="text-red-500 text-sm">{state.error.description[0]}</p>}
           </div>
 
@@ -325,13 +328,13 @@ export function CategoryForm({ action, initialData, categories, allMedias }: Cat
       </div>
 
       {/* Mobile Floating Save Bar */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-md border-t border-neutral-200 p-4 z-40 flex justify-center shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
+      <div data-admin-sticky className="md:hidden fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-md border-t border-neutral-200 p-4 z-40 flex justify-center shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
         <div className="w-full flex items-center justify-between gap-4 px-4">
             <Link href="/admin/categories" className="text-sm font-bold text-neutral-500 hover:text-neutral-700 flex items-center gap-1 transition-colors">
                 <X size={16} /> Batal
             </Link>
-            <Button variant="dark" size="lg" type="submit" disabled={isPending} className="shadow-lg shadow-brand-green/20 px-8">
-                <Save size={18} className="mr-2" />
+            <Button variant="dark" size="md" type="submit" disabled={isPending} className="shadow-lg shadow-brand-green/20">
+                <Save size={16} className="mr-2" />
                 {isPending ? "Simpan..." : "Simpan"}
             </Button>
         </div>

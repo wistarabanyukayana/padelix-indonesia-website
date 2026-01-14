@@ -16,26 +16,39 @@ interface TreeItemProps {
   renderLabel: (node: TreeNode) => React.ReactNode;
   level?: number;
   defaultExpanded?: boolean;
+  rowClassName?: string;
+  toggleClassName?: string;
+  indentSize?: number;
 }
 
-function TreeItem({ node, renderLabel, level = 0, defaultExpanded = false }: TreeItemProps) {
+function TreeItem({
+  node,
+  renderLabel,
+  level = 0,
+  defaultExpanded = false,
+  rowClassName = "gap-1 py-1",
+  toggleClassName,
+  indentSize = 12,
+}: TreeItemProps) {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
   const hasChildren = node.children && node.children.length > 0;
 
   return (
     <div className="flex flex-col select-none">
       <div 
-        className="flex items-center gap-1 py-1"
-        style={{ paddingLeft: `${level * 12}px` }}
+        className={`flex items-center ${rowClassName}`}
+        style={{ paddingLeft: `${level * indentSize}px` }}
       >
-        <button
-          type="button"
-          onClick={() => hasChildren && setIsExpanded(!isExpanded)}
-          className={`p-1 rounded hover:bg-neutral-100 text-neutral-400 transition-colors ${!hasChildren ? 'opacity-0 cursor-default' : ''}`}
-        >
-          {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-        </button>
-        
+        {hasChildren && (
+          <button
+            type="button"
+            onClick={() => setIsExpanded(!isExpanded)}
+            className={`p-1 rounded hover:bg-neutral-100 text-neutral-400 transition-colors ${toggleClassName ?? ""}`}
+          >
+            {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+          </button>
+        )}
+
         <div className="flex-1 min-w-0">
           {renderLabel(node)}
         </div>
@@ -50,6 +63,9 @@ function TreeItem({ node, renderLabel, level = 0, defaultExpanded = false }: Tre
               renderLabel={renderLabel} 
               level={level + 1} 
               defaultExpanded={defaultExpanded}
+              rowClassName={rowClassName}
+              toggleClassName={toggleClassName}
+              indentSize={indentSize}
             />
           ))}
         </div>
@@ -63,9 +79,20 @@ interface CollapsibleTreeProps {
   renderLabel: (node: TreeNode) => React.ReactNode;
   defaultExpanded?: boolean;
   className?: string;
+  rowClassName?: string;
+  toggleClassName?: string;
+  indentSize?: number;
 }
 
-export function CollapsibleTree({ nodes, renderLabel, defaultExpanded = false, className = "" }: CollapsibleTreeProps) {
+export function CollapsibleTree({
+  nodes,
+  renderLabel,
+  defaultExpanded = false,
+  className = "",
+  rowClassName,
+  toggleClassName,
+  indentSize,
+}: CollapsibleTreeProps) {
   return (
     <div className={`flex flex-col ${className}`}>
       {nodes.map((node) => (
@@ -74,6 +101,9 @@ export function CollapsibleTree({ nodes, renderLabel, defaultExpanded = false, c
           node={node} 
           renderLabel={renderLabel} 
           defaultExpanded={defaultExpanded}
+          rowClassName={rowClassName}
+          toggleClassName={toggleClassName}
+          indentSize={indentSize}
         />
       ))}
     </div>

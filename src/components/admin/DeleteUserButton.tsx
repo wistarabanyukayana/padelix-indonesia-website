@@ -30,7 +30,7 @@ export function DeleteUserButton({ id, username }: { id: number; username: strin
       onClick={handleDelete}
       disabled={isPending}
     >
-      <Trash2 size={14} />
+      <Trash2 size={16} />
     </Button>
   );
 }

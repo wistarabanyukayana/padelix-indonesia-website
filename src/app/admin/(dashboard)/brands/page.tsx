@@ -35,7 +35,7 @@ export default async function AdminBrandsPage() {
 
                 <Link href={`/admin/brands/${brand.id}/edit`} className="block p-4 active:bg-neutral-50 transition-colors">
                     <div className="flex gap-4 items-center pr-10">
-                        <div className="relative w-16 h-16 flex-shrink-0 rounded-lg overflow-hidden bg-neutral-100 border border-neutral-200 flex items-center justify-center p-2">
+                        <div className="relative w-14 h-14 flex-shrink-0 rounded-lg overflow-hidden bg-neutral-100 border border-neutral-200 flex items-center justify-center p-2">
                             {brand.logoUrl ? (
                                 <AppImage src={brand.logoUrl} alt={brand.name} fill className="object-contain" />
                             ) : (
@@ -44,7 +44,7 @@ export default async function AdminBrandsPage() {
                         </div>
                         
                         <div className="flex flex-col flex-1 min-w-0 gap-1">
-                            <h3 className="font-bold text-neutral-900 text-lg leading-tight truncate">
+                            <h3 className="font-bold text-neutral-900 text-base leading-tight truncate">
                                 {brand.name}
                             </h3>
                             <p className="text-xs text-brand-green truncate">{brand.website}</p>
@@ -92,7 +92,7 @@ export default async function AdminBrandsPage() {
                           <div className="flex items-center justify-end gap-2">
                             <Link href={`/admin/brands/${brand.id}/edit`}>
                               <Button variant="outline" size="sm" className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50 border-blue-200">
-                                <Edit size={14} />
+                                <Edit size={16} />
                               </Button>
                             </Link>
                             <DeleteBrandButton id={brand.id} name={brand.name} />
@@ -109,7 +109,7 @@ export default async function AdminBrandsPage() {
 
       <div className="flex justify-end mt-4">
         <Link href="/admin/brands/new">
-          <Button variant="dark" className="flex items-center gap-2 shadow-lg">
+          <Button variant="dark" size="sm" className="flex items-center gap-2 shadow-lg sm:px-6 sm:py-3 sm:text-base">
             <Plus size={16} />
             <span>Tambah Brand</span>
           </Button>

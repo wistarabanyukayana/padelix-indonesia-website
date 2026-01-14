@@ -42,16 +42,12 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-<<<<<<<< HEAD:server/.gitignore
 
-# Strapi
-.strapi
-dist
-build
-prod
-.strapi-updater.json
-.strapi-cloud.json
-.tmp/
+# production artifacts
+/release/
+
+# uploads
+/public/uploads/
 
 # compressed files
 *.zip
@@ -60,6 +56,3 @@ prod
 *.tgz
 *.rar
 *.7z
-========
-/release/
->>>>>>>> new-major-version:.gitignore

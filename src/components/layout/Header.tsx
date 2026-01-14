@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { AppImage } from "@/components/general/AppImage";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 
 const NAV_LINKS = [
@@ -14,13 +14,39 @@ const NAV_LINKS = [
 
 export function Header() {
   const [isOpen, setIsOpen] = useState(false);
+  const headerRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     window.dispatchEvent(new CustomEvent('mobileMenuToggle', { detail: { isOpen } }));
   }, [isOpen]);
 
+  useEffect(() => {
+    const header = headerRef.current;
+    if (!header) {
+      return;
+    }
+
+    const updateHeight = () => {
+      const height = header.getBoundingClientRect().height;
+      document.documentElement.style.setProperty("--app-header-height", `${height}px`);
+    };
+
+    updateHeight();
+    const resizeObserver = new ResizeObserver(updateHeight);
+    resizeObserver.observe(header);
+    window.addEventListener("resize", updateHeight);
+
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener("resize", updateHeight);
+    };
+  }, []);
+
   return (
-    <header className="sticky top-0 z-50 w-full bg-white border-b border-neutral-200 pt-[env(safe-area-inset-top)]">
+    <header
+      ref={headerRef}
+      className="sticky top-0 z-50 w-full bg-white border-b border-neutral-200 pt-[env(safe-area-inset-top)]"
+    >
       <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between relative">
         {/* Logo Container - 1.5x larger visual size with vertical overflow */}
         <div className="w-48 h-10 flex-shrink-0 relative">

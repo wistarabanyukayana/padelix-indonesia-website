@@ -123,7 +123,7 @@ export function BrandForm({ action, initialData, allMedias }: BrandFormProps) {
                 name="name" 
                 value={name} 
                 onChange={handleNameChange} 
-                className="p-2 border rounded" 
+                className="p-2.5 border rounded text-sm md:text-base" 
                 required 
             />
             {state?.error?.name && <p className="text-red-500 text-sm">{state.error.name[0]}</p>}
@@ -135,14 +135,14 @@ export function BrandForm({ action, initialData, allMedias }: BrandFormProps) {
                 name="slug" 
                 value={slug} 
                 readOnly 
-                className="p-2 border rounded bg-neutral-100 text-neutral-500 cursor-not-allowed" 
+                className="p-2.5 border rounded bg-neutral-100 text-neutral-500 cursor-not-allowed text-sm md:text-base" 
             />
             {state?.error?.slug && <p className="text-red-500 text-sm">{state.error.slug[0]}</p>}
           </div>
 
           <div className="flex flex-col gap-2 md:col-span-2">
             <label className="text-sm font-bold text-neutral-700">Website</label>
-            <input name="website" defaultValue={initialData?.website ?? ""} className="p-2 border rounded" placeholder="https://example.com" />
+            <input name="website" defaultValue={initialData?.website ?? ""} className="p-2.5 border rounded text-sm md:text-base" placeholder="https://example.com" />
             {state?.error?.website && <p className="text-red-500 text-sm">{state.error.website[0]}</p>}
           </div>
 
@@ -245,13 +245,13 @@ export function BrandForm({ action, initialData, allMedias }: BrandFormProps) {
         </Button>
       </div>
 
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-md border-t border-neutral-200 p-4 z-40 flex justify-center shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
+      <div data-admin-sticky className="md:hidden fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-md border-t border-neutral-200 p-4 z-40 flex justify-center shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
         <div className="w-full flex items-center justify-between gap-4 px-4">
             <Link href="/admin/brands" className="text-sm font-bold text-neutral-500 hover:text-neutral-700 flex items-center gap-1 transition-colors">
                 <X size={16} /> Batal
             </Link>
-            <Button variant="dark" size="lg" type="submit" disabled={isPending} className="shadow-lg shadow-brand-green/20 px-8">
-                <Save size={18} className="mr-2" />
+            <Button variant="dark" size="md" type="submit" disabled={isPending} className="shadow-lg shadow-brand-green/20">
+                <Save size={16} className="mr-2" />
                 {isPending ? "Simpan..." : "Simpan"}
             </Button>
         </div>

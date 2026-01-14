@@ -110,7 +110,7 @@ export function MoveMediaDialog({ isOpen, onClose, onMove, existingFolders, curr
                     <input 
                         type="text" 
                         placeholder="Nama folder baru (contoh: archive/2024)" 
-                        className="p-2 border rounded text-sm"
+                        className="p-2.5 border rounded text-sm md:text-base"
                         value={customFolder}
                         onChange={(e) => setCustomFolder(e.target.value)}
                         autoFocus
@@ -120,8 +120,8 @@ export function MoveMediaDialog({ isOpen, onClose, onMove, existingFolders, curr
         </div>
 
         <div className="flex justify-end gap-2 mt-2">
-            <Button variant="outline" onClick={onClose}>Batal</Button>
-            <Button onClick={handleMove} disabled={isCustom && !customFolder.trim()}>Pindahkan</Button>
+            <Button variant="outline" size="sm" onClick={onClose}>Batal</Button>
+            <Button size="sm" onClick={handleMove} disabled={isCustom && !customFolder.trim()}>Pindahkan</Button>
         </div>
       </div>
     </Modal>

@@ -32,14 +32,25 @@ export async function sendContactEmail(prevState: ActionState, formData: FormDat
     };
   }
 
+  if (!process.env.SMTP_HOST || !process.env.SMTP_PORT || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
+    return {
+      success: false,
+      message: "Konfigurasi email belum lengkap. Silakan hubungi admin.",
+    };
+  }
+
   try {
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
       port: Number(process.env.SMTP_PORT),
+      secure: process.env.SMTP_SECURE === "true",
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS,
       },
+      connectionTimeout: 10_000,
+      greetingTimeout: 10_000,
+      socketTimeout: 10_000,
     });
 
     const mailOptions = {
@@ -63,7 +74,7 @@ export async function sendContactEmail(prevState: ActionState, formData: FormDat
 
     await transporter.sendMail(mailOptions);
 
-    await createAuditLog("CONTACT_SUBMISSION", undefined, `Name: ${validated.data.name}, Contact: ${validated.data.contact}`);
+    void createAuditLog("CONTACT_SUBMISSION", undefined, `Name: ${validated.data.name}, Contact: ${validated.data.contact}`);
 
     return {
       success: true,

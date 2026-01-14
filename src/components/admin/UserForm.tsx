@@ -11,9 +11,11 @@ interface UserFormProps {
   action: FormAction;
   initialData?: DetailedUser;
   roles: DBRole[];
+  currentUserId?: number | null;
+  isSuperAdmin?: boolean;
 }
 
-export function UserForm({ action, initialData, roles }: UserFormProps) {
+export function UserForm({ action, initialData, roles, currentUserId, isSuperAdmin = false }: UserFormProps) {
   const [state, formAction, isPending] = useActionState(action, {} as ActionState);
   
   useEffect(() => {
@@ -34,8 +36,11 @@ export function UserForm({ action, initialData, roles }: UserFormProps) {
 
   // Selected Roles State
   const [selectedRoles, setSelectedRoles] = useState<number[]>(initialData?.roles || []);
+  const isSelfEditing = !!initialData && currentUserId === initialData.id;
+  const lockSelfChanges = isSelfEditing && !isSuperAdmin;
 
   const toggleRole = (roleId: number) => {
+    if (lockSelfChanges) return;
     if (selectedRoles.includes(roleId)) {
       setSelectedRoles(selectedRoles.filter(id => id !== roleId));
     } else {
@@ -48,6 +53,9 @@ export function UserForm({ action, initialData, roles }: UserFormProps) {
       
       {/* Hidden input for roles */}
       <input type="hidden" name="roles" value={JSON.stringify(selectedRoles)} />
+      {lockSelfChanges && (
+        <input type="hidden" name="isActive" value={initialData?.isActive ? "true" : "false"} />
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
@@ -63,7 +71,7 @@ export function UserForm({ action, initialData, roles }: UserFormProps) {
                         <input 
                             name="username" 
                             defaultValue={initialData?.username} 
-                            className="p-2 border rounded" 
+                            className="p-2.5 border rounded text-sm md:text-base" 
                             required 
                         />
                         {state?.error?.username && <p className="text-red-500 text-sm font-bold">{state.error.username[0]}</p>}
@@ -75,7 +83,7 @@ export function UserForm({ action, initialData, roles }: UserFormProps) {
                             type="email"
                             name="email" 
                             defaultValue={initialData?.email} 
-                            className="p-2 border rounded" 
+                            className="p-2.5 border rounded text-sm md:text-base" 
                             required 
                         />
                         {state?.error?.email && <p className="text-red-500 text-sm font-bold">{state.error.email[0]}</p>}
@@ -86,7 +94,7 @@ export function UserForm({ action, initialData, roles }: UserFormProps) {
                         <input 
                             type="password"
                             name="password" 
-                            className="p-2 border rounded" 
+                            className="p-2.5 border rounded text-sm md:text-base" 
                             required={!initialData}
                             placeholder={initialData ? "••••••••" : "Password minimal 6 karakter"}
                         />
@@ -101,10 +109,22 @@ export function UserForm({ action, initialData, roles }: UserFormProps) {
                                 value="true" 
                                 defaultChecked={initialData?.isActive ?? true} 
                                 className="w-4 h-4 accent-brand-green" 
+                                disabled={lockSelfChanges}
                             />
                             <span className="text-sm font-medium text-neutral-700">Akun Aktif (Dapat Login)</span>
                         </label>
                     </div>
+                    {isSelfEditing && (
+                      <div className={`md:col-span-2 text-xs rounded-lg border px-3 py-2 ${
+                        isSuperAdmin
+                          ? "border-amber-200 bg-amber-50 text-amber-700"
+                          : "border-neutral-200 bg-neutral-50 text-neutral-500"
+                      }`}>
+                        {isSuperAdmin
+                          ? "Anda sedang mengubah akun sendiri. Menonaktifkan akun atau mengurangi peran dapat membuat Anda kehilangan akses."
+                          : "Anda tidak dapat menonaktifkan akun sendiri."}
+                      </div>
+                    )}
                 </div>
             </div>
         </div>
@@ -117,11 +137,11 @@ export function UserForm({ action, initialData, roles }: UserFormProps) {
                 </h2>
                 <div className="flex flex-col gap-3">
                     {roles.map((role) => (
-                        <label key={role.id} className={`flex items-center justify-between p-3 rounded-lg border transition-all cursor-pointer ${
+                        <label key={role.id} className={`flex items-center justify-between p-3 rounded-lg border transition-all ${
                             selectedRoles.includes(role.id) 
                             ? "border-brand-green bg-brand-light ring-1 ring-brand-green" 
                             : "border-neutral-200 bg-white hover:bg-neutral-50"
-                        }`}>
+                        } ${lockSelfChanges ? "opacity-60" : "cursor-pointer"}`}>
                             <div className="flex flex-col">
                                 <span className={`text-sm font-bold ${selectedRoles.includes(role.id) ? "text-brand-green" : "text-neutral-700"}`}>
                                     {role.name}
@@ -133,11 +153,23 @@ export function UserForm({ action, initialData, roles }: UserFormProps) {
                                 checked={selectedRoles.includes(role.id)} 
                                 onChange={() => toggleRole(role.id)}
                                 className="w-4 h-4 accent-brand-green"
+                                disabled={lockSelfChanges}
                             />
                         </label>
                     ))}
                     {roles.length === 0 && <p className="text-sm text-neutral-400 italic">Belum ada peran yang dikonfigurasi.</p>}
                 </div>
+                {isSelfEditing && (
+                  <div className={`mt-3 text-xs rounded-lg border px-3 py-2 ${
+                    isSuperAdmin
+                      ? "border-amber-200 bg-amber-50 text-amber-700"
+                      : "border-neutral-200 bg-neutral-50 text-neutral-500"
+                  }`}>
+                    {isSuperAdmin
+                      ? "Mengubah peran sendiri dapat membatasi akses Anda ke fitur admin."
+                      : "Anda tidak dapat mengubah peran Anda sendiri."}
+                  </div>
+                )}
             </div>
         </div>
       </div>
@@ -153,13 +185,13 @@ export function UserForm({ action, initialData, roles }: UserFormProps) {
       </div>
 
       {/* Mobile Floating Save Bar */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-md border-t border-neutral-200 p-4 z-40 flex justify-center shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
+      <div data-admin-sticky className="md:hidden fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-md border-t border-neutral-200 p-4 z-40 flex justify-center shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
         <div className="w-full flex items-center justify-between gap-4 px-4">
             <Link href="/admin/users" className="text-sm font-bold text-neutral-500 hover:text-neutral-700 flex items-center gap-1 transition-colors">
                 <X size={16} /> Batal
             </Link>
-            <Button variant="dark" size="lg" type="submit" disabled={isPending} className="shadow-lg shadow-brand-green/20 px-8">
-                <Save size={18} className="mr-2" />
+            <Button variant="dark" size="md" type="submit" disabled={isPending} className="shadow-lg shadow-brand-green/20">
+                <Save size={16} className="mr-2" />
                 {isPending ? "Simpan..." : "Simpan"}
             </Button>
         </div>

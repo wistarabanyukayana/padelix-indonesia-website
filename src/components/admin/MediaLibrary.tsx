@@ -22,6 +22,7 @@ interface MediaLibraryProps {
   initialMedias: DBMedia[];
   onSelect?: (media: DBMedia) => void;
   allowSelection?: boolean;
+  stickyOffset?: string;
 }
 
 // Helper to ensure we have a clean object and handle any legacy stringified or corrupted data
@@ -53,7 +54,7 @@ const parseMetadata = (val: unknown): MediaMetadata => {
     return val as MediaMetadata;
 };
 
-export function MediaLibrary({ initialMedias, onSelect, allowSelection = false }: MediaLibraryProps) {
+export function MediaLibrary({ initialMedias, onSelect, allowSelection = false, stickyOffset }: MediaLibraryProps) {
   const [medias, setMedias] = useState<DBMedia[]>(initialMedias);
   const [physicalFolders, setPhysicalFolders] = useState<string[]>([]);
   const [search, setSearch] = useState("");
@@ -380,10 +381,13 @@ export function MediaLibrary({ initialMedias, onSelect, allowSelection = false }
       />
 
       {/* Controls - Sticky */}
-      <div className="sticky top-0 z-20 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-4 bg-neutral-50 border-b border-neutral-200 transition-all duration-300">
-        <div className="max-w-7xl mx-auto flex flex-col gap-4">
+      <div
+        className="sticky top-0 z-20 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-3 bg-neutral-50 border-b border-neutral-200 transition-all duration-300"
+        style={stickyOffset ? { top: stickyOffset } : undefined}
+      >
+        <div className="max-w-7xl mx-auto flex flex-col gap-3">
             {/* Breadcrumbs */}
-            <div className="flex items-center gap-2 text-xs font-bold text-neutral-400 overflow-x-auto no-scrollbar whitespace-nowrap pb-1">
+            <div className="flex items-center gap-1.5 text-[11px] font-bold text-neutral-400 overflow-x-auto no-scrollbar whitespace-nowrap pb-0.5">
                 <button 
                     onClick={() => setCurrentFolder(null)}
                     className={`hover:text-brand-green transition-colors flex items-center gap-1 ${!currentFolder ? 'text-brand-green' : ''}`}
@@ -410,7 +414,7 @@ export function MediaLibrary({ initialMedias, onSelect, allowSelection = false }
                         <input
                             type="text"
                             placeholder="Cari media..."
-                            className="pl-10 pr-4 py-2 border rounded-lg w-full text-sm bg-neutral-50 focus:bg-white transition-colors outline-none"
+                            className="pl-10 pr-4 py-2.5 border rounded-lg w-full text-sm md:text-base bg-neutral-50 focus:bg-white transition-colors outline-none"
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                         />
@@ -418,7 +422,7 @@ export function MediaLibrary({ initialMedias, onSelect, allowSelection = false }
                     <div className="flex items-center gap-2 w-full md:w-auto">
                         <Filter size={16} className="text-neutral-400" />
                         <select
-                            className="p-2 border rounded-lg text-sm bg-white min-w-[120px] focus:ring-2 focus:ring-brand-green/20 w-full md:w-auto outline-none cursor-pointer"
+                            className="p-2.5 border rounded-lg text-sm md:text-base bg-white min-w-[120px] focus:ring-2 focus:ring-brand-green/20 w-full md:w-auto outline-none cursor-pointer"
                             value={typeFilter}
                             onChange={(e) => setTypeFilter(e.target.value)}
                         >
@@ -510,7 +514,9 @@ export function MediaLibrary({ initialMedias, onSelect, allowSelection = false }
           {filteredMedias.map((m) => {
             const meta = parseMetadata(m.metadata);
             
-            const isProcessing = m.type === 'video' && m.provider === 'mux' && meta.status !== 'ready';
+            const muxStatus = meta.status;
+            const isErrored = muxStatus === "errored";
+            const isProcessing = m.type === "video" && m.provider === "mux" && muxStatus !== "ready" && !isErrored;
             const isSelected = selectedMedias.has(m.id);
 
             return (
@@ -566,6 +572,11 @@ export function MediaLibrary({ initialMedias, onSelect, allowSelection = false }
                             Processing
                         </span>
                     )}
+                    {isErrored && (
+                        <span className="text-[8px] bg-red-100 text-red-700 px-1 rounded font-black uppercase tracking-tighter">
+                            Errored
+                        </span>
+                    )}
                     </div>
                 )}
                 
@@ -598,7 +609,7 @@ export function MediaLibrary({ initialMedias, onSelect, allowSelection = false }
 
       {/* Floating Action Bar */}
       {(selectedFolders.size > 0 || selectedMedias.size > 0) && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-white border border-neutral-200 shadow-xl rounded-full px-6 py-3 flex items-center gap-4 z-[110] animate-in slide-in-from-bottom-4">
+        <div className="fixed bottom-[calc(1.5rem+env(safe-area-inset-bottom))] left-1/2 -translate-x-1/2 bg-white border border-neutral-200 shadow-xl rounded-full px-6 py-3 flex items-center gap-4 z-[110] animate-in slide-in-from-bottom-4">
             <span className="text-sm font-bold text-neutral-700">
                 {selectedFolders.size + selectedMedias.size} terpilih
             </span>
@@ -633,4 +644,3 @@ export function MediaLibrary({ initialMedias, onSelect, allowSelection = false }
     </div>
   );
 }
-

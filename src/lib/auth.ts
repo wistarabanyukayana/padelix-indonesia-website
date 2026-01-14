@@ -97,7 +97,11 @@ export async function hasPermission(permission: string): Promise<boolean> {
 
 export async function checkPermission(permission: string) {
   const session = await getSession();
-  if (!session || !session.user || !session.user.permissions || !session.user.permissions.includes(permission)) {
+  if (!session || !session.user || !session.user.permissions) {
+    return false;
+  }
+  if (!session.user.permissions.includes(permission)) {
     throw new Error("Unauthorized: Missing permission " + permission);
   }
+  return true;
 }

@@ -49,43 +49,98 @@ export default async function AdminRolesPage() {
           <p className="text-neutral-400">Belum ada peran yang dibuat.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <>
+          <div className="grid grid-cols-1 gap-4 md:hidden">
             {rolesWithDetails.map((role) => (
-                <div key={role.id} className="bg-white p-6 rounded-brand shadow-sm border border-neutral-200 flex flex-col gap-4 relative group">
-                    <div className="flex justify-between items-start">
-                        <div className="flex flex-col">
-                            <h3 className="text-xl font-black text-neutral-900 flex items-center gap-2">
-                                <ShieldCheck size={20} className={role.name === 'super_admin' ? "text-brand-green" : "text-neutral-400"} />
-                                {role.name}
-                            </h3>
-                            <p className="text-xs text-neutral-400 uppercase tracking-widest mt-1">ID: {role.id}</p>
-                        </div>
-                        <div className="flex items-center gap-1">
-                            <Link href={`/admin/roles/${role.id}/edit`}>
-                                <Button variant="outline" size="sm" className="h-8 w-8 p-0 text-blue-600 border-blue-100 hover:bg-blue-50">
-                                    <Edit size={14} />
-                                </Button>
-                            </Link>
-                            {role.name !== 'super_admin' && <DeleteRoleButton id={role.id} name={role.name} />}
-                        </div>
-                    </div>
-
-                    <p className="text-sm text-neutral-600 leading-relaxed h-10 line-clamp-2">
-                        {role.description || "Tidak ada deskripsi."}
-                    </p>
-
-                    <div className="pt-4 border-t border-neutral-100 flex items-center justify-between">
-                        <div className="flex items-center gap-1.5 text-neutral-500 font-bold text-xs uppercase tracking-tight">
-                            <Key size={14} />
-                            {role.permissionCount} Izin Akses
-                        </div>
-                        {role.name === 'super_admin' && (
-                            <span className="text-[10px] bg-brand-green text-white px-2 py-0.5 rounded-full font-black uppercase">System</span>
-                        )}
-                    </div>
+              <div key={role.id} className="relative bg-white rounded-brand border border-neutral-200 shadow-sm overflow-hidden group">
+                <div className="absolute top-3 right-3 z-10 flex items-center gap-1">
+                  <Link href={`/admin/roles/${role.id}/edit`}>
+                    <Button variant="outline" size="sm" className="h-8 w-8 p-0 text-blue-600 border-blue-100 hover:bg-blue-50">
+                      <Edit size={16} />
+                    </Button>
+                  </Link>
+                  {role.name !== "super_admin" && <DeleteRoleButton id={role.id} name={role.name} />}
                 </div>
+                <Link href={`/admin/roles/${role.id}/edit`} className="block p-4 pr-14">
+                  <div className="flex gap-4 items-start">
+                    <div className="h-12 w-12 shrink-0 rounded-lg bg-neutral-100 border border-neutral-200 flex items-center justify-center">
+                      <ShieldCheck className={`h-5 w-5 ${role.name === "super_admin" ? "text-brand-green" : "text-neutral-400"}`} />
+                    </div>
+                    <div className="flex flex-col gap-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-base font-black text-neutral-900 truncate">{role.name}</h3>
+                        {role.name === "super_admin" && (
+                          <span className="text-[10px] bg-brand-green text-white px-2 py-0.5 rounded-full font-black uppercase">System</span>
+                        )}
+                      </div>
+                      <p className="text-xs text-neutral-400 font-mono">ID: {role.id}</p>
+                      <p className="text-sm text-neutral-600 line-clamp-2">
+                        {role.description || "Tidak ada deskripsi."}
+                      </p>
+                      <div className="flex items-center gap-1.5 text-neutral-500 font-bold text-xs uppercase tracking-tight mt-1">
+                        <Key size={13} />
+                        {role.permissionCount} Izin Akses
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              </div>
             ))}
-        </div>
+          </div>
+
+          <div className="hidden md:block bg-white rounded-brand shadow-sm border border-neutral-200 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm text-neutral-600">
+                <thead className="bg-neutral-50 border-b border-neutral-200">
+                  <tr>
+                    <th className="px-6 py-4 font-black text-neutral-900 uppercase tracking-wider text-xs w-20">ID</th>
+                    <th className="px-6 py-4 font-black text-neutral-900 uppercase tracking-wider text-xs">Nama Peran</th>
+                    <th className="px-6 py-4 font-black text-neutral-900 uppercase tracking-wider text-xs">Deskripsi</th>
+                    <th className="px-6 py-4 font-black text-neutral-900 uppercase tracking-wider text-xs">Izin</th>
+                    <th className="px-6 py-4 font-black text-neutral-900 uppercase tracking-wider text-xs text-right">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-neutral-100">
+                  {rolesWithDetails.map((role) => (
+                    <tr key={role.id} className="hover:bg-neutral-50 transition-colors">
+                      <td className="px-6 py-4 font-black text-neutral-900 font-mono">
+                        {role.id}
+                      </td>
+                      <td className="px-6 py-4 font-medium text-neutral-900">
+                        <div className="flex items-center gap-2">
+                          <ShieldCheck className={`h-4 w-4 ${role.name === "super_admin" ? "text-brand-green" : "text-neutral-400"}`} />
+                          {role.name}
+                          {role.name === "super_admin" && (
+                            <span className="text-[10px] bg-brand-green text-white px-2 py-0.5 rounded-full font-black uppercase">System</span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-neutral-600">
+                        {role.description || "Tidak ada deskripsi."}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-1.5 text-neutral-500 font-bold text-xs uppercase tracking-tight">
+                          <Key size={13} />
+                          {role.permissionCount} Izin
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <Link href={`/admin/roles/${role.id}/edit`}>
+                            <Button variant="outline" size="sm" className="h-8 w-8 p-0 text-blue-600 border-blue-100 hover:bg-blue-50">
+                              <Edit size={16} />
+                            </Button>
+                          </Link>
+                          {role.name !== "super_admin" && <DeleteRoleButton id={role.id} name={role.name} />}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
       )}
 
       <div className="flex justify-end mt-4">

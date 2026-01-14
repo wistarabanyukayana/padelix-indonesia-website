@@ -10,6 +10,7 @@ import { FeaturedToggleButton } from "@/components/admin/FeaturedToggleButton";
 import { toggleProductFeatured } from "@/actions/products";
 import { checkPermission } from "@/lib/auth";
 import { PERMISSIONS } from "@/config/permissions";
+import { getDisplayUrl } from "@/lib/utils";
 
 export default async function AdminProductsPage() {
   await checkPermission(PERMISSIONS.MANAGE_PRODUCTS);
@@ -30,7 +31,7 @@ export default async function AdminProductsPage() {
   const productsWithImages = await Promise.all(
     productList.map(async (p) => {
       const media = await db
-        .select({ url: medias.url })
+        .select({ url: medias.url, type: medias.type, metadata: medias.metadata })
         .from(productMedias)
         .innerJoin(medias, eq(productMedias.mediaId, medias.id))
         .where(and(eq(productMedias.productId, p.id), eq(productMedias.isPrimary, true)))
@@ -38,7 +39,7 @@ export default async function AdminProductsPage() {
         
       return {
         ...p,
-        imageUrl: media[0]?.url || "",
+        imageUrl: media[0] ? getDisplayUrl(media[0]) : "",
       };
     })
   );
@@ -70,7 +71,7 @@ export default async function AdminProductsPage() {
                 <Link href={`/admin/products/${product.id}/edit`} className="block p-4 active:bg-neutral-50 transition-colors">
                     <div className="flex gap-4 items-start pr-10"> {/* pr-10 to avoid overlap with actions */}
                         {/* Image */}
-                        <div className="relative w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden bg-neutral-100 border border-neutral-200">
+                        <div className="relative w-16 h-16 flex-shrink-0 rounded-lg overflow-hidden bg-neutral-100 border border-neutral-200">
                             {product.imageUrl ? (
                                 <AppImage src={product.imageUrl} alt={product.name} fill className="object-cover" />
                             ) : (
@@ -80,7 +81,7 @@ export default async function AdminProductsPage() {
                         
                         {/* Info */}
                         <div className="flex flex-col flex-1 min-w-0 gap-1">
-                            <h3 className="font-bold text-neutral-900 text-lg leading-tight line-clamp-2">
+                            <h3 className="font-bold text-neutral-900 text-base leading-tight line-clamp-2">
                                 {product.name}
                             </h3>
                             <div className="flex flex-wrap items-center gap-2">
@@ -184,7 +185,7 @@ export default async function AdminProductsPage() {
 
       <div className="flex justify-end mt-4">
         <Link href="/admin/products/new">
-          <Button variant="dark" className="flex items-center gap-2 shadow-lg">
+          <Button variant="dark" size="sm" className="flex items-center gap-2 shadow-lg sm:px-6 sm:py-3 sm:text-base">
             <Plus size={16} />
             <span>Tambah Produk</span>
           </Button>
