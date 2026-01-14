@@ -39,7 +39,7 @@ export default async function AuditLogsPage({ searchParams }: PageProps) {
     );
   }
 
-  let auditQuery = db.select().from(auditLogs);
+  let auditQuery = db.select().from(auditLogs).$dynamic();
   if (filters.length) {
     auditQuery = auditQuery.where(and(...filters));
   }

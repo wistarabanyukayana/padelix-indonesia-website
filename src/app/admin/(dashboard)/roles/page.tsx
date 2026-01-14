@@ -35,7 +35,7 @@ export default async function AdminRolesPage({ searchParams }: PageProps) {
     filters.push(or(like(roles.name, `%${searchQuery}%`), like(roles.description, `%${searchQuery}%`)));
   }
 
-  let rolesQuery = db.select().from(roles);
+  let rolesQuery = db.select().from(roles).$dynamic();
   if (filters.length) {
     rolesQuery = rolesQuery.where(and(...filters));
   }
