@@ -1,4 +1,4 @@
-# Padelix Indonesia Website v2.0.1
+# Padelix Indonesia Website v2.0.2
 
 A unified fullstack web application for Padelix Indonesia, built with Next.js 15+, Drizzle ORM, and MySQL. This version represents a complete architectural shift from the previous Next.js/Strapi decoupled setup to a more efficient, single-repo fullstack solution.
 
@@ -9,7 +9,7 @@ A unified fullstack web application for Padelix Indonesia, built with Next.js 15
 ## Production Status
 
 -   **Live:** [https://padelix.co.id](https://padelix.co.id)
--   **Current Version:** 2.0.1 (Unified Fullstack)
+-   **Current Version:** 2.0.2 (Unified Fullstack)
 -   **Previous Version:** 1.2.0 (Next.js + Strapi)
 
 ---
@@ -107,7 +107,8 @@ SMTP_FROM='website@padelix.co.id'
 BUSINESS_EMAIL='business@padelix.co.id'
 
 # Site Configuration
-NEXT_PUBLIC_SITE_URL='http://localhost:3000'
+NEXT_DEV_SITE_URL='http://localhost:3000'
+NEXT_PUBLIC_SITE_URL='https://padelix.co.id'
 ```
 
 ### 4. Initialize Database
@@ -271,8 +272,9 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
 - **Strapi dependency surface:** removed legacy Strapi packages, conventions, and related workspace configuration as part of the migration.
 
 ## [1.2.0] - 2026-01-07
-- **Legacy version (Next.js + Strapi):** See `OLD.md` for details.
+- **Legacy version (Next.js + Strapi):** See `CHANGELOG.md` history for details.
 
+[2.0.2]: https://github.com/wistarabanyukayana/padelix-indonesia-website/compare/v2.0.1...v2.0.2
 [2.0.1]: https://github.com/wistarabanyukayana/padelix-indonesia-website/compare/v2.0.0...v2.0.1
 [2.0.0]: https://github.com/wistarabanyukayana/padelix-indonesia-website/compare/v1.2.0...v2.0.0
 [1.2.0]: https://github.com/wistarabanyukayana/padelix-indonesia-website/releases/tag/v1.2.0
