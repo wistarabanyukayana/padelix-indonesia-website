@@ -1,18 +1,34 @@
+import {
+  brands,
+  categories,
+  medias,
+  portfolioMedias,
+  portfolios,
+  productMedias,
+  products,
+  productSpecifications,
+  productVariants,
+} from "@/db/schema";
 import { db } from "@/lib/db";
-import { products, productMedias, productSpecifications, portfolios, portfolioMedias, productVariants, categories, brands, medias } from "@/db/schema";
-import { eq, and, desc, like } from "drizzle-orm";
-import { alias } from "drizzle-orm/mysql-core";
-import { 
-  FeaturedProduct, 
-  FeaturedPortfolio, 
-  DetailedProduct, 
-  DBCategory, 
-  DBBrand,
-  MediaUI
-} from "@/types";
 import { getDisplayUrl, parseMetadata } from "@/lib/utils";
+import {
+  DBBrand,
+  DBCategory,
+  DetailedProduct,
+  FeaturedPortfolio,
+  FeaturedProduct,
+  MediaUI,
+} from "@/types";
+import { and, asc, desc, eq, inArray, like } from "drizzle-orm";
+import { alias } from "drizzle-orm/mysql-core";
+import { cacheTag } from "next/cache";
 
 export async function getFeaturedProducts(): Promise<FeaturedProduct[]> {
+  "use cache";
+  cacheTag("public");
+  cacheTag("featured-products");
+  cacheTag("products");
+
   const productList = await db
     .select({
       id: products.id,
@@ -24,37 +40,68 @@ export async function getFeaturedProducts(): Promise<FeaturedProduct[]> {
     })
     .from(products)
     .where(and(eq(products.isActive, true), eq(products.isFeatured, true)))
-    .limit(3);
+    .orderBy(desc(products.updatedAt));
 
-  const results: FeaturedProduct[] = [];
+  if (productList.length === 0) return [];
 
-  for (const p of productList) {
-    const media = await db
-      .select({ 
+  const productIds = productList.map((p) => p.id);
+  const mediaLinks = await db
+    .select({
+      productId: productMedias.productId,
+      mediaId: productMedias.mediaId,
+      isPrimary: productMedias.isPrimary,
+      sortOrder: productMedias.sortOrder,
+    })
+    .from(productMedias)
+    .where(inArray(productMedias.productId, productIds))
+    .orderBy(desc(productMedias.isPrimary), asc(productMedias.sortOrder));
+
+  const mediaIds = Array.from(new Set(mediaLinks.map((link) => link.mediaId)));
+  const mediaMap = new Map<
+    number,
+    { url: string; type: string; metadata: unknown }
+  >();
+  if (mediaIds.length > 0) {
+    const mediaRows = await db
+      .select({
+        id: medias.id,
         url: medias.url,
         type: medias.type,
-        metadata: medias.metadata
+        metadata: medias.metadata,
       })
-      .from(productMedias)
-      .innerJoin(medias, eq(productMedias.mediaId, medias.id))
-      .where(and(eq(productMedias.productId, p.id), eq(productMedias.isPrimary, true)))
-      .limit(1);
+      .from(medias)
+      .where(inArray(medias.id, mediaIds));
+    mediaRows.forEach((m) => mediaMap.set(m.id, m));
+  }
 
-    results.push({
+  const productMediaMap = new Map<number, number>();
+  mediaLinks.forEach((link) => {
+    if (!productMediaMap.has(link.productId)) {
+      productMediaMap.set(link.productId, link.mediaId);
+    }
+  });
+
+  return productList.map((p) => {
+    const mediaId = productMediaMap.get(p.id);
+    const media = mediaId ? mediaMap.get(mediaId) : undefined;
+    return {
       id: p.id,
       name: p.name,
       slug: p.slug,
       description: p.description,
       price: p.basePrice.toString(),
       showPrice: p.showPrice,
-      image: media[0] ? getDisplayUrl(media[0]) : "",
-    });
-  }
-
-  return results;
+      image: media ? getDisplayUrl(media) : "",
+    };
+  });
 }
 
 export async function getFeaturedPortfolios(): Promise<FeaturedPortfolio[]> {
+  "use cache";
+  cacheTag("public");
+  cacheTag("featured-portfolios");
+  cacheTag("portfolios");
+
   const portfolioList = await db
     .select({
       id: portfolios.id,
@@ -65,58 +112,104 @@ export async function getFeaturedPortfolios(): Promise<FeaturedPortfolio[]> {
     })
     .from(portfolios)
     .where(and(eq(portfolios.isActive, true), eq(portfolios.isFeatured, true)))
-    .limit(3);
+    .orderBy(desc(portfolios.updatedAt));
 
-  const results: FeaturedPortfolio[] = [];
+  if (portfolioList.length === 0) return [];
 
-  for (const p of portfolioList) {
-    const items = await db
-      .select({ 
+  const portfolioIds = portfolioList.map((p) => p.id);
+  const mediaLinks = await db
+    .select({
+      portfolioId: portfolioMedias.portfolioId,
+      mediaId: portfolioMedias.mediaId,
+      altText: portfolioMedias.altText,
+      isPrimary: portfolioMedias.isPrimary,
+      sortOrder: portfolioMedias.sortOrder,
+    })
+    .from(portfolioMedias)
+    .where(inArray(portfolioMedias.portfolioId, portfolioIds))
+    .orderBy(desc(portfolioMedias.isPrimary), asc(portfolioMedias.sortOrder));
+
+  const mediaIds = Array.from(new Set(mediaLinks.map((link) => link.mediaId)));
+  const mediaMap = new Map<
+    number,
+    { url: string; type: string; metadata: unknown }
+  >();
+  if (mediaIds.length > 0) {
+    const mediaRows = await db
+      .select({
         id: medias.id,
-        url: medias.url, 
+        url: medias.url,
         type: medias.type,
         metadata: medias.metadata,
-        altText: portfolioMedias.altText, 
-        isPrimary: portfolioMedias.isPrimary,
-        sortOrder: portfolioMedias.sortOrder
       })
-      .from(portfolioMedias)
-      .innerJoin(medias, eq(portfolioMedias.mediaId, medias.id))
-      .where(eq(portfolioMedias.portfolioId, p.id))
-      .orderBy(desc(portfolioMedias.isPrimary), desc(portfolioMedias.sortOrder));
+      .from(medias)
+      .where(inArray(medias.id, mediaIds));
+    mediaRows.forEach((m) => mediaMap.set(m.id, m));
+  }
 
-    const primaryMedia = items.find(img => img.isPrimary) || items[0];
+  const portfolioItems = new Map<number, FeaturedPortfolio["medias"]>();
+  mediaLinks.forEach((link) => {
+    const media = mediaMap.get(link.mediaId);
+    if (!media) return;
+    const list = portfolioItems.get(link.portfolioId) ?? [];
+    list.push({
+      id: link.mediaId,
+      url: media.url,
+      type: media.type as MediaUI["type"],
+      metadata: parseMetadata(media.metadata),
+      altText: link.altText,
+      isPrimary: link.isPrimary,
+      sortOrder: link.sortOrder,
+    });
+    portfolioItems.set(link.portfolioId, list);
+  });
 
-    results.push({
+  return portfolioList.map((p) => {
+    const items = portfolioItems.get(p.id) ?? [];
+    const primaryMedia = items.find((img) => img.isPrimary) || items[0];
+    return {
       id: p.id,
       title: p.title,
       slug: p.slug,
       location: p.location,
       description: p.description,
       image: primaryMedia ? getDisplayUrl(primaryMedia) : "",
-      medias: items.map(item => ({ 
-        id: item.id,
-        url: item.url, 
-        type: item.type as MediaUI["type"],
-        metadata: parseMetadata(item.metadata),
-        altText: item.altText,
-        isPrimary: item.isPrimary,
-        sortOrder: item.sortOrder
-      })),
-    });
-  }
-
-  return results;
+      medias: items,
+    };
+  });
 }
 
-export async function getAllProducts(options?: { query?: string; categoryId?: number; brandId?: number }): Promise<FeaturedProduct[]> {
+export async function getAllProducts(options?: {
+  query?: string;
+  categoryId?: number;
+  brandId?: number;
+}): Promise<FeaturedProduct[]> {
   const { query, categoryId, brandId } = options || {};
+  const normalizedQuery = query ?? "";
+  const normalizedCategoryId = categoryId ?? null;
+  const normalizedBrandId = brandId ?? null;
+
+  return getAllProductsCached(
+    normalizedQuery,
+    normalizedCategoryId,
+    normalizedBrandId,
+  );
+}
+
+async function getAllProductsCached(
+  query: string,
+  categoryId: number | null,
+  brandId: number | null,
+): Promise<FeaturedProduct[]> {
+  "use cache";
+  cacheTag("public");
+  cacheTag("products");
 
   const whereClause = and(
     eq(products.isActive, true),
     query ? like(products.name, `%${query}%`) : undefined,
     categoryId ? eq(products.categoryId, categoryId) : undefined,
-    brandId ? eq(products.brandId, brandId) : undefined
+    brandId ? eq(products.brandId, brandId) : undefined,
   );
 
   const productList = await db
@@ -131,43 +224,90 @@ export async function getAllProducts(options?: { query?: string; categoryId?: nu
     .from(products)
     .where(whereClause);
 
-  const results: FeaturedProduct[] = [];
+  if (productList.length === 0) return [];
 
-  for (const p of productList) {
-    const media = await db
-      .select({ 
+  const productIds = productList.map((p) => p.id);
+  const mediaLinks = await db
+    .select({
+      productId: productMedias.productId,
+      mediaId: productMedias.mediaId,
+      isPrimary: productMedias.isPrimary,
+      sortOrder: productMedias.sortOrder,
+    })
+    .from(productMedias)
+    .where(inArray(productMedias.productId, productIds))
+    .orderBy(desc(productMedias.isPrimary), asc(productMedias.sortOrder));
+
+  const mediaIds = Array.from(new Set(mediaLinks.map((link) => link.mediaId)));
+  const mediaMap = new Map<
+    number,
+    { url: string; type: string; metadata: unknown }
+  >();
+  if (mediaIds.length > 0) {
+    const mediaRows = await db
+      .select({
+        id: medias.id,
         url: medias.url,
         type: medias.type,
-        metadata: medias.metadata
+        metadata: medias.metadata,
       })
-      .from(productMedias)
-      .innerJoin(medias, eq(productMedias.mediaId, medias.id))
-      .where(and(eq(productMedias.productId, p.id), eq(productMedias.isPrimary, true)))
-      .limit(1);
+      .from(medias)
+      .where(inArray(medias.id, mediaIds));
+    mediaRows.forEach((m) => mediaMap.set(m.id, m));
+  }
 
-    results.push({
+  const productMediaMap = new Map<number, number>();
+  mediaLinks.forEach((link) => {
+    if (!productMediaMap.has(link.productId)) {
+      productMediaMap.set(link.productId, link.mediaId);
+    }
+  });
+
+  return productList.map((p) => {
+    const mediaId = productMediaMap.get(p.id);
+    const media = mediaId ? mediaMap.get(mediaId) : undefined;
+    return {
       id: p.id,
       name: p.name,
       slug: p.slug,
       description: p.description,
       price: p.basePrice.toString(),
       showPrice: p.showPrice,
-      image: media[0] ? getDisplayUrl(media[0]) : "",
-    });
-  }
-
-  return results;
+      image: media ? getDisplayUrl(media) : "",
+    };
+  });
 }
 
 export async function getCategories(): Promise<DBCategory[]> {
+  "use cache";
+  cacheTag("public");
+  cacheTag("categories");
+
   return await db.select().from(categories);
 }
 
 export async function getBrands(): Promise<DBBrand[]> {
+  "use cache";
+  cacheTag("public");
+  cacheTag("brands");
+
   return await db.select().from(brands);
 }
 
-export async function getProductBySlug(slug: string): Promise<DetailedProduct | null> {
+export async function getProductBySlug(
+  slug: string,
+): Promise<DetailedProduct | null> {
+  return getProductBySlugCached(slug);
+}
+
+async function getProductBySlugCached(
+  slug: string,
+): Promise<DetailedProduct | null> {
+  "use cache";
+  cacheTag("public");
+  cacheTag("products");
+  cacheTag(`product:${slug}`);
+
   const parentCategories = alias(categories, "parent_categories");
 
   const productResult = await db
@@ -187,27 +327,36 @@ export async function getProductBySlug(slug: string): Promise<DetailedProduct | 
 
   if (!productResult.length) return null;
 
-  const { product: p, categoryName, parentCategoryName, brandName, brandLogo } = productResult[0];
+  const {
+    product: p,
+    categoryName,
+    parentCategoryName,
+    brandName,
+    brandLogo,
+  } = productResult[0];
 
   // Fetch all medias
   const items = await db
-    .select({ 
-        id: medias.id,
-        url: medias.url, 
-        type: medias.type,
-        metadata: medias.metadata,
-        altText: productMedias.altText, 
-        isPrimary: productMedias.isPrimary,
-        sortOrder: productMedias.sortOrder
+    .select({
+      id: medias.id,
+      url: medias.url,
+      type: medias.type,
+      metadata: medias.metadata,
+      altText: productMedias.altText,
+      isPrimary: productMedias.isPrimary,
+      sortOrder: productMedias.sortOrder,
     })
     .from(productMedias)
     .innerJoin(medias, eq(productMedias.mediaId, medias.id))
     .where(eq(productMedias.productId, p.id))
-    .orderBy(desc(productMedias.isPrimary), desc(productMedias.sortOrder));
+    .orderBy(desc(productMedias.isPrimary), asc(productMedias.sortOrder));
 
   // Fetch specs
   const specs = await db
-    .select({ key: productSpecifications.specKey, value: productSpecifications.specValue })
+    .select({
+      key: productSpecifications.specKey,
+      value: productSpecifications.specValue,
+    })
     .from(productSpecifications)
     .where(eq(productSpecifications.productId, p.id));
 
@@ -222,7 +371,12 @@ export async function getProductBySlug(slug: string): Promise<DetailedProduct | 
       isUnlimited: productVariants.isUnlimitedStock,
     })
     .from(productVariants)
-    .where(and(eq(productVariants.productId, p.id), eq(productVariants.isActive, true)));
+    .where(
+      and(
+        eq(productVariants.productId, p.id),
+        eq(productVariants.isActive, true),
+      ),
+    );
 
   return {
     ...p,
@@ -230,17 +384,17 @@ export async function getProductBySlug(slug: string): Promise<DetailedProduct | 
     parentCategoryName,
     brandName,
     brandLogo,
-    medias: items.map(i => ({ 
-        id: i.id,
-        url: i.url, 
-        type: i.type as MediaUI["type"],
-        metadata: parseMetadata(i.metadata),
-        altText: i.altText || p.name, 
-        isPrimary: i.isPrimary,
-        sortOrder: i.sortOrder
+    medias: items.map((i) => ({
+      id: i.id,
+      url: i.url,
+      type: i.type as MediaUI["type"],
+      metadata: parseMetadata(i.metadata),
+      altText: i.altText || p.name,
+      isPrimary: i.isPrimary,
+      sortOrder: i.sortOrder,
     })),
     specs: specs,
-    variants: variants.map(v => ({
+    variants: variants.map((v) => ({
       ...v,
       priceAdjustment: v.priceAdjustment.toString(),
       stock: v.stock.toString(),

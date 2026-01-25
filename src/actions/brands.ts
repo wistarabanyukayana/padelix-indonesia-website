@@ -1,15 +1,15 @@
 "use server";
 
-import { db } from "@/lib/db";
 import { brands } from "@/db/schema";
+import { db } from "@/lib/db";
 import { eq } from "drizzle-orm";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { z } from "zod";
 
-import { ActionState } from "@/types";
-import { checkPermission, getSession } from "@/lib/auth";
 import { PERMISSIONS } from "@/config/permissions";
 import { createAuditLog } from "@/lib/audit";
+import { checkPermission, getSession } from "@/lib/auth";
+import { ActionState } from "@/types";
 
 const brandSchema = z.object({
   name: z.string().min(1, "Nama brand wajib diisi"),
@@ -18,7 +18,10 @@ const brandSchema = z.object({
   logoUrl: z.string().nullable().optional(),
 });
 
-export async function createBrand(prevState: ActionState, formData: FormData): Promise<ActionState> {
+export async function createBrand(
+  prevState: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
   const session = await getSession();
   if (!session) return { message: "Sesi berakhir, silakan login kembali" };
 
@@ -44,26 +47,43 @@ export async function createBrand(prevState: ActionState, formData: FormData): P
   let newId: number | null = null;
 
   try {
-    const [result] = await db.insert(brands).values({
+    const [result] = await db
+      .insert(brands)
+      .values({
         name: validated.data.name,
         slug: validated.data.slug,
         website: validated.data.website,
         logoUrl: validated.data.logoUrl,
-    }).$returningId();
+      })
+      .$returningId();
     newId = result.id;
-    await createAuditLog("BRAND_CREATE", newId, `Created brand: ${validated.data.name}`);
+    await createAuditLog(
+      "BRAND_CREATE",
+      newId,
+      `Created brand: ${validated.data.name}`,
+    );
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Terjadi kesalahan tidak dikenal";
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Terjadi kesalahan tidak dikenal";
     return { message: "Gagal membuat brand: " + message };
   }
 
-  revalidatePath("/admin/brands", "layout");
-  revalidatePath("/admin/products", "layout");
-  revalidatePath("/products", "layout");
+  revalidatePath("/admin/brands");
+  revalidatePath("/admin/products");
+  revalidatePath("/products");
+  updateTag("public");
+  updateTag("brands");
+  updateTag("products");
   return { success: true, redirectTo: `/admin/brands/${newId}/edit?new=1` };
 }
 
-export async function updateBrand(id: number, prevState: ActionState, formData: FormData): Promise<ActionState> {
+export async function updateBrand(
+  id: number,
+  prevState: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
   const session = await getSession();
   if (!session) return { message: "Sesi berakhir, silakan login kembali" };
 
@@ -87,35 +107,52 @@ export async function updateBrand(id: number, prevState: ActionState, formData: 
   }
 
   try {
-    await db.update(brands).set({
+    await db
+      .update(brands)
+      .set({
         name: validated.data.name,
         slug: validated.data.slug,
         website: validated.data.website,
         logoUrl: validated.data.logoUrl,
-    }).where(eq(brands.id, id));
-    await createAuditLog("BRAND_UPDATE", id, `Updated brand: ${validated.data.name}`);
+      })
+      .where(eq(brands.id, id));
+    await createAuditLog(
+      "BRAND_UPDATE",
+      id,
+      `Updated brand: ${validated.data.name}`,
+    );
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Terjadi kesalahan tidak dikenal";
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Terjadi kesalahan tidak dikenal";
     return { message: "Gagal mengupdate brand: " + message };
   }
 
-  revalidatePath("/admin/brands", "layout");
-  revalidatePath("/admin/products", "layout");
-  revalidatePath("/products", "layout");
+  revalidatePath("/admin/brands");
+  revalidatePath("/admin/products");
+  revalidatePath("/products");
+  updateTag("public");
+  updateTag("brands");
+  updateTag("products");
   return { success: true, message: "Brand berhasil diperbarui" };
 }
 
 export async function deleteBrand(id: number): Promise<ActionState> {
   const session = await getSession();
-  if (!session) return { success: false, message: "Sesi berakhir, silakan login kembali" };
+  if (!session)
+    return { success: false, message: "Sesi berakhir, silakan login kembali" };
 
   try {
     await checkPermission(PERMISSIONS.MANAGE_BRANDS);
     await db.delete(brands).where(eq(brands.id, id));
     await createAuditLog("BRAND_DELETE", id, `Deleted brand ID: ${id}`);
-    revalidatePath("/admin/brands", "layout");
-    revalidatePath("/admin/products", "layout");
-    revalidatePath("/products", "layout");
+    revalidatePath("/admin/brands");
+    revalidatePath("/admin/products");
+    revalidatePath("/products");
+    updateTag("public");
+    updateTag("brands");
+    updateTag("products");
     return { success: true };
   } catch {
     return { success: false, message: "Gagal menghapus brand" };

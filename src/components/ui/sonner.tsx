@@ -1,12 +1,13 @@
-"use client"
+"use client";
 
-import { Toaster as Sonner } from "sonner"
-import { useEffect, useState } from "react"
+import { useEffect, useState } from "react";
+import { Toaster as Sonner } from "sonner";
 
-type ToasterProps = React.ComponentProps<typeof Sonner>
+type ToasterProps = React.ComponentProps<typeof Sonner>;
 
 const Toaster = ({ ...props }: ToasterProps) => {
-  const [position, setPosition] = useState<ToasterProps["position"]>("top-right");
+  const [position, setPosition] =
+    useState<ToasterProps["position"]>("top-right");
 
   useEffect(() => {
     const media = window.matchMedia("(max-width: 768px)");
@@ -60,7 +61,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
       }}
       {...props}
     />
-  )
-}
+  );
+};
 
-export { Toaster }
+export { Toaster };

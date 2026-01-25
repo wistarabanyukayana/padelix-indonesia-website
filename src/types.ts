@@ -1,17 +1,17 @@
-import { 
-  products, 
-  portfolios, 
-  categories, 
-  brands, 
-  users, 
-  roles, 
+import {
+  auditLogs,
+  brands,
+  categories,
+  medias,
   permissions,
+  portfolioMedias,
+  portfolios,
   productMedias,
+  products,
   productSpecifications,
   productVariants,
-  portfolioMedias,
-  medias,
-  auditLogs
+  roles,
+  users,
 } from "@/db/schema";
 import { type InferSelectModel } from "drizzle-orm";
 import type React from "react";
@@ -56,7 +56,10 @@ export interface ActionState {
   redirectTo?: string;
 }
 
-export type FormAction = (state: ActionState, payload: FormData) => Promise<ActionState>;
+export type FormAction = (
+  state: ActionState,
+  payload: FormData,
+) => Promise<ActionState>;
 
 export interface UploadResult {
   url?: string;

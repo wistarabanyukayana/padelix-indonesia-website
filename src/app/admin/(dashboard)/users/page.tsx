@@ -1,19 +1,21 @@
-import { db } from "@/lib/db";
-import { users, usersRoles, roles } from "@/db/schema";
-import { eq, desc, like, or, asc, and } from "drizzle-orm";
+import { AccessDenied } from "@/components/admin/general/AccessDenied";
+import { DeleteUserButton } from "@/components/admin/users/DeleteUserButton";
 import { Button } from "@/components/ui/Button";
-import Link from "next/link";
-import { Edit, Plus, Shield, Clock } from "lucide-react";
-import { DeleteUserButton } from "@/components/admin/DeleteUserButton";
-import { checkPermission, getSession } from "@/lib/auth";
 import { PERMISSIONS } from "@/config/permissions";
+import { roles, users, usersRoles } from "@/db/schema";
+import { getSession, hasPermission } from "@/lib/auth";
+import { db } from "@/lib/db";
+import { and, asc, desc, eq, like, or } from "drizzle-orm";
+import { Clock, Edit, Plus, Shield } from "lucide-react";
+import Link from "next/link";
 
 interface PageProps {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
 export default async function AdminUsersPage({ searchParams }: PageProps) {
-  await checkPermission(PERMISSIONS.MANAGE_USERS);
+  const allowed = await hasPermission(PERMISSIONS.MANAGE_USERS);
+  if (!allowed) return <AccessDenied />;
   const session = await getSession();
   const currentUserId = session?.user?.id ?? null;
 
@@ -36,7 +38,12 @@ export default async function AdminUsersPage({ searchParams }: PageProps) {
 
   const filters = [];
   if (searchQuery) {
-    filters.push(or(like(users.username, `%${searchQuery}%`), like(users.email, `%${searchQuery}%`)));
+    filters.push(
+      or(
+        like(users.username, `%${searchQuery}%`),
+        like(users.email, `%${searchQuery}%`),
+      ),
+    );
   }
 
   let usersQuery = db.select().from(users).$dynamic();
@@ -45,13 +52,15 @@ export default async function AdminUsersPage({ searchParams }: PageProps) {
   }
 
   const userList = await usersQuery.orderBy(
-    sortDir === "asc" ? asc(sortColumn) : desc(sortColumn)
+    sortDir === "asc" ? asc(sortColumn) : desc(sortColumn),
   );
   const formatDateTime = (value: Date | string | null) => {
     if (!value) return "-";
     const raw = value instanceof Date ? value.toISOString() : value;
     const normalized = /Z$|[+-]\d{2}:\d{2}$/.test(raw) ? raw : `${raw}Z`;
-    return new Date(normalized).toLocaleString("id-ID", { timeZone: "Asia/Jakarta" });
+    return new Date(normalized).toLocaleString("id-ID", {
+      timeZone: "Asia/Jakarta",
+    });
   };
 
   // Fetch roles for each user
@@ -64,12 +73,12 @@ export default async function AdminUsersPage({ searchParams }: PageProps) {
         .from(usersRoles)
         .leftJoin(roles, eq(usersRoles.rolesId, roles.id))
         .where(eq(usersRoles.usersId, user.id));
-        
+
       return {
         ...user,
         roles: userRolesList.map((r) => r.name),
       };
-    })
+    }),
   );
   const orderedUsers = [...usersWithRoles];
   if (currentUserId) {
@@ -86,13 +95,19 @@ export default async function AdminUsersPage({ searchParams }: PageProps) {
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-4">
         <div className="flex flex-row flex-wrap items-start justify-between gap-3">
-          <div className="flex flex-col gap-1 min-w-0">
+          <div className="flex min-w-0 flex-col gap-1">
             <h1 className="h2 text-neutral-900">Manajemen Pengguna</h1>
-            <p className="text-sm text-neutral-500">Kelola akses administrator dan peran sistem</p>
+            <p className="text-sm text-neutral-500">
+              Kelola akses administrator dan peran sistem
+            </p>
           </div>
-          <div className="flex gap-2 shrink-0">
+          <div className="flex shrink-0 gap-2">
             <Link href="/admin/roles">
-              <Button variant="outline" size="sm" className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-2"
+              >
                 <Shield size={16} />
                 <span className="hidden sm:inline">Kelola Peran</span>
               </Button>
@@ -101,10 +116,13 @@ export default async function AdminUsersPage({ searchParams }: PageProps) {
         </div>
       </div>
       <div
-        className="sticky z-30 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-3 bg-neutral-50/95 backdrop-blur border-b border-neutral-200"
+        className="sticky z-30 -mx-4 border-b border-neutral-200 bg-neutral-50/95 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8"
         style={{ top: "var(--app-header-height, 0px)" }}
       >
-        <form method="get" className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <form
+          method="get"
+          className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between"
+        >
           <div className="flex flex-1 gap-2">
             <input
               name="q"
@@ -141,7 +159,7 @@ export default async function AdminUsersPage({ searchParams }: PageProps) {
       </div>
 
       {orderedUsers.length === 0 ? (
-        <div className="text-center py-12 bg-white rounded-brand border border-neutral-200">
+        <div className="rounded-brand border border-neutral-200 bg-white py-12 text-center">
           <p className="text-neutral-400">Belum ada pengguna.</p>
         </div>
       ) : (
@@ -151,123 +169,161 @@ export default async function AdminUsersPage({ searchParams }: PageProps) {
             {orderedUsers.map((u) => {
               const isCurrentUser = currentUserId === u.id;
               return (
-              <div
-                key={u.id}
-                className={`relative rounded-brand border shadow-sm overflow-hidden group ${
-                  isCurrentUser
-                    ? "bg-brand-green/5 border-brand-green/30"
-                    : "bg-white border-neutral-200"
-                }`}
-              >
-                <div className="absolute top-3 right-3 z-10">
-                   <DeleteUserButton id={u.id} username={u.username} />
-                </div>
+                <div
+                  key={u.id}
+                  className={`group relative overflow-hidden rounded-brand border shadow-sm ${
+                    isCurrentUser
+                      ? "border-brand-green/30 bg-brand-green/5"
+                      : "border-neutral-200 bg-white"
+                  }`}
+                >
+                  <div className="absolute top-3 right-3 z-10">
+                    <DeleteUserButton id={u.id} username={u.username} />
+                  </div>
 
-                <Link href={`/admin/users/${u.id}/edit`} className="block p-4 active:bg-neutral-50 transition-colors">
-                    <div className="flex gap-4 items-start pr-10">
-                        <div className="relative w-11 h-11 flex-shrink-0 rounded-full bg-brand-light border border-brand-green/20 flex items-center justify-center text-brand-green font-black text-lg">
-                            {u.username.charAt(0).toUpperCase()}
+                  <Link
+                    href={`/admin/users/${u.id}/edit`}
+                    className="block p-4 transition-colors active:bg-neutral-50"
+                  >
+                    <div className="flex items-start gap-4 pr-10">
+                      <div className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-brand-green/20 bg-brand-light text-lg font-black text-brand-green">
+                        {u.username.charAt(0).toUpperCase()}
+                      </div>
+
+                      <div className="flex min-w-0 flex-1 flex-col gap-1">
+                        <div className="flex items-center gap-2">
+                          <h3 className="truncate text-base leading-tight font-bold text-neutral-900">
+                            {u.username}
+                          </h3>
+                          {isCurrentUser && (
+                            <span className="rounded-full bg-brand-green px-2 py-0.5 text-[10px] font-black text-white uppercase">
+                              Akun Anda
+                            </span>
+                          )}
                         </div>
-                        
-                        <div className="flex flex-col flex-1 min-w-0 gap-1">
-                            <div className="flex items-center gap-2">
-                              <h3 className="font-bold text-neutral-900 text-base leading-tight truncate">
-                                  {u.username}
-                              </h3>
-                              {isCurrentUser && (
-                                <span className="text-[10px] bg-brand-green text-white px-2 py-0.5 rounded-full font-black uppercase">
-                                  Akun Anda
-                                </span>
-                              )}
-                            </div>
-                            <p className="text-xs text-neutral-400 truncate">{u.email}</p>
-                            <div className="flex flex-wrap gap-1 mt-1">
-                                {u.roles.map((role, i) => (
-                                    <span key={i} className="text-[10px] bg-neutral-100 text-neutral-500 px-1.5 py-0.5 rounded font-bold uppercase">
-                                        {role}
-                                    </span>
-                                ))}
-                            </div>
-                            <div className="flex items-center gap-1 text-[10px] text-neutral-400 mt-1">
-                                <Clock size={12} />
-                                <span>Login: {formatDateTime(u.lastLogin)}</span>
-                            </div>
+                        <p className="truncate text-xs text-neutral-400">
+                          {u.email}
+                        </p>
+                        <div className="mt-1 flex flex-wrap gap-1">
+                          {u.roles.map((role, i) => (
+                            <span
+                              key={i}
+                              className="rounded bg-neutral-100 px-1.5 py-0.5 text-[10px] font-bold text-neutral-500 uppercase"
+                            >
+                              {role}
+                            </span>
+                          ))}
                         </div>
+                        <div className="mt-1 flex items-center gap-1 text-[10px] text-neutral-400">
+                          <Clock size={12} />
+                          <span>Login: {formatDateTime(u.lastLogin)}</span>
+                        </div>
+                      </div>
                     </div>
-                </Link>
-              </div>
-            )})}
+                  </Link>
+                </div>
+              );
+            })}
           </div>
 
           {/* Desktop View */}
-          <div className="hidden md:block bg-white rounded-brand shadow-sm border border-neutral-200 overflow-hidden">
+          <div className="hidden overflow-hidden rounded-brand border border-neutral-200 bg-white shadow-sm md:block">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm text-neutral-600">
-                <thead className="bg-neutral-50 border-b border-neutral-200">
+                <thead className="border-b border-neutral-200 bg-neutral-50">
                   <tr>
-                    <th className="px-6 py-4 font-bold text-neutral-900 uppercase tracking-wider text-xs">Pengguna</th>
-                    <th className="px-6 py-4 font-bold text-neutral-900 uppercase tracking-wider text-xs">Email</th>
-                    <th className="px-6 py-4 font-bold text-neutral-900 uppercase tracking-wider text-xs">Peran</th>
-                    <th className="px-6 py-4 font-bold text-neutral-900 uppercase tracking-wider text-xs">Status</th>
-                    <th className="px-6 py-4 font-bold text-neutral-900 uppercase tracking-wider text-xs">Login Terakhir</th>
-                    <th className="px-6 py-4 font-bold text-neutral-900 uppercase tracking-wider text-xs text-right">Aksi</th>
+                    <th className="px-6 py-4 text-xs font-bold tracking-wider text-neutral-900 uppercase">
+                      Pengguna
+                    </th>
+                    <th className="px-6 py-4 text-xs font-bold tracking-wider text-neutral-900 uppercase">
+                      Email
+                    </th>
+                    <th className="px-6 py-4 text-xs font-bold tracking-wider text-neutral-900 uppercase">
+                      Peran
+                    </th>
+                    <th className="px-6 py-4 text-xs font-bold tracking-wider text-neutral-900 uppercase">
+                      Status
+                    </th>
+                    <th className="px-6 py-4 text-xs font-bold tracking-wider text-neutral-900 uppercase">
+                      Login Terakhir
+                    </th>
+                    <th className="px-6 py-4 text-right text-xs font-bold tracking-wider text-neutral-900 uppercase">
+                      Aksi
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-neutral-100">
-                    {orderedUsers.map((u) => {
-                      const isCurrentUser = currentUserId === u.id;
-                      return (
+                  {orderedUsers.map((u) => {
+                    const isCurrentUser = currentUserId === u.id;
+                    return (
                       <tr
                         key={u.id}
                         className={`transition-colors ${
-                          isCurrentUser ? "bg-brand-green/5" : "hover:bg-neutral-50"
+                          isCurrentUser
+                            ? "bg-brand-green/5"
+                            : "hover:bg-neutral-50"
                         }`}
                       >
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-brand-light border border-brand-green/20 flex items-center justify-center text-brand-green font-black text-sm">
-                                {u.username.charAt(0).toUpperCase()}
+                            <div className="flex h-8 w-8 items-center justify-center rounded-full border border-brand-green/20 bg-brand-light text-sm font-black text-brand-green">
+                              {u.username.charAt(0).toUpperCase()}
                             </div>
                             <div className="flex items-center gap-2">
-                              <span className="font-bold text-neutral-900">{u.username}</span>
+                              <span className="font-bold text-neutral-900">
+                                {u.username}
+                              </span>
                               {isCurrentUser && (
-                                <span className="text-[10px] bg-brand-green text-white px-2 py-0.5 rounded-full font-black uppercase">
+                                <span className="rounded-full bg-brand-green px-2 py-0.5 text-[10px] font-black text-white uppercase">
                                   Akun Anda
                                 </span>
                               )}
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4">
-                          {u.email}
-                        </td>
+                        <td className="px-6 py-4">{u.email}</td>
                         <td className="px-6 py-4">
                           <div className="flex flex-wrap gap-1">
                             {u.roles.map((role, i) => (
-                                <span key={i} className="text-[10px] bg-neutral-100 text-neutral-500 px-1.5 py-0.5 rounded font-bold uppercase border border-neutral-200">
-                                    {role}
-                                </span>
+                              <span
+                                key={i}
+                                className="rounded border border-neutral-200 bg-neutral-100 px-1.5 py-0.5 text-[10px] font-bold text-neutral-500 uppercase"
+                              >
+                                {role}
+                              </span>
                             ))}
-                            {u.roles.length === 0 && <span className="text-neutral-300 italic text-xs">No roles</span>}
+                            {u.roles.length === 0 && (
+                              <span className="text-xs text-neutral-300 italic">
+                                No roles
+                              </span>
+                            )}
                           </div>
                         </td>
                         <td className="px-6 py-4">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            u.isActive ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
-                          }`}>
+                          <span
+                            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                              u.isActive
+                                ? "bg-green-100 text-green-800"
+                                : "bg-red-100 text-red-800"
+                            }`}
+                          >
                             {u.isActive ? "Aktif" : "Nonaktif"}
                           </span>
                         </td>
                         <td className="px-6 py-4 text-xs text-neutral-400">
-                           <div className="flex items-center gap-1">
-                               <Clock size={12} />
-                               {formatDateTime(u.lastLogin)}
-                           </div>
+                          <div className="flex items-center gap-1">
+                            <Clock size={12} />
+                            {formatDateTime(u.lastLogin)}
+                          </div>
                         </td>
                         <td className="px-6 py-4 text-right">
                           <div className="flex items-center justify-end gap-2">
                             <Link href={`/admin/users/${u.id}/edit`}>
-                              <Button variant="outline" size="sm" className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50 border-blue-200">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-8 w-8 border-blue-200 p-0 text-blue-600 hover:bg-blue-50 hover:text-blue-700"
+                              >
                                 <Edit size={16} />
                               </Button>
                             </Link>
@@ -275,7 +331,8 @@ export default async function AdminUsersPage({ searchParams }: PageProps) {
                           </div>
                         </td>
                       </tr>
-                    )})}
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -283,9 +340,13 @@ export default async function AdminUsersPage({ searchParams }: PageProps) {
         </>
       )}
 
-      <div className="flex justify-end mt-4">
+      <div className="mt-4 flex justify-end">
         <Link href="/admin/users/new">
-          <Button variant="dark" size="sm" className="flex items-center gap-2 shadow-lg sm:px-6 sm:py-3 sm:text-base">
+          <Button
+            variant="dark"
+            size="sm"
+            className="flex items-center gap-2 shadow-lg sm:px-6 sm:py-3 sm:text-base"
+          >
             <Plus size={16} />
             <span>Tambah User</span>
           </Button>

@@ -1,7 +1,7 @@
+import { siteConfig } from "@/config/site";
 import type { Metadata, Viewport } from "next";
 import { Inter, Lato } from "next/font/google";
 import "./globals.css";
-import { siteConfig } from "@/config/site";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -50,8 +50,16 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: "/assets/padelix-favicons/default/favicon-32x32.png", sizes: "32x32", type: "image/png" },
-      { url: "/assets/padelix-favicons/default/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      {
+        url: "/assets/padelix-favicons/default/favicon-32x32.png",
+        sizes: "32x32",
+        type: "image/png",
+      },
+      {
+        url: "/assets/padelix-favicons/default/favicon-16x16.png",
+        sizes: "16x16",
+        type: "image/png",
+      },
     ],
     shortcut: "/assets/padelix-favicons/default/favicon.ico",
     apple: "/assets/padelix-favicons/default/favicon-180x180.png",

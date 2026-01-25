@@ -1,10 +1,41 @@
 export const siteConfig = {
   name: "Padelix Indonesia",
   shortName: "Padelix",
-  description: "Penyedia lapangan padel profesional dan peralatan padel kualitas dunia di Indonesia. Solusi lengkap dari perencanaan hingga instalasi.",
+  description:
+    "Penyedia lapangan padel profesional dan peralatan padel kualitas dunia di Indonesia. Solusi lengkap dari perencanaan hingga instalasi.",
   url: process.env.NEXT_PUBLIC_SITE_URL || "https://padelix.co.id",
   ogImage: "/assets/hero-image.jpg",
-  keywords: ["padel indonesia", "lapangan padel", "raket padel", "padel court builder", "padelix"],
+  keywords: [
+    "padelix",
+    "padelix indonesia",
+    "padel",
+    "padel indonesia",
+    "lapangan padel",
+    "lapangan padel indonesia",
+    "peralatan padel",
+    "peralatan padel indonesia",
+    "raket padel",
+    "padel court",
+    "padel court indonesia",
+    "padel court builder",
+    "padel jakarta",
+    "lapangan padel jakarta",
+    "padel jabodetabek",
+    "padel bogor",
+    "padel depok",
+    "padel tangerang",
+    "padel bekasi",
+    "padel bandung",
+    "padel surabaya",
+    "padel bali",
+    "padel denpasar",
+    "padel medan",
+    "padel semarang",
+    "padel yogyakarta",
+    "padel jogja",
+    "padel makassar",
+    "padel batam",
+  ],
   contact: {
     whatsapp: "6282122122250",
     whatsappDisplay: "+62 821-2212-2250",
@@ -12,11 +43,11 @@ export const siteConfig = {
     instagram: "padelixindonesia",
     instagramUrl: "https://www.instagram.com/padelixindonesia/",
     facebook: "Padelix Indonesia",
-    facebookUrl: "https://www.facebook.com/padelixindonesia"
+    facebookUrl: "https://www.facebook.com/padelixindonesia",
   },
   links: {
     whatsapp: `https://wa.me/6282122122250`,
-  }
+  },
 };
 
 export type SiteConfig = typeof siteConfig;
