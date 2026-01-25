@@ -1,21 +1,24 @@
 "use server";
 
-import { db } from "@/lib/db";
+import { PERMISSIONS } from "@/config/permissions";
 import { roles, rolesPermissions } from "@/db/schema";
+import { createAuditLog } from "@/lib/audit";
+import { checkPermission, getSession } from "@/lib/auth";
+import { db } from "@/lib/db";
+import { ActionState } from "@/types";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { ActionState } from "@/types";
-import { checkPermission, getSession } from "@/lib/auth";
-import { PERMISSIONS } from "@/config/permissions";
-import { createAuditLog } from "@/lib/audit";
 
 const roleSchema = z.object({
   name: z.string().min(1, "Nama peran wajib diisi"),
   description: z.string().optional().or(z.literal("")),
 });
 
-export async function createRole(prevState: ActionState, formData: FormData): Promise<ActionState> {
+export async function createRole(
+  prevState: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
   const session = await getSession();
   if (!session) return { message: "Sesi berakhir, silakan login kembali" };
 
@@ -30,7 +33,9 @@ export async function createRole(prevState: ActionState, formData: FormData): Pr
     description: formData.get("description"),
   };
 
-  const selectedPermissions: number[] = JSON.parse(formData.get("permissions") as string || "[]");
+  const selectedPermissions: number[] = JSON.parse(
+    (formData.get("permissions") as string) || "[]",
+  );
 
   const validated = roleSchema.safeParse(rawData);
   if (!validated.success) {
@@ -41,26 +46,30 @@ export async function createRole(prevState: ActionState, formData: FormData): Pr
   let newId: number | null = null;
 
   try {
-    const [result] = await db.insert(roles).values({
-      name: data.name,
-      description: data.description,
-    }).$returningId();
+    const [result] = await db
+      .insert(roles)
+      .values({
+        name: data.name,
+        description: data.description,
+      })
+      .$returningId();
 
     newId = result.id;
 
     if (selectedPermissions.length > 0) {
       await db.insert(rolesPermissions).values(
-        selectedPermissions.map(permId => ({
+        selectedPermissions.map((permId) => ({
           rolesId: newId!,
           permissionsId: permId,
-        }))
+        })),
       );
     }
 
     await createAuditLog("ROLE_CREATE", newId!, `Created role: ${data.name}`);
   } catch (error: unknown) {
     console.error(error);
-    const message = error instanceof Error ? error.message : "Terjadi kesalahan";
+    const message =
+      error instanceof Error ? error.message : "Terjadi kesalahan";
     return { message: "Gagal membuat peran: " + message };
   }
 
@@ -69,7 +78,11 @@ export async function createRole(prevState: ActionState, formData: FormData): Pr
   return { success: true, redirectTo: `/admin/roles/${newId}/edit?new=1` };
 }
 
-export async function updateRole(id: number, prevState: ActionState, formData: FormData): Promise<ActionState> {
+export async function updateRole(
+  id: number,
+  prevState: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
   const session = await getSession();
   if (!session) return { message: "Sesi berakhir, silakan login kembali" };
 
@@ -84,7 +97,9 @@ export async function updateRole(id: number, prevState: ActionState, formData: F
     description: formData.get("description"),
   };
 
-  const selectedPermissions: number[] = JSON.parse(formData.get("permissions") as string || "[]");
+  const selectedPermissions: number[] = JSON.parse(
+    (formData.get("permissions") as string) || "[]",
+  );
 
   const validated = roleSchema.safeParse(rawData);
   if (!validated.success) {
@@ -94,26 +109,30 @@ export async function updateRole(id: number, prevState: ActionState, formData: F
   const { data } = validated;
 
   try {
-    await db.update(roles).set({
-      name: data.name,
-      description: data.description,
-    }).where(eq(roles.id, id));
+    await db
+      .update(roles)
+      .set({
+        name: data.name,
+        description: data.description,
+      })
+      .where(eq(roles.id, id));
 
     // Sync Permissions
     await db.delete(rolesPermissions).where(eq(rolesPermissions.rolesId, id));
     if (selectedPermissions.length > 0) {
       await db.insert(rolesPermissions).values(
-        selectedPermissions.map(permId => ({
+        selectedPermissions.map((permId) => ({
           rolesId: id,
           permissionsId: permId,
-        }))
+        })),
       );
     }
 
     await createAuditLog("ROLE_UPDATE", id, `Updated role: ${data.name}`);
   } catch (error: unknown) {
     console.error(error);
-    const message = error instanceof Error ? error.message : "Terjadi kesalahan";
+    const message =
+      error instanceof Error ? error.message : "Terjadi kesalahan";
     return { message: "Gagal memperbarui peran: " + message };
   }
 
@@ -124,15 +143,19 @@ export async function updateRole(id: number, prevState: ActionState, formData: F
 
 export async function deleteRole(id: number): Promise<ActionState> {
   const session = await getSession();
-  if (!session) return { success: false, message: "Sesi berakhir, silakan login kembali" };
+  if (!session)
+    return { success: false, message: "Sesi berakhir, silakan login kembali" };
 
   try {
     await checkPermission(PERMISSIONS.MANAGE_USERS);
 
     // Check if it's super_admin
     const role = await db.select().from(roles).where(eq(roles.id, id)).limit(1);
-    if (role[0]?.name === 'super_admin') {
-        return { success: false, message: "Tidak dapat menghapus peran super_admin" };
+    if (role[0]?.name === "super_admin") {
+      return {
+        success: false,
+        message: "Tidak dapat menghapus peran super_admin",
+      };
     }
 
     await db.delete(roles).where(eq(roles.id, id));
@@ -140,6 +163,10 @@ export async function deleteRole(id: number): Promise<ActionState> {
     revalidatePath("/admin/roles");
     return { success: true };
   } catch {
-    return { success: false, message: "Gagal menghapus peran. Pastikan tidak ada pengguna yang menggunakan peran ini." };
+    return {
+      success: false,
+      message:
+        "Gagal menghapus peran. Pastikan tidak ada pengguna yang menggunakan peran ini.",
+    };
   }
 }

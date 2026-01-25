@@ -2,9 +2,7 @@
   "version": "6",
   "dialect": "mysql",
   "id": "4d3d49d3-3649-40bd-87fd-85060a263623",
-  "prevIds": [
-    "ec267374-8be6-4085-9a65-eaa59237b733"
-  ],
+  "prevIds": ["ec267374-8be6-4085-9a65-eaa59237b733"],
   "ddl": [
     {
       "name": "audit_logs",
@@ -1677,123 +1675,91 @@
       "table": "users_roles"
     },
     {
-      "columns": [
-        "roles_id",
-        "permissions_id"
-      ],
+      "columns": ["roles_id", "permissions_id"],
       "name": "PRIMARY",
       "table": "roles_permissions",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "users_id",
-        "roles_id"
-      ],
+      "columns": ["users_id", "roles_id"],
       "name": "PRIMARY",
       "table": "users_roles",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "name": "PRIMARY",
       "table": "audit_logs",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "name": "PRIMARY",
       "table": "brands",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "name": "PRIMARY",
       "table": "categories",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "name": "PRIMARY",
       "table": "medias",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "name": "PRIMARY",
       "table": "permissions",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "name": "PRIMARY",
       "table": "portfolio_medias",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "name": "PRIMARY",
       "table": "portfolios",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "name": "PRIMARY",
       "table": "product_medias",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "name": "PRIMARY",
       "table": "product_specifications",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "name": "PRIMARY",
       "table": "product_variants",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "name": "PRIMARY",
       "table": "products",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "name": "PRIMARY",
       "table": "roles",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "name": "PRIMARY",
       "table": "users",
       "entityType": "pks"
@@ -2023,13 +1989,9 @@
       "table": "users"
     },
     {
-      "columns": [
-        "user_id"
-      ],
+      "columns": ["user_id"],
       "tableTo": "users",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "SET NULL",
       "nameExplicit": true,
@@ -2038,13 +2000,9 @@
       "table": "audit_logs"
     },
     {
-      "columns": [
-        "parent_id"
-      ],
+      "columns": ["parent_id"],
       "tableTo": "categories",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "SET NULL",
       "nameExplicit": true,
@@ -2053,13 +2011,9 @@
       "table": "categories"
     },
     {
-      "columns": [
-        "portfolio_id"
-      ],
+      "columns": ["portfolio_id"],
       "tableTo": "portfolios",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "nameExplicit": true,
@@ -2068,13 +2022,9 @@
       "table": "portfolio_medias"
     },
     {
-      "columns": [
-        "media_id"
-      ],
+      "columns": ["media_id"],
       "tableTo": "medias",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "nameExplicit": true,
@@ -2083,13 +2033,9 @@
       "table": "portfolio_medias"
     },
     {
-      "columns": [
-        "created_by"
-      ],
+      "columns": ["created_by"],
       "tableTo": "users",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "SET NULL",
       "nameExplicit": true,
@@ -2098,13 +2044,9 @@
       "table": "portfolios"
     },
     {
-      "columns": [
-        "product_id"
-      ],
+      "columns": ["product_id"],
       "tableTo": "products",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "nameExplicit": true,
@@ -2113,13 +2055,9 @@
       "table": "product_medias"
     },
     {
-      "columns": [
-        "media_id"
-      ],
+      "columns": ["media_id"],
       "tableTo": "medias",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "nameExplicit": true,
@@ -2128,13 +2066,9 @@
       "table": "product_medias"
     },
     {
-      "columns": [
-        "product_id"
-      ],
+      "columns": ["product_id"],
       "tableTo": "products",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "nameExplicit": true,
@@ -2143,13 +2077,9 @@
       "table": "product_specifications"
     },
     {
-      "columns": [
-        "product_id"
-      ],
+      "columns": ["product_id"],
       "tableTo": "products",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "nameExplicit": true,
@@ -2158,13 +2088,9 @@
       "table": "product_variants"
     },
     {
-      "columns": [
-        "brand_id"
-      ],
+      "columns": ["brand_id"],
       "tableTo": "brands",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "SET NULL",
       "nameExplicit": true,
@@ -2173,13 +2099,9 @@
       "table": "products"
     },
     {
-      "columns": [
-        "category_id"
-      ],
+      "columns": ["category_id"],
       "tableTo": "categories",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "SET NULL",
       "nameExplicit": true,
@@ -2188,13 +2110,9 @@
       "table": "products"
     },
     {
-      "columns": [
-        "created_by"
-      ],
+      "columns": ["created_by"],
       "tableTo": "users",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "SET NULL",
       "nameExplicit": true,
@@ -2203,13 +2121,9 @@
       "table": "products"
     },
     {
-      "columns": [
-        "permissions_id"
-      ],
+      "columns": ["permissions_id"],
       "tableTo": "permissions",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "nameExplicit": true,
@@ -2218,13 +2132,9 @@
       "table": "roles_permissions"
     },
     {
-      "columns": [
-        "roles_id"
-      ],
+      "columns": ["roles_id"],
       "tableTo": "roles",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "nameExplicit": true,
@@ -2233,13 +2143,9 @@
       "table": "roles_permissions"
     },
     {
-      "columns": [
-        "roles_id"
-      ],
+      "columns": ["roles_id"],
       "tableTo": "roles",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "nameExplicit": true,
@@ -2248,13 +2154,9 @@
       "table": "users_roles"
     },
     {
-      "columns": [
-        "users_id"
-      ],
+      "columns": ["users_id"],
       "tableTo": "users",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "nameExplicit": true,

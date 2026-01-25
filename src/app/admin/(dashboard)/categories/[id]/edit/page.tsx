@@ -1,24 +1,31 @@
-import { db } from "@/lib/db";
-import { categories } from "@/db/schema";
 import { updateCategory } from "@/actions/categories";
 import { getMedias } from "@/actions/media";
-import { CategoryForm } from "@/components/admin/CategoryForm";
+import { CategoryForm } from "@/components/admin/categories/CategoryForm";
+import { AccessDenied } from "@/components/admin/general/AccessDenied";
+import { PERMISSIONS } from "@/config/permissions";
+import { categories } from "@/db/schema";
+import { hasPermission } from "@/lib/auth";
+import { db } from "@/lib/db";
 import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
-import { checkPermission } from "@/lib/auth";
-import { PERMISSIONS } from "@/config/permissions";
 
 interface EditCategoryPageProps {
   params: Promise<{ id: string }>;
 }
 
-export default async function EditCategoryPage({ params }: EditCategoryPageProps) {
-  await checkPermission(PERMISSIONS.MANAGE_CATEGORIES);
+export default async function EditCategoryPage({
+  params,
+}: EditCategoryPageProps) {
+  const allowed = await hasPermission(PERMISSIONS.MANAGE_CATEGORIES);
+  if (!allowed) return <AccessDenied />;
   const { id } = await params;
   const categoryId = parseInt(id);
   if (isNaN(categoryId)) notFound();
 
-  const categoryResult = await db.select().from(categories).where(eq(categories.id, categoryId));
+  const categoryResult = await db
+    .select()
+    .from(categories)
+    .where(eq(categories.id, categoryId));
   const category = categoryResult[0];
   if (!category) notFound();
 
@@ -29,11 +36,16 @@ export default async function EditCategoryPage({ params }: EditCategoryPageProps
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex justify-between items-center">
+      <div className="flex items-center justify-between">
         <h1 className="h2 text-neutral-900">Edit Kategori: {category.name}</h1>
       </div>
 
-      <CategoryForm action={updateCategoryWithId} initialData={category} categories={categoryList} allMedias={allMedias} />
+      <CategoryForm
+        action={updateCategoryWithId}
+        initialData={category}
+        categories={categoryList}
+        allMedias={allMedias}
+      />
     </div>
   );
 }

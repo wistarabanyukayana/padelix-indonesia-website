@@ -1,9 +1,9 @@
 "use server";
 
+import { createAuditLog } from "@/lib/audit";
+import { ActionState } from "@/types";
 import nodemailer from "nodemailer";
 import { z } from "zod";
-import { ActionState } from "@/types";
-import { createAuditLog } from "@/lib/audit";
 
 const contactSchema = z.object({
   name: z.string().min(2, "Nama minimal 2 karakter"),
@@ -12,7 +12,10 @@ const contactSchema = z.object({
   honeypot: z.string().max(0, "Spam detected"), // Should be empty
 });
 
-export async function sendContactEmail(prevState: ActionState, formData: FormData): Promise<ActionState> {
+export async function sendContactEmail(
+  prevState: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
   const data = {
     name: formData.get("name") as string,
     contact: formData.get("contact") as string,
@@ -23,16 +26,25 @@ export async function sendContactEmail(prevState: ActionState, formData: FormDat
   const validated = contactSchema.safeParse(data);
 
   if (!validated.success) {
-    if (validated.error.issues.some((e: z.ZodIssue) => e.path.includes("honeypot"))) {
-        // Silently fail for bots
-        return { success: true, message: "Pesan terkirim!" };
+    if (
+      validated.error.issues.some((e: z.ZodIssue) =>
+        e.path.includes("honeypot"),
+      )
+    ) {
+      // Silently fail for bots
+      return { success: true, message: "Pesan terkirim!" };
     }
     return {
       error: validated.error.flatten().fieldErrors,
     };
   }
 
-  if (!process.env.SMTP_HOST || !process.env.SMTP_PORT || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
+  if (
+    !process.env.SMTP_HOST ||
+    !process.env.SMTP_PORT ||
+    !process.env.SMTP_USER ||
+    !process.env.SMTP_PASS
+  ) {
     return {
       success: false,
       message: "Konfigurasi email belum lengkap. Silakan hubungi admin.",
@@ -68,23 +80,29 @@ export async function sendContactEmail(prevState: ActionState, formData: FormDat
         <p><strong>Nama:</strong> ${validated.data.name}</p>
         <p><strong>Kontak:</strong> ${validated.data.contact}</p>
         <p><strong>Pesan:</strong></p>
-        <p>${validated.data.message.replace(/\n/g, '<br>')}</p>
+        <p>${validated.data.message.replace(/\n/g, "<br>")}</p>
       `,
     };
 
     await transporter.sendMail(mailOptions);
 
-    void createAuditLog("CONTACT_SUBMISSION", undefined, `Name: ${validated.data.name}, Contact: ${validated.data.contact}`);
+    void createAuditLog(
+      "CONTACT_SUBMISSION",
+      undefined,
+      `Name: ${validated.data.name}, Contact: ${validated.data.contact}`,
+    );
 
     return {
       success: true,
-      message: "Terima kasih! Pesan Anda telah terkirim. Kami akan segera menghubungi Anda.",
+      message:
+        "Terima kasih! Pesan Anda telah terkirim. Kami akan segera menghubungi Anda.",
     };
   } catch (error) {
     console.error("Email sending error:", error);
     return {
       success: false,
-      message: "Gagal mengirim pesan. Silakan coba lagi nanti atau hubungi kami langsung via WhatsApp.",
+      message:
+        "Gagal mengirim pesan. Silakan coba lagi nanti atau hubungi kami langsung via WhatsApp.",
     };
   }
 }

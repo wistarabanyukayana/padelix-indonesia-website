@@ -1,17 +1,19 @@
-import "server-only";
-import { SignJWT, jwtVerify, JWTPayload } from "jose";
+import { users } from "@/db/schema";
+import { db } from "@/lib/db";
+import { SessionPayload } from "@/types";
+import { eq } from "drizzle-orm";
+import { JWTPayload, SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
-import { SessionPayload } from "@/types";
-import { db } from "@/lib/db";
-import { users } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import "server-only";
 
 const secretKey = process.env.SESSION_SECRET;
 if (!secretKey && process.env.NODE_ENV === "production") {
   throw new Error("SESSION_SECRET is required in production");
 }
-const key = new TextEncoder().encode(secretKey || "dev-fallback-secret-key-change-me");
+const key = new TextEncoder().encode(
+  secretKey || "dev-fallback-secret-key-change-me",
+);
 
 export async function encrypt(payload: SessionPayload) {
   return await new SignJWT(payload as unknown as JWTPayload)
@@ -34,17 +36,17 @@ export async function getSession(): Promise<SessionPayload | null> {
   if (!session) return null;
   try {
     const parsed = await decrypt(session);
-    
+
     // DB Verification: Ensure user still exists and is active
     // We only select the 'isActive' field for performance
     const [dbUser] = await db
-        .select({ isActive: users.isActive })
-        .from(users)
-        .where(eq(users.id, parsed.user.id))
-        .limit(1);
+      .select({ isActive: users.isActive })
+      .from(users)
+      .where(eq(users.id, parsed.user.id))
+      .limit(1);
 
     if (!dbUser || !dbUser.isActive) {
-        return null;
+      return null;
     }
 
     // Ensure permissions array exists
@@ -71,7 +73,7 @@ export async function updateSession(request: NextRequest) {
     }
 
     parsed.expires = new Date(Date.now() + 24 * 60 * 60 * 1000);
-    
+
     const res = NextResponse.next();
     res.cookies.set({
       name: "session",

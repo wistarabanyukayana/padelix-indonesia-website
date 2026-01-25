@@ -9,4 +9,4 @@ export const PERMISSIONS = {
   VIEW_AUDIT_LOGS: "view_audit_logs",
 } as const;
 
-export type Permission = typeof PERMISSIONS[keyof typeof PERMISSIONS];
+export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];

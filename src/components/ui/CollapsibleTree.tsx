@@ -1,7 +1,7 @@
 "use client";
 
+import { ChevronDown, ChevronRight } from "lucide-react";
 import { useState } from "react";
-import { ChevronRight, ChevronDown } from "lucide-react";
 
 export interface TreeNode {
   id: string | number;
@@ -35,21 +35,23 @@ function TreeItem({
 
   return (
     <div className="flex flex-col select-none">
-      <div 
+      <div
         className={`flex items-center ${rowClassName}`}
         style={{ paddingLeft: `${level * indentSize}px` }}
       >
-        <div className="flex-1 min-w-0">
-          {renderLabel(node)}
-        </div>
+        <div className="min-w-0 flex-1">{renderLabel(node)}</div>
         {hasChildren && (
           <button
             type="button"
             onClick={() => setIsExpanded(!isExpanded)}
-            className={`p-0.5 rounded hover:bg-neutral-100 text-neutral-400 transition-colors ${toggleClassName ?? ""}`}
+            className={`rounded p-0.5 text-neutral-400 transition-colors hover:bg-neutral-100 ${toggleClassName ?? ""}`}
             aria-label={isExpanded ? "Collapse" : "Expand"}
           >
-            {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+            {isExpanded ? (
+              <ChevronDown size={14} />
+            ) : (
+              <ChevronRight size={14} />
+            )}
           </button>
         )}
       </div>
@@ -57,11 +59,11 @@ function TreeItem({
       {hasChildren && isExpanded && (
         <div className="flex flex-col">
           {node.children!.map((child) => (
-            <TreeItem 
-              key={child.id} 
-              node={child} 
-              renderLabel={renderLabel} 
-              level={level + 1} 
+            <TreeItem
+              key={child.id}
+              node={child}
+              renderLabel={renderLabel}
+              level={level + 1}
               defaultExpanded={defaultExpanded}
               rowClassName={rowClassName}
               toggleClassName={toggleClassName}
@@ -96,10 +98,10 @@ export function CollapsibleTree({
   return (
     <div className={`flex flex-col ${className}`}>
       {nodes.map((node) => (
-        <TreeItem 
-          key={node.id} 
-          node={node} 
-          renderLabel={renderLabel} 
+        <TreeItem
+          key={node.id}
+          node={node}
+          renderLabel={renderLabel}
           defaultExpanded={defaultExpanded}
           rowClassName={rowClassName}
           toggleClassName={toggleClassName}

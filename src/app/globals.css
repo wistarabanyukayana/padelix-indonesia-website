@@ -3,18 +3,18 @@
 @theme inline {
   --font-lato: var(--font-lato);
   --font-inter: var(--font-inter);
-  
+
   --radius-brand: 1.875rem;
-  
+
   --color-brand-green: #a3e635; /* bg-lime-400 */
-  --color-brand-red: #ef4444;   /* bg-red-500 */
-  --color-brand-dark: #171717;  /* bg-neutral-900 */
+  --color-brand-red: #ef4444; /* bg-red-500 */
+  --color-brand-dark: #171717; /* bg-neutral-900 */
   --color-brand-light: #f8fafc; /* bg-slate-50 */
 }
 
 @layer base {
   body {
-    @apply bg-white text-neutral-900 overflow-x-hidden;
+    @apply overflow-x-hidden bg-white text-neutral-900;
     font-family: var(--font-lato), sans-serif;
     padding-top: env(safe-area-inset-top);
     padding-bottom: env(safe-area-inset-bottom);
@@ -25,32 +25,32 @@
 
 @layer components {
   .section {
-    @apply w-full flex flex-col items-center justify-center py-12 px-6 sm:py-20 sm:px-12 md:px-20 lg:px-32 scroll-mt-20;
+    @apply flex w-full scroll-mt-20 flex-col items-center justify-center px-6 py-12 sm:px-12 sm:py-20 md:px-20 lg:px-32;
   }
-  
+
   .wrapper {
-    @apply w-full max-w-7xl flex flex-col;
+    @apply flex w-full max-w-7xl flex-col;
   }
 
   .h1 {
-    @apply text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight;
+    @apply text-4xl leading-tight font-bold sm:text-5xl lg:text-6xl;
   }
 
   .h2 {
-    @apply text-2xl sm:text-3xl lg:text-4xl font-bold leading-snug;
+    @apply text-2xl leading-snug font-bold sm:text-3xl lg:text-4xl;
   }
 
   .subheading {
-    @apply text-sm font-bold uppercase tracking-widest text-neutral-500;
+    @apply text-sm font-bold tracking-widest text-neutral-500 uppercase;
   }
-  
+
   .nav-link {
-    @apply font-inter text-lg font-bold hover:text-lime-500 transition-colors;
+    @apply font-inter text-lg font-bold transition-colors hover:text-lime-500;
   }
 
   /* Lightbox Fixes */
-  .yarl__container, 
-  .yarl__full_screen_container, 
+  .yarl__container,
+  .yarl__full_screen_container,
   .yarl__slide,
   .yarl__root {
     background-color: rgba(0, 0, 0, 0.95) !important;
@@ -64,7 +64,7 @@
     background: transparent !important;
     box-shadow: none !important;
   }
-  
+
   .yarl__slide_image {
     border: none !important;
     outline: none !important;
@@ -90,7 +90,8 @@
 
   /* Ensure toasts don't overlap with safe areas if they are on the side */
   .group[data-sonner-toaster] {
-    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    padding: env(safe-area-inset-top) env(safe-area-inset-right)
+      env(safe-area-inset-bottom) env(safe-area-inset-left);
   }
 
   @media (min-width: 769px) {

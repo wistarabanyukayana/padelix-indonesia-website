@@ -1,4 +1,4 @@
-# Padelix Indonesia Website v2.1.0
+# Padelix Indonesia Website v2.2.0
 
 A unified fullstack web application for Padelix Indonesia, built with Next.js 15+, Drizzle ORM, and MySQL. This version represents a complete architectural shift from the previous Next.js/Strapi decoupled setup to a more efficient, single-repo fullstack solution.
 
@@ -8,23 +8,23 @@ A unified fullstack web application for Padelix Indonesia, built with Next.js 15
 
 ## Production Status
 
--   **Live:** [https://padelix.co.id](https://padelix.co.id)
--   **Current Version:** 2.1.0 (Unified Fullstack)
--   **Previous Version:** 1.2.0 (Next.js + Strapi)
+- **Live:** [https://padelix.co.id](https://padelix.co.id)
+- **Current Version:** 2.2.0 (Unified Fullstack)
+- **Previous Version:** 1.2.0 (Next.js + Strapi)
 
 ---
 
 ## Table of Contents
 
--   [Architecture Update (v2.0.0)](#architecture-update-v200)
--   [Project Purpose](#project-purpose)
--   [Tech Stack](#tech-stack)
--   [Prerequisites](#prerequisites)
--   [Getting Started](#getting-started)
--   [Scripts](#scripts)
--   [Media & Webhooks](#media--webhooks)
--   [Deployment](#deployment)
--   [Changelog](#changelog)
+- [Architecture Update (v2.0.0)](#architecture-update-v200)
+- [Project Purpose](#project-purpose)
+- [Tech Stack](#tech-stack)
+- [Prerequisites](#prerequisites)
+- [Getting Started](#getting-started)
+- [Scripts](#scripts)
+- [Media & Webhooks](#media--webhooks)
+- [Deployment](#deployment)
+- [Changelog](#changelog)
 
 ---
 
@@ -33,40 +33,42 @@ A unified fullstack web application for Padelix Indonesia, built with Next.js 15
 Version 2.0.0 marks a significant milestone in the project's evolution. We have migrated from a decoupled architecture (Next.js frontend + Strapi CMS) to a **unified fullstack Next.js application**.
 
 **Why the change?**
--   **Performance:** Reduced network overhead between frontend and backend.
--   **Developer Experience:** Single codebase, shared types, and unified deployment.
--   **Resource Efficiency:** Better suited for environments with process and memory limitations (like shared hosting).
--   **Customization:** Full control over the Admin Dashboard and Backend logic using Drizzle ORM.
+
+- **Performance:** Reduced network overhead between frontend and backend.
+- **Developer Experience:** Single codebase, shared types, and unified deployment.
+- **Resource Efficiency:** Better suited for environments with process and memory limitations (like shared hosting).
+- **Customization:** Full control over the Admin Dashboard and Backend logic using Drizzle ORM.
 
 ---
 
 ## Project Purpose
 
 This project provides a comprehensive digital platform for Padelix Indonesia:
--   **B2B (Business-to-Business):** Partner portals and business client information.
--   **B2C (Business-to-Consumer):** Product catalog, portfolio showcase, and direct engagement.
--   **Admin Dashboard:** A custom-built CMS for managing products, categories, brands, portfolios, and media.
+
+- **B2B (Business-to-Business):** Partner portals and business client information.
+- **B2C (Business-to-Consumer):** Product catalog, portfolio showcase, and direct engagement.
+- **Admin Dashboard:** A custom-built CMS for managing products, categories, brands, portfolios, and media.
 
 ---
 
 ## Tech Stack
 
--   **Framework:** Next.js 16+ (App Router)
--   **Database:** MariaDB
--   **ORM:** Drizzle ORM
--   **Authentication:** Custom JWT-based Auth (jose, bcryptjs)
--   **Styling:** Tailwind CSS 4+
--   **Icons:** Lucide React, Simple Icons
--   **Media:** Mux (Video), Local File System (Images/Docs)
--   **Notifications:** Sonner (Toasts)
+- **Framework:** Next.js 16+ (App Router)
+- **Database:** MariaDB
+- **ORM:** Drizzle ORM
+- **Authentication:** Custom JWT-based Auth (jose, bcryptjs)
+- **Styling:** Tailwind CSS 4+
+- **Icons:** Lucide React, Simple Icons
+- **Media:** Mux (Video), Local File System (Images/Docs)
+- **Notifications:** Sonner (Toasts)
 
 ---
 
 ## Prerequisites
 
--   **Node.js v20+**
--   **pnpm** (Recommended package manager)
--   **MariaDB Database**
+- **Node.js v20+**
+- **pnpm** (Recommended package manager)
+- **MariaDB Database**
 
 ---
 
@@ -124,28 +126,30 @@ pnpm db:seed  # Seeds initial roles, admin user, and sample data
 pnpm dev
 ```
 
--   **Frontend:** `http://localhost:3000`
--   **Admin Login:** `http://localhost:3000/admin/login`
+- **Frontend:** `http://localhost:3000`
+- **Admin Login:** `http://localhost:3000/admin/login`
 
 ---
 
 ## Scripts
 
--   `pnpm dev`: Start Next.js in development mode.
--   `pnpm build`: Create a production build.
--   `pnpm start`: Start the production server.
--   `pnpm lint`: Run ESLint checks.
--   `pnpm db:reset`: Clear and re-push the database schema.
--   `pnpm db:seed`: Seed the database with initial data.
+- `pnpm dev`: Start Next.js in development mode.
+- `pnpm build`: Create a production build.
+- `pnpm start`: Start the production server.
+- `pnpm lint`: Run ESLint checks.
+- `pnpm db:reset`: Clear and re-push the database schema.
+- `pnpm db:seed`: Seed the database with initial data.
 
 ---
 
 ## Media & Webhooks
 
 ### Mux Integration
+
 Videos are processed via Mux for optimal streaming performance.
 
 ### Local Webhook Testing (Smee.io)
+
 To receive status updates from Mux (e.g., when a video is ready) during local development:
 
 1.  **Install Smee Client:**
@@ -178,13 +182,14 @@ pnpm package
 ```
 
 This will:
+
 1.  Run linting and build the Next.js application.
 2.  Create a `./release` folder containing:
-    -   The Standalone Server (`server.js`).
-    -   All required assets (`public`, `.next/static`).
-    -   A `package.json` optimized for production install.
-    -   **Database Scripts:** `database/` containing schema dumps and `seed_super_admin.sql`.
-    -   **Environment:** Automatically copies `.env.prod` to `.env` (if it exists).
+    - The Standalone Server (`server.js`).
+    - All required assets (`public`, `.next/static`).
+    - A `package.json` optimized for production install.
+    - **Database Scripts:** `database/` containing schema dumps and `seed_super_admin.sql`.
+    - **Environment:** Automatically copies `.env.prod` to `.env` (if it exists).
 
 ### 2. Deploy to Server
 
@@ -204,6 +209,7 @@ On the shared cPanel + LiteSpeed environment, we observed intermittent client-si
 If you remove this behavior, the issue may return in that hosting setup.
 
 ### File Persistence
+
 Ensure that `public/uploads` is **persisted** (not overwritten) during subsequent deployments, as it stores user-uploaded media.
 
 ---
@@ -211,21 +217,25 @@ Ensure that `public/uploads` is **persisted** (not overwritten) during subsequen
 ## Audit Logging
 
 Version 2.0.0 includes a comprehensive **Audit Logging** system. Every administrative action (login, content creation, updates, and deletions) is logged with:
--   Timestamp
--   Performing user (and a snapshot of their username)
--   Action type
--   Affected entity ID
--   Metadata (IP Address, User Agent)
--   Additional context/details
+
+- Timestamp
+- Performing user (and a snapshot of their username)
+- Action type
+- Affected entity ID
+- Metadata (IP Address, User Agent)
+- Additional context/details
 
 Admin users with the `view_audit_logs` permission can view these records in the **Audit** section of the dashboard.
 
 ---
 
 ## 🚀 Recent Updates
-**Latest Version: [v2.1.0]** (2026-01-14)
-* Added admin-wide search + sorting defaults and improved sticky filter bars.
-* Made category images/descriptions optional with safe fallbacks and migration.
-* Refined admin UI behavior (mobile header, media library controls, toast flow).
+
+**Latest Version: [v2.2.0]** (2026-01-25)
+
+- Added Mux asset scan on Sync Assets for missing video entries.
+- Improved admin save UX with reliable dirty detection and multi-file uploads.
+- Fixed media ordering so primary is always first and public order matches admin.
+- And many other QOL updates.
 
 > 📄 **View the full history in [CHANGELOG.md](./CHANGELOG.md)**

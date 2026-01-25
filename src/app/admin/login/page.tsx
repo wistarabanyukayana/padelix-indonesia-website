@@ -1,10 +1,10 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
 import { login } from "@/actions/auth";
 import { Button } from "@/components/ui/Button";
 import { ActionState } from "@/types";
 import { Eye, EyeOff } from "lucide-react";
+import { useActionState, useEffect, useState } from "react";
 
 export default function LoginPage() {
   const [state, action, isPending] = useActionState(login, {} as ActionState);
@@ -17,55 +17,76 @@ export default function LoginPage() {
   }, [state?.redirectTo]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-neutral-100 px-4">
-      <div className="w-full max-w-md bg-white p-8 rounded-brand shadow-xl border border-neutral-200">
-        <div className="text-center mb-8">
-          <h1 className="h2 text-neutral-900 leading-tight">Admin Login</h1>
-          <p className="text-neutral-500 mt-2">Masuk untuk mengelola website Padelix</p>
+    <div className="flex min-h-screen items-center justify-center bg-neutral-100 px-4">
+      <div className="w-full max-w-md rounded-brand border border-neutral-200 bg-white p-8 shadow-xl">
+        <div className="mb-8 text-center">
+          <h1 className="h2 leading-tight text-neutral-900">Admin Login</h1>
+          <p className="mt-2 text-neutral-500">
+            Masuk untuk mengelola website Padelix
+          </p>
         </div>
 
         <form action={action} className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
-            <label className="text-sm font-bold text-neutral-700 uppercase tracking-wider">Email</label>
+            <label className="text-sm font-bold tracking-wider text-neutral-700 uppercase">
+              Email
+            </label>
             <input
               type="email"
               name="email"
               placeholder="admin@padelix.co.id"
-              className="p-2.5 md:p-3 text-sm md:text-base bg-neutral-50 border border-neutral-200 rounded-lg outline-none focus:border-brand-green focus:ring-1 focus:ring-brand-green transition-all"
+              className="rounded-lg border border-neutral-200 bg-neutral-50 p-2.5 text-sm transition-all outline-none focus:border-brand-green focus:ring-1 focus:ring-brand-green md:p-3 md:text-base"
               required
             />
-            {state?.error?.email && <p className="text-red-500 text-xs font-bold">{state.error.email[0]}</p>}
+            {state?.error?.email && (
+              <p className="text-xs font-bold text-red-500">
+                {state.error.email[0]}
+              </p>
+            )}
           </div>
 
           <div className="flex flex-col gap-2">
-            <label className="text-sm font-bold text-neutral-700 uppercase tracking-wider">Password</label>
+            <label className="text-sm font-bold tracking-wider text-neutral-700 uppercase">
+              Password
+            </label>
             <div className="relative">
               <input
                 type={showPassword ? "text" : "password"}
                 name="password"
                 placeholder="••••••••"
-                className="w-full p-2.5 md:p-3 pr-10 text-sm md:text-base bg-neutral-50 border border-neutral-200 rounded-lg outline-none focus:border-brand-green focus:ring-1 focus:ring-brand-green transition-all"
+                className="w-full rounded-lg border border-neutral-200 bg-neutral-50 p-2.5 pr-10 text-sm transition-all outline-none focus:border-brand-green focus:ring-1 focus:ring-brand-green md:p-3 md:text-base"
                 required
               />
               <button
                 type="button"
                 onClick={() => setShowPassword((value) => !value)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-700 transition-colors"
-                aria-label={showPassword ? "Sembunyikan password" : "Tampilkan password"}
+                className="absolute top-1/2 right-3 -translate-y-1/2 text-neutral-400 transition-colors hover:text-neutral-700"
+                aria-label={
+                  showPassword ? "Sembunyikan password" : "Tampilkan password"
+                }
               >
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
-            {state?.error?.password && <p className="text-red-500 text-xs font-bold">{state.error.password[0]}</p>}
+            {state?.error?.password && (
+              <p className="text-xs font-bold text-red-500">
+                {state.error.password[0]}
+              </p>
+            )}
           </div>
 
           {state?.message && !state.success && (
-            <div className="p-3 bg-red-50 border border-red-100 text-red-600 rounded-lg text-sm font-bold">
+            <div className="rounded-lg border border-red-100 bg-red-50 p-3 text-sm font-bold text-red-600">
               {state.message}
             </div>
           )}
 
-          <Button type="submit" variant="dark" className="w-full mt-4 h-11 md:h-12 text-sm md:text-base shadow-lg shadow-neutral-900/10" disabled={isPending}>
+          <Button
+            type="submit"
+            variant="dark"
+            className="mt-4 h-11 w-full text-sm shadow-lg shadow-neutral-900/10 md:h-12 md:text-base"
+            disabled={isPending}
+          >
             {isPending ? "Sedang Masuk..." : "Login ke Dashboard"}
           </Button>
         </form>

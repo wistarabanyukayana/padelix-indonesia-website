@@ -4,14 +4,38 @@ All notable changes to this project will be documented in this file.
 
 The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/)**, and this project adheres to **[Semantic Versioning](https://semver.org/spec/v2.0.0.html)**.
 
+## [2.2.0] - 2026-01-25
+
+### Added
+
+- **Mux asset scan on sync:** the existing “Sinkron Assets” action now scans Mux assets and inserts missing video entries into the media library.
+- **SEO keyword expansion:** added brand + regional Indonesian keywords and enhanced structured data sanitization.
+
+### Changed
+
+- **Admin save UX:** “Batal/Kembali” and “Simpan/Buat Baru” labels now reflect dirty state consistently, with better dirty tracking performance.
+- **Media ordering:** primary media now becomes order #1; public ordering respects primary first with ascending order.
+- **Media selection:** multi‑select from Media Library is enabled in Product/Portfolio forms; upload flow supports multi‑file selection.
+- **Access control UI:** admin pages render a friendly Access Denied view instead of throwing.
+- **Caching + revalidation:** server actions align with updated Next.js cache APIs (updateTag/revalidatePath usage).
+
+### Fixed
+
+- **Blocking route warnings:** wrapped runtime data access in Suspense for admin and public pages.
+- **Mobile admin styling:** removed dev-time CSP upgrade-insecure-requests that broke styles.
+- **Upload errors:** improved Mux/local upload placeholders and media updates; adjusted Server Actions body size limit for large uploads.
+- **Ordering mismatch:** fixed sort order and primary ordering mismatch between admin and public pages.
+
 ## [2.1.0] - 2026-01-14
 
 ### Added
+
 - **Admin search + sorting:** added keyword search and sort controls for Products, Brands, Categories, Portfolios, Users, Roles, and Audit Logs; Media Library now includes client-side sorting.
 - **User highlight:** the currently logged-in user is pinned to the top of the users list and visually labeled.
 - **Admin UI helpers:** added a reusable body scroll lock component and new-item toast handling for create flows.
 
 ### Changed
+
 - **Category images optional:** category images are no longer required in the admin form, with safe fallbacks for missing visuals.
 - **Category descriptions optional:** descriptions now allow empty values to align with other optional text fields.
 - **Migration:** added a SQL migration to allow `categories.image_url` and `categories.description` to be nullable.
@@ -22,22 +46,27 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
 ## [2.0.2] - 2026-01-14
 
 ### Added
+
 - **Uploads + Image optimizer alignment:** local uploads now resolve to the public site host in production for Next Image optimization, while remaining relative in development.
 
 ### Changed
+
 - **Admin polish:** aligned mobile/desktop roles list styling and made category rows fully clickable while keeping controls accessible.
 - **Dashboard summary:** added a non-audit summary block and permission badges for users without audit access.
 - **Mux sync hardening:** upload ID handling is now type-safe during sync.
 
 ### Fixed
+
 - **Next Image 400s:** corrected `/uploads` handling so optimizer fetches from the public domain in production.
 
 ## [2.0.1] - 2026-01-13
 
 ### Added
+
 - **Production safety note for shared hosting:** documented a cPanel + LiteSpeed-specific mitigation for intermittent “stale chunk” client-side exceptions after auth and create flows.
 
 ### Changed
+
 - **Production workaround (cPanel + LiteSpeed):** server actions no longer call `redirect(...)` directly. Instead, they return a `{ redirectTo }` payload and the client performs a hard navigation via `window.location.assign(...)` after successful auth/create flows.
   - Rationale: when the hosting layer serves mismatched/static chunk references, a full navigation guarantees the browser reloads the correct asset graph.
 - **Session/auth structure:** introduced a dedicated `src/lib/session.ts` (JWT cookie creation/decrypt/update/delete) and shifted login/logout server actions to use `createSession()` / `deleteSession()` for clearer separation of concerns.
@@ -46,16 +75,19 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
 - **Build tooling alignment:** removed the explicit `--webpack` build flag in favor of the default `next build` path.
 
 ### Fixed
+
 - **Media URL helper hardening:** `getDisplayUrl` now tolerates `null/undefined` and missing URLs without throwing.
 - **Modal hydration safety:** avoids relying on a client “mounted” flag and instead guards against `document` being undefined.
 - **Cookie hardening:** session cookie flags now include `secure` (in production), `sameSite: "lax"`, and `path: "/"` for more predictable browser behavior.
 
 ### Removed
+
 - **Redundant typings:** removed `@types/bcryptjs` (bcryptjs ships its own types).
 
 ## [2.0.0] - 2026-01-12
 
 ### Added
+
 - **Unified full-stack architecture:** replaced the prior split setup (Next.js frontend + Strapi CMS backend) with a single Next.js App Router codebase serving both public site and admin surface.
 - **Database layer:** introduced MariaDB as the primary datastore with Drizzle ORM for typed schema, queries, and migrations.
 - **Admin dashboard (custom CMS):** implemented a first-party admin UI to manage:
@@ -69,15 +101,18 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
 - **UX improvements:** improved mobile usability across the site and admin, and integrated Sonner for non-intrusive notifications.
 
 ### Changed
+
 - **Security model:** moved to custom session/auth handling with database-backed enforcement (e.g., immediate lockout when a user is deactivated).
 - **Project structure:** consolidated configs and removed workspace-era assumptions to reflect a single-repo full-stack application.
 
 ### Removed
+
 - **Strapi dependency surface:** removed legacy Strapi packages, conventions, and related workspace configuration as part of the migration.
 
 ## [1.2.0] - 2026-01-07
 
 ### Added
+
 - Portfolio support for **video and audio** content.
 - Image zoom capability in portfolio.
 - Root `.gitignore` for improved version control hygiene.
@@ -85,9 +120,11 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
 - Local development guidance for Mux webhooks (SMEE).
 
 ### Changed
+
 - Streamlined “Getting Started” to leverage npm workspaces.
 
 ### Fixed
+
 - Security: addressed multiple CVEs (critical → low), and improved crash handling.
 - LCP improvement by prioritizing the first carousel image.
 - CSP updates to allow Mux streaming (`*.mux.com`, `blob:`).
@@ -96,23 +133,28 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
 ## [1.1.0] - 2026-01-07
 
 ### Added
+
 - Floating WhatsApp button.
 
 ### Changed
+
 - CMS admin adjustments for production readiness.
 - Repo structure cleanup and folder renaming.
 
 ### Fixed
+
 - Public Role data fetching reliability for media objects.
 
 ## [1.0.0] - Initial Release
 
 ### Added
+
 - Initial full-stack deployment:
   - Next.js frontend
   - Strapi CMS backend
 - Baseline support for B2B, B2C, and planned advertising features.
 
+[2.2.0]: https://github.com/wistarabanyukayana/padelix-indonesia-website/compare/v2.1.0...v2.2.0
 [2.1.0]: https://github.com/wistarabanyukayana/padelix-indonesia-website/compare/v2.0.2...v2.1.0
 [2.0.2]: https://github.com/wistarabanyukayana/padelix-indonesia-website/compare/v2.0.1...v2.0.2
 [2.0.1]: https://github.com/wistarabanyukayana/padelix-indonesia-website/compare/v2.0.0...v2.0.1

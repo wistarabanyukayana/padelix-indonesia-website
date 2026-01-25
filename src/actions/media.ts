@@ -1,17 +1,17 @@
 "use server";
 
-import { db } from "@/lib/db";
-import { medias } from "@/db/schema";
-import { writeFile, mkdir, unlink, readdir, stat } from "fs/promises";
-import { join } from "path";
-import { ActionState, UploadResult, MediaMetadata } from "@/types";
-import { getSession, checkPermission } from "@/lib/auth";
-import { eq, desc } from "drizzle-orm";
-import { mux } from "@/lib/mux";
 import { PERMISSIONS } from "@/config/permissions";
-import { revalidatePath } from "next/cache";
-import { parseMetadata } from "@/lib/utils";
+import { medias } from "@/db/schema";
 import { createAuditLog } from "@/lib/audit";
+import { checkPermission, getSession } from "@/lib/auth";
+import { db } from "@/lib/db";
+import { mux } from "@/lib/mux";
+import { parseMetadata } from "@/lib/utils";
+import { ActionState, MediaMetadata, UploadResult } from "@/types";
+import { desc, eq } from "drizzle-orm";
+import { mkdir, readdir, stat, unlink, writeFile } from "fs/promises";
+import { revalidatePath } from "next/cache";
+import { join } from "path";
 
 export async function getPhysicalFolders(): Promise<string[]> {
   const session = await getSession();
@@ -19,7 +19,7 @@ export async function getPhysicalFolders(): Promise<string[]> {
 
   try {
     await checkPermission(PERMISSIONS.MANAGE_MEDIA);
-    
+
     const publicDir = join(process.cwd(), "public", "uploads");
     const folders: string[] = [];
 
@@ -27,7 +27,9 @@ export async function getPhysicalFolders(): Promise<string[]> {
       const entries = await readdir(dir, { withFileTypes: true });
       for (const entry of entries) {
         if (entry.isDirectory()) {
-          const relativePath = relativeBase ? `${relativeBase}/${entry.name}` : entry.name;
+          const relativePath = relativeBase
+            ? `${relativeBase}/${entry.name}`
+            : entry.name;
           folders.push(relativePath);
           await scan(join(dir, entry.name), relativePath);
         }
@@ -42,40 +44,49 @@ export async function getPhysicalFolders(): Promise<string[]> {
   }
 }
 
-export async function createPhysicalFolder(folderPath: string): Promise<ActionState> {
+export async function createPhysicalFolder(
+  folderPath: string,
+): Promise<ActionState> {
   const session = await getSession();
   if (!session) return { message: "Sesi berakhir, silakan login kembali" };
 
   try {
     await checkPermission(PERMISSIONS.MANAGE_MEDIA);
-    
+
     // Validate path (basic security to prevent directory traversal)
     if (folderPath.includes("..") || folderPath.startsWith("/")) {
-        return { message: "Nama folder tidak valid" };
+      return { message: "Nama folder tidak valid" };
     }
 
     const publicDir = join(process.cwd(), "public", "uploads");
     const fullPath = join(publicDir, folderPath);
 
     try {
-        await stat(fullPath);
-        return { message: "Folder sudah ada" };
+      await stat(fullPath);
+      return { message: "Folder sudah ada" };
     } catch {
-        // Folder doesn't exist, proceed
+      // Folder doesn't exist, proceed
     }
 
     await mkdir(fullPath, { recursive: true });
-    await createAuditLog("MEDIA_FOLDER_CREATE", undefined, `Created folder: ${folderPath}`);
+    await createAuditLog(
+      "MEDIA_FOLDER_CREATE",
+      undefined,
+      `Created folder: ${folderPath}`,
+    );
 
-    revalidatePath("/admin", "layout");
+    revalidatePath("/admin");
     return { success: true, message: "Folder berhasil dibuat" };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Terjadi kesalahan";
+    const message =
+      error instanceof Error ? error.message : "Terjadi kesalahan";
     return { message: "Gagal membuat folder: " + message };
   }
 }
 
-export async function deletePhysicalFolder(folderPath: string): Promise<ActionState> {
+export async function deletePhysicalFolder(
+  folderPath: string,
+): Promise<ActionState> {
   const session = await getSession();
   if (!session) return { message: "Sesi berakhir, silakan login kembali" };
 
@@ -84,7 +95,7 @@ export async function deletePhysicalFolder(folderPath: string): Promise<ActionSt
 
     // Validate path
     if (folderPath.includes("..") || folderPath.startsWith("/")) {
-        return { message: "Nama folder tidak valid" };
+      return { message: "Nama folder tidak valid" };
     }
 
     const publicDir = join(process.cwd(), "public", "uploads");
@@ -92,26 +103,34 @@ export async function deletePhysicalFolder(folderPath: string): Promise<ActionSt
 
     // Check if folder exists
     try {
-        await stat(fullPath);
+      await stat(fullPath);
     } catch {
-        return { message: "Folder tidak ditemukan" };
+      return { message: "Folder tidak ditemukan" };
     }
 
     // Check if folder is empty
     const entries = await readdir(fullPath);
     if (entries.length > 0) {
-        return { message: "Folder tidak kosong. Harap hapus atau pindahkan isinya terlebih dahulu." };
+      return {
+        message:
+          "Folder tidak kosong. Harap hapus atau pindahkan isinya terlebih dahulu.",
+      };
     }
 
     // Delete folder (using rmdir since it must be empty)
     const { rmdir } = await import("fs/promises");
     await rmdir(fullPath);
-    await createAuditLog("MEDIA_FOLDER_DELETE", undefined, `Deleted folder: ${folderPath}`);
+    await createAuditLog(
+      "MEDIA_FOLDER_DELETE",
+      undefined,
+      `Deleted folder: ${folderPath}`,
+    );
 
-    revalidatePath("/admin", "layout");
+    revalidatePath("/admin");
     return { success: true, message: "Folder berhasil dihapus" };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Terjadi kesalahan";
+    const message =
+      error instanceof Error ? error.message : "Terjadi kesalahan";
     return { message: "Gagal menghapus folder: " + message };
   }
 }
@@ -134,10 +153,16 @@ export async function uploadFile(formData: FormData): Promise<UploadResult> {
     if (file.type.startsWith("image/")) type = "image";
     else if (file.type.startsWith("video/")) type = "video";
     else if (file.type.startsWith("audio/")) type = "audio";
-    else if (file.type === "application/pdf" || file.type.includes("msword") || file.type.includes("officedocument")) type = "document";
+    else if (
+      file.type === "application/pdf" ||
+      file.type.includes("msword") ||
+      file.type.includes("officedocument")
+    )
+      type = "document";
 
-    if (file.size > 50 * 1024 * 1024) { // Increased to 50MB
-        return { error: "Ukuran file maksimal 50MB" };
+    if (file.size > 50 * 1024 * 1024) {
+      // Increased to 50MB
+      return { error: "Ukuran file maksimal 50MB" };
     }
 
     const bytes = await file.arrayBuffer();
@@ -145,9 +170,9 @@ export async function uploadFile(formData: FormData): Promise<UploadResult> {
 
     // Create unique filename
     const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
     const filename = `${uniqueSuffix}-${safeName}`;
-    
+
     const uploadDir = join(process.cwd(), "public", "uploads");
     await mkdir(uploadDir, { recursive: true });
 
@@ -157,24 +182,34 @@ export async function uploadFile(formData: FormData): Promise<UploadResult> {
     const fileUrl = `/uploads/${filename}`;
 
     // Create record in medias table
-    const [result] = await db.insert(medias).values({
-      name: file.name,
-      fileKey: filename,
-      type: type,
-      provider: "local",
-      mimeType: file.type,
-      fileSize: file.size,
-      url: fileUrl,
-      metadata: folder ? { folder } : null,
-    }).$returningId();
+    const [result] = await db
+      .insert(medias)
+      .values({
+        name: file.name,
+        fileKey: filename,
+        type: type,
+        provider: "local",
+        mimeType: file.type,
+        fileSize: file.size,
+        url: fileUrl,
+        metadata: folder ? { folder } : null,
+      })
+      .$returningId();
 
-    await createAuditLog("MEDIA_UPLOAD", result.id, `Uploaded file: ${file.name} (local)`);
+    await createAuditLog(
+      "MEDIA_UPLOAD",
+      result.id,
+      `Uploaded file: ${file.name} (local)`,
+    );
 
-    revalidatePath("/admin", "layout");
+    revalidatePath("/admin");
     return { url: fileUrl, id: result.id };
   } catch (error: unknown) {
     console.error("Upload error:", error);
-    const message = error instanceof Error ? error.message : "Terjadi kesalahan tidak dikenal";
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Terjadi kesalahan tidak dikenal";
     return { error: "Gagal mengunggah file: " + message };
   }
 }
@@ -185,13 +220,21 @@ export async function deleteMedia(id: number): Promise<ActionState> {
 
   try {
     await checkPermission(PERMISSIONS.MANAGE_MEDIA);
-    const mediaResult = await db.select().from(medias).where(eq(medias.id, id)).limit(1);
+    const mediaResult = await db
+      .select()
+      .from(medias)
+      .where(eq(medias.id, id))
+      .limit(1);
     const media = mediaResult[0];
 
     if (!media) return { message: "Media tidak ditemukan" };
 
     if (media.provider === "local") {
-      const filepath = join(process.cwd(), "public", media.url.startsWith('/') ? media.url.substring(1) : media.url);
+      const filepath = join(
+        process.cwd(),
+        "public",
+        media.url.startsWith("/") ? media.url.substring(1) : media.url,
+      );
       try {
         await unlink(filepath);
       } catch (err) {
@@ -210,11 +253,14 @@ export async function deleteMedia(id: number): Promise<ActionState> {
 
     await db.delete(medias).where(eq(medias.id, id));
     await createAuditLog("MEDIA_DELETE", id, `Deleted media: ${media.name}`);
-    revalidatePath("/admin", "layout");
+    revalidatePath("/admin");
     return { success: true, message: "Media berhasil dihapus" };
   } catch (error: unknown) {
     console.error("Delete media error:", error);
-    const message = error instanceof Error ? error.message : "Terjadi kesalahan tidak dikenal";
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Terjadi kesalahan tidak dikenal";
     return { message: "Gagal menghapus media: " + message };
   }
 }
@@ -232,43 +278,60 @@ export async function getMedias() {
   }
 }
 
-export async function updateMediaFolder(id: number, folder: string | null): Promise<ActionState> {
+export async function updateMediaFolder(
+  id: number,
+  folder: string | null,
+): Promise<ActionState> {
   const session = await getSession();
   if (!session) return { message: "Sesi berakhir, silakan login kembali" };
 
   try {
     await checkPermission(PERMISSIONS.MANAGE_MEDIA);
-    const mediaResult = await db.select().from(medias).where(eq(medias.id, id)).limit(1);
+    const mediaResult = await db
+      .select()
+      .from(medias)
+      .where(eq(medias.id, id))
+      .limit(1);
     const media = mediaResult[0];
 
     if (!media) return { message: "Media tidak ditemukan" };
 
     const currentMeta = parseMetadata(media.metadata);
-    
-    await db.update(medias).set({
+
+    await db
+      .update(medias)
+      .set({
         metadata: {
-            ...currentMeta,
-            folder: folder || null
-        }
-    }).where(eq(medias.id, id));
+          ...currentMeta,
+          folder: folder || null,
+        },
+      })
+      .where(eq(medias.id, id));
 
-    await createAuditLog("MEDIA_MOVE", id, `Moved media ${media.name} to folder: ${folder || 'Root'}`);
+    await createAuditLog(
+      "MEDIA_MOVE",
+      id,
+      `Moved media ${media.name} to folder: ${folder || "Root"}`,
+    );
 
-    revalidatePath("/admin", "layout");
+    revalidatePath("/admin");
     return { success: true, message: "Media berhasil dipindahkan" };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Terjadi kesalahan";
+    const message =
+      error instanceof Error ? error.message : "Terjadi kesalahan";
     return { message: "Gagal memindahkan media: " + message };
   }
 }
 
-export async function syncFileSystemMedias(): Promise<ActionState & { addedCount?: number; muxUpdatedCount?: number }> {
+export async function syncFileSystemMedias(): Promise<
+  ActionState & { addedCount?: number; muxUpdatedCount?: number }
+> {
   const session = await getSession();
   if (!session) return { message: "Sesi berakhir, silakan login kembali" };
 
   try {
     await checkPermission(PERMISSIONS.MANAGE_MEDIA);
-    
+
     const publicDir = join(process.cwd(), "public");
     const foldersToSync = ["uploads"];
     let addedCount = 0;
@@ -276,7 +339,7 @@ export async function syncFileSystemMedias(): Promise<ActionState & { addedCount
 
     // Fetch all existing media URLs once
     const existingMedias = await db.select({ url: medias.url }).from(medias);
-    const existingUrls = new Set(existingMedias.map(m => m.url));
+    const existingUrls = new Set(existingMedias.map((m) => m.url));
 
     const scanDir = async (relativeDir: string) => {
       const fullPath = join(publicDir, relativeDir);
@@ -284,25 +347,31 @@ export async function syncFileSystemMedias(): Promise<ActionState & { addedCount
 
       for (const entry of entries) {
         const entryRelativePath = join(relativeDir, entry.name);
-        const url = `/${entryRelativePath.replace(/\\/g, '/')}`;
-        
+        const url = `/${entryRelativePath.replace(/\\/g, "/")}`;
+
         if (entry.isDirectory()) {
           await scanDir(entryRelativePath);
         } else {
           // Check against set instead of DB query
           if (!existingUrls.has(url)) {
             const fileStat = await stat(join(publicDir, entryRelativePath));
-            
-            const ext = entry.name.split('.').pop()?.toLowerCase();
-            let type: "image" | "video" | "document" | "audio" | "other" = "other";
-            if (["jpg", "jpeg", "png", "gif", "webp", "svg"].includes(ext || "")) type = "image";
+
+            const ext = entry.name.split(".").pop()?.toLowerCase();
+            let type: "image" | "video" | "document" | "audio" | "other" =
+              "other";
+            if (
+              ["jpg", "jpeg", "png", "gif", "webp", "svg"].includes(ext || "")
+            )
+              type = "image";
             else if (["mp4", "webm", "ogg"].includes(ext || "")) type = "video";
-            else if (["pdf", "doc", "docx"].includes(ext || "")) type = "document";
+            else if (["pdf", "doc", "docx"].includes(ext || ""))
+              type = "document";
             else if (["mp3", "wav"].includes(ext || "")) type = "audio";
 
             let folder: string | null = null;
-            const normalizedPath = relativeDir.replace(/\\/g, '/');
-            if (normalizedPath.startsWith("uploads/")) folder = normalizedPath.replace("uploads/", "");
+            const normalizedPath = relativeDir.replace(/\\/g, "/");
+            if (normalizedPath.startsWith("uploads/"))
+              folder = normalizedPath.replace("uploads/", "");
             else if (normalizedPath === "uploads") folder = null;
             else folder = normalizedPath;
 
@@ -334,11 +403,15 @@ export async function syncFileSystemMedias(): Promise<ActionState & { addedCount
       }
     }
 
-    const muxMedias = await db.select().from(medias).where(eq(medias.provider, "mux"));
+    const muxMedias = await db
+      .select()
+      .from(medias)
+      .where(eq(medias.provider, "mux"));
     for (const media of muxMedias) {
       const meta = parseMetadata(media.metadata);
       let assetId = meta?.assetId;
-      const uploadId = typeof meta?.uploadId === "string" ? meta.uploadId : null;
+      const uploadId =
+        typeof meta?.uploadId === "string" ? meta.uploadId : null;
       let playbackId = meta?.playbackId;
 
       if (!assetId && uploadId) {
@@ -346,48 +419,63 @@ export async function syncFileSystemMedias(): Promise<ActionState & { addedCount
           const upload = await mux.video.uploads.retrieve(uploadId);
           if (upload?.asset_id) {
             assetId = upload.asset_id;
-          } else if (upload?.status === "errored" || upload?.status === "cancelled" || upload?.status === "timed_out") {
-            await db.update(medias).set({
-              metadata: {
-                ...meta,
-                status: "errored",
-                uploadStatus: upload.status,
-                error: `Mux upload ${upload.status}`,
-              },
-            }).where(eq(medias.id, media.id));
-            muxUpdatedCount += 1;
-            continue;
-          } else if (upload?.status) {
-            const createdAt = media.createdAt ? new Date(media.createdAt).getTime() : 0;
-            const ageMs = createdAt ? Math.max(0, Date.now() - createdAt) : 0;
-            const staleThresholdMs = 60 * 60 * 1000;
-
-            if (ageMs && ageMs > staleThresholdMs) {
-              await db.update(medias).set({
+          } else if (
+            upload?.status === "errored" ||
+            upload?.status === "cancelled" ||
+            upload?.status === "timed_out"
+          ) {
+            await db
+              .update(medias)
+              .set({
                 metadata: {
                   ...meta,
                   status: "errored",
                   uploadStatus: upload.status,
-                  error: `Mux upload stale (${upload.status})`,
+                  error: `Mux upload ${upload.status}`,
                 },
-              }).where(eq(medias.id, media.id));
+              })
+              .where(eq(medias.id, media.id));
+            muxUpdatedCount += 1;
+            continue;
+          } else if (upload?.status) {
+            const createdAt = media.createdAt
+              ? new Date(media.createdAt).getTime()
+              : 0;
+            const ageMs = createdAt ? Math.max(0, Date.now() - createdAt) : 0;
+            const staleThresholdMs = 60 * 60 * 1000;
+
+            if (ageMs && ageMs > staleThresholdMs) {
+              await db
+                .update(medias)
+                .set({
+                  metadata: {
+                    ...meta,
+                    status: "errored",
+                    uploadStatus: upload.status,
+                    error: `Mux upload stale (${upload.status})`,
+                  },
+                })
+                .where(eq(medias.id, media.id));
               muxUpdatedCount += 1;
               continue;
             }
 
             console.warn(
-              `Mux upload ${uploadId} has no asset yet (status: ${upload.status}, ageMs: ${ageMs}).`
+              `Mux upload ${uploadId} has no asset yet (status: ${upload.status}, ageMs: ${ageMs}).`,
             );
           }
         } catch (error) {
           console.error(`Failed to retrieve Mux upload ${uploadId}:`, error);
-          await db.update(medias).set({
-            metadata: {
-              ...meta,
-              status: "errored",
-              error: "Mux upload not found",
-            },
-          }).where(eq(medias.id, media.id));
+          await db
+            .update(medias)
+            .set({
+              metadata: {
+                ...meta,
+                status: "errored",
+                error: "Mux upload not found",
+              },
+            })
+            .where(eq(medias.id, media.id));
           muxUpdatedCount += 1;
           continue;
         }
@@ -399,19 +487,24 @@ export async function syncFileSystemMedias(): Promise<ActionState & { addedCount
         const asset = await mux.video.assets.retrieve(assetId);
         const assetPlaybackId = asset.playback_ids?.[0]?.id;
         if (assetPlaybackId) playbackId = assetPlaybackId;
-        await db.update(medias).set({
-          fileKey: assetId,
-          url: playbackId ? `https://stream.mux.com/${playbackId}.m3u8` : media.url,
-          metadata: {
-            ...meta,
-            assetId,
-            uploadId: uploadId ?? meta.uploadId,
-            playbackId,
-            status: asset.status,
-            duration: asset.duration ?? meta.duration,
-            aspectRatio: asset.aspect_ratio ?? meta.aspectRatio,
-          },
-        }).where(eq(medias.id, media.id));
+        await db
+          .update(medias)
+          .set({
+            fileKey: assetId,
+            url: playbackId
+              ? `https://stream.mux.com/${playbackId}.m3u8`
+              : media.url,
+            metadata: {
+              ...meta,
+              assetId,
+              uploadId: uploadId ?? meta.uploadId,
+              playbackId,
+              status: asset.status,
+              duration: asset.duration ?? meta.duration,
+              aspectRatio: asset.aspect_ratio ?? meta.aspectRatio,
+            },
+          })
+          .where(eq(medias.id, media.id));
         muxUpdatedCount += 1;
       } catch (error) {
         console.error(`Failed to sync Mux media ${media.id}:`, error);
@@ -421,11 +514,14 @@ export async function syncFileSystemMedias(): Promise<ActionState & { addedCount
     await createAuditLog(
       "MEDIA_SYNC",
       undefined,
-      `Synchronized filesystem. Added ${addedCount} files. Synced ${muxUpdatedCount} Mux items.`
+      `Synchronized filesystem. Added ${addedCount} files. Synced ${muxUpdatedCount} Mux items.`,
     );
 
-    revalidatePath("/admin", "layout");
-    const muxSuffix = muxUpdatedCount > 0 ? ` Status ${muxUpdatedCount} video Mux diperbarui.` : "";
+    revalidatePath("/admin");
+    const muxSuffix =
+      muxUpdatedCount > 0
+        ? ` Status ${muxUpdatedCount} video Mux diperbarui.`
+        : "";
     return {
       success: true,
       message: `Sinkronisasi selesai. ${addedCount} file baru ditambahkan.${muxSuffix}`,
@@ -434,7 +530,8 @@ export async function syncFileSystemMedias(): Promise<ActionState & { addedCount
     };
   } catch (error: unknown) {
     console.error("Sync error:", error);
-    const message = error instanceof Error ? error.message : "Terjadi kesalahan";
+    const message =
+      error instanceof Error ? error.message : "Terjadi kesalahan";
     return { message: "Gagal sinkronisasi: " + message };
   }
 }

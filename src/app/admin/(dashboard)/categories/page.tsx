@@ -1,20 +1,22 @@
-import { db } from "@/lib/db";
-import { categories } from "@/db/schema";
+import { AccessDenied } from "@/components/admin/general/AccessDenied";
 import { Button } from "@/components/ui/Button";
+import { categories } from "@/db/schema";
+import { hasPermission } from "@/lib/auth";
+import { db } from "@/lib/db";
+import { FolderTree, Plus } from "lucide-react";
 import Link from "next/link";
-import { Plus, FolderTree } from "lucide-react";
-import { checkPermission } from "@/lib/auth";
 
-import { CategoryTreeNode, DBCategory } from "@/types";
+import { CategoryList } from "@/components/admin/categories/CategoryList";
 import { PERMISSIONS } from "@/config/permissions";
-import { CategoryList } from "@/components/admin/CategoryList";
+import { CategoryTreeNode, DBCategory } from "@/types";
 
 interface PageProps {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
 export default async function AdminCategoriesPage({ searchParams }: PageProps) {
-  await checkPermission(PERMISSIONS.MANAGE_CATEGORIES);
+  const allowed = await hasPermission(PERMISSIONS.MANAGE_CATEGORIES);
+  if (!allowed) return <AccessDenied />;
   const allCategories: DBCategory[] = await db.select().from(categories);
   const params = await searchParams;
   const rawQuery = typeof params.q === "string" ? params.q : "";
@@ -63,11 +65,11 @@ export default async function AdminCategoriesPage({ searchParams }: PageProps) {
   // Build recursive tree structure
   const buildTree = (parentId: number | null = null): CategoryTreeNode[] => {
     const nodes = allCategories
-      .filter(c => c.parentId === parentId)
-      .map(c => ({
+      .filter((c) => c.parentId === parentId)
+      .map((c) => ({
         ...c,
-        level: 0, 
-        children: buildTree(c.id)
+        level: 0,
+        children: buildTree(c.id),
       }))
       .filter((node) => matchesSearch(node) || node.children.length > 0)
       .sort((a, b) => compareNodes(a, b));
@@ -82,16 +84,19 @@ export default async function AdminCategoriesPage({ searchParams }: PageProps) {
       <div className="flex flex-col gap-4">
         <div className="flex flex-col gap-1">
           <h1 className="h2 text-neutral-900">Struktur Kategori</h1>
-          <p className="text-sm text-neutral-500 flex items-center gap-1">
+          <p className="flex items-center gap-1 text-sm text-neutral-500">
             <FolderTree size={14} /> Kelola hierarki kategori produk Anda
           </p>
         </div>
       </div>
       <div
-        className="sticky z-30 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-3 bg-neutral-50/95 backdrop-blur border-b border-neutral-200"
+        className="sticky z-30 -mx-4 border-b border-neutral-200 bg-neutral-50/95 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8"
         style={{ top: "var(--app-header-height, 0px)" }}
       >
-        <form method="get" className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <form
+          method="get"
+          className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between"
+        >
           <div className="flex flex-1 gap-2">
             <input
               name="q"
@@ -127,9 +132,13 @@ export default async function AdminCategoriesPage({ searchParams }: PageProps) {
 
       <CategoryList data={categoryTree} />
 
-      <div className="flex justify-end mt-4">
+      <div className="mt-4 flex justify-end">
         <Link href="/admin/categories/new">
-          <Button variant="dark" size="sm" className="flex items-center gap-2 shadow-lg sm:px-6 sm:py-3 sm:text-base">
+          <Button
+            variant="dark"
+            size="sm"
+            className="flex items-center gap-2 shadow-lg sm:px-6 sm:py-3 sm:text-base"
+          >
             <Plus size={16} />
             <span>Tambah Kategori</span>
           </Button>

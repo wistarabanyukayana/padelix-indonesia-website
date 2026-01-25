@@ -1,24 +1,31 @@
 "use server";
 
-import { db } from "@/lib/db";
+import { PERMISSIONS } from "@/config/permissions";
 import { users, usersRoles } from "@/db/schema";
+import { createAuditLog } from "@/lib/audit";
+import { checkPermission, getSession } from "@/lib/auth";
+import { db } from "@/lib/db";
+import { ActionState } from "@/types";
+import { hash } from "bcryptjs";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { hash } from "bcryptjs";
-import { ActionState } from "@/types";
-import { checkPermission, getSession } from "@/lib/auth";
-import { PERMISSIONS } from "@/config/permissions";
-import { createAuditLog } from "@/lib/audit";
 
 const userSchema = z.object({
   username: z.string().min(3, "Username minimal 3 karakter"),
   email: z.string().email("Email tidak valid"),
   isActive: z.coerce.boolean(),
-  password: z.string().min(6, "Password minimal 6 karakter").optional().or(z.literal("")),
+  password: z
+    .string()
+    .min(6, "Password minimal 6 karakter")
+    .optional()
+    .or(z.literal("")),
 });
 
-export async function createUser(prevState: ActionState, formData: FormData): Promise<ActionState> {
+export async function createUser(
+  prevState: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
   const session = await getSession();
   if (!session) return { message: "Sesi berakhir, silakan login kembali" };
 
@@ -35,7 +42,9 @@ export async function createUser(prevState: ActionState, formData: FormData): Pr
     password: formData.get("password"),
   };
 
-  const selectedRoles: number[] = JSON.parse(formData.get("roles") as string || "[]");
+  const selectedRoles: number[] = JSON.parse(
+    (formData.get("roles") as string) || "[]",
+  );
 
   const validated = userSchema.safeParse(rawData);
   if (!validated.success) {
@@ -44,37 +53,47 @@ export async function createUser(prevState: ActionState, formData: FormData): Pr
 
   const { data } = validated;
   if (!data.password) {
-    return { error: { password: ["Password wajib diisi untuk pengguna baru"] } };
+    return {
+      error: { password: ["Password wajib diisi untuk pengguna baru"] },
+    };
   }
 
   let newId: number | null = null;
 
   try {
     const passwordHash = await hash(data.password, 10);
-    
-    const [result] = await db.insert(users).values({
-      username: data.username,
-      email: data.email,
-      passwordHash,
-      isActive: data.isActive,
-      lastLogin: new Date(), // Initialize with current date
-    }).$returningId();
+
+    const [result] = await db
+      .insert(users)
+      .values({
+        username: data.username,
+        email: data.email,
+        passwordHash,
+        isActive: data.isActive,
+        lastLogin: new Date(), // Initialize with current date
+      })
+      .$returningId();
 
     newId = result.id;
 
     if (selectedRoles.length > 0) {
       await db.insert(usersRoles).values(
-        selectedRoles.map(roleId => ({
+        selectedRoles.map((roleId) => ({
           usersId: newId!,
           rolesId: roleId,
-        }))
+        })),
       );
     }
 
-    await createAuditLog("USER_CREATE", newId!, `Created user: ${data.username}`);
+    await createAuditLog(
+      "USER_CREATE",
+      newId!,
+      `Created user: ${data.username}`,
+    );
   } catch (error: unknown) {
     console.error(error);
-    const message = error instanceof Error ? error.message : "Terjadi kesalahan";
+    const message =
+      error instanceof Error ? error.message : "Terjadi kesalahan";
     return { message: "Gagal membuat pengguna: " + message };
   }
 
@@ -82,7 +101,11 @@ export async function createUser(prevState: ActionState, formData: FormData): Pr
   return { success: true, redirectTo: `/admin/users/${newId}/edit?new=1` };
 }
 
-export async function updateUser(id: number, prevState: ActionState, formData: FormData): Promise<ActionState> {
+export async function updateUser(
+  id: number,
+  prevState: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
   const session = await getSession();
   if (!session) return { message: "Sesi berakhir, silakan login kembali" };
 
@@ -99,7 +122,9 @@ export async function updateUser(id: number, prevState: ActionState, formData: F
     password: formData.get("password"),
   };
 
-  let selectedRoles: number[] = JSON.parse(formData.get("roles") as string || "[]");
+  let selectedRoles: number[] = JSON.parse(
+    (formData.get("roles") as string) || "[]",
+  );
 
   const validated = userSchema.safeParse(rawData);
   if (!validated.success) {
@@ -110,7 +135,9 @@ export async function updateUser(id: number, prevState: ActionState, formData: F
 
   try {
     const isSelfUpdate = session.user.id === id;
-    const isSuperAdmin = (session.user.permissions ?? []).includes(PERMISSIONS.MANAGE_USERS);
+    const isSuperAdmin = (session.user.permissions ?? []).includes(
+      PERMISSIONS.MANAGE_USERS,
+    );
 
     if (isSelfUpdate && !isSuperAdmin) {
       const [currentUser] = await db
@@ -128,7 +155,7 @@ export async function updateUser(id: number, prevState: ActionState, formData: F
         .select({ roleId: usersRoles.rolesId })
         .from(usersRoles)
         .where(eq(usersRoles.usersId, id));
-      selectedRoles = currentRoles.map(r => r.roleId);
+      selectedRoles = currentRoles.map((r) => r.roleId);
     }
 
     const updateData: {
@@ -152,17 +179,18 @@ export async function updateUser(id: number, prevState: ActionState, formData: F
     await db.delete(usersRoles).where(eq(usersRoles.usersId, id));
     if (selectedRoles.length > 0) {
       await db.insert(usersRoles).values(
-        selectedRoles.map(roleId => ({
+        selectedRoles.map((roleId) => ({
           usersId: id,
           rolesId: roleId,
-        }))
+        })),
       );
     }
 
     await createAuditLog("USER_UPDATE", id, `Updated user: ${data.username}`);
   } catch (error: unknown) {
     console.error(error);
-    const message = error instanceof Error ? error.message : "Terjadi kesalahan";
+    const message =
+      error instanceof Error ? error.message : "Terjadi kesalahan";
     return { message: "Gagal memperbarui pengguna: " + message };
   }
 
@@ -172,14 +200,18 @@ export async function updateUser(id: number, prevState: ActionState, formData: F
 
 export async function deleteUser(id: number): Promise<ActionState> {
   const session = await getSession();
-  if (!session) return { success: false, message: "Sesi berakhir, silakan login kembali" };
+  if (!session)
+    return { success: false, message: "Sesi berakhir, silakan login kembali" };
 
   try {
     await checkPermission(PERMISSIONS.MANAGE_USERS);
-    
+
     // Check if user is deleting themselves
     if (session.user.id === id) {
-        return { success: false, message: "Anda tidak dapat menghapus akun Anda sendiri" };
+      return {
+        success: false,
+        message: "Anda tidak dapat menghapus akun Anda sendiri",
+      };
     }
 
     await db.delete(users).where(eq(users.id, id));
@@ -187,7 +219,8 @@ export async function deleteUser(id: number): Promise<ActionState> {
     revalidatePath("/admin/users");
     return { success: true };
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Gagal menghapus pengguna";
+    const message =
+      error instanceof Error ? error.message : "Gagal menghapus pengguna";
     return { success: false, message };
   }
 }

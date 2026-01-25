@@ -1,6 +1,6 @@
+import { execSync } from "child_process";
 import fs from "fs";
 import path from "path";
-import { execSync } from "child_process";
 import { createInterface } from "readline/promises";
 
 const ROOT_DIR = path.resolve(__dirname, "..");
@@ -10,7 +10,11 @@ const STATIC_DIR = path.join(ROOT_DIR, ".next", "static");
 
 function runCommand(command: string) {
   try {
-    execSync(command, { stdio: "inherit", cwd: ROOT_DIR, env: { ...process.env, NODE_ENV: "production" } });
+    execSync(command, {
+      stdio: "inherit",
+      cwd: ROOT_DIR,
+      env: { ...process.env, NODE_ENV: "production" },
+    });
   } catch {
     console.error("❌ Command failed: " + command);
     process.exit(1);
@@ -23,7 +27,10 @@ function copyRecursiveSync(src: string, dest: string) {
   if (stats.isDirectory()) {
     if (!fs.existsSync(dest)) fs.mkdirSync(dest, { recursive: true });
     fs.readdirSync(src).forEach((childItemName) => {
-      copyRecursiveSync(path.join(src, childItemName), path.join(dest, childItemName));
+      copyRecursiveSync(
+        path.join(src, childItemName),
+        path.join(dest, childItemName),
+      );
     });
   } else {
     fs.copyFileSync(src, dest);
@@ -32,7 +39,9 @@ function copyRecursiveSync(src: string, dest: string) {
 
 async function confirmEnv() {
   const rl = createInterface({ input: process.stdin, output: process.stdout });
-  const answer = await rl.question("Is `.env` already set to production values? (y/N) ");
+  const answer = await rl.question(
+    "Is `.env` already set to production values? (y/N) ",
+  );
   rl.close();
   if (answer.trim().toLowerCase() !== "y") {
     console.error("❌ Aborting: `.env` is not confirmed as production.");
@@ -55,7 +64,9 @@ async function main() {
   runCommand("pnpm build");
 
   if (!fs.existsSync(STANDALONE_DIR)) {
-    console.error("❌ Missing .next/standalone. Make sure `output: \"standalone\"` is enabled.");
+    console.error(
+      '❌ Missing .next/standalone. Make sure `output: "standalone"` is enabled.',
+    );
     process.exit(1);
   }
   if (!fs.existsSync(STATIC_DIR)) {

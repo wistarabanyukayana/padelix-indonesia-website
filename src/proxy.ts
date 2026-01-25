@@ -1,6 +1,6 @@
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
 import { decrypt } from "@/lib/session";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 
 // 1. Specify protected and public routes
 const protectedRoutes = ["/admin"];
@@ -9,7 +9,9 @@ const publicRoutes = ["/admin/login"];
 export async function proxy(req: NextRequest) {
   // 2. Check if the current route is protected or public
   const path = req.nextUrl.pathname;
-  const isProtectedRoute = protectedRoutes.some((route) => path.startsWith(route));
+  const isProtectedRoute = protectedRoutes.some((route) =>
+    path.startsWith(route),
+  );
   const isPublicRoute = publicRoutes.includes(path);
 
   // 3. Decrypt the session from the cookie

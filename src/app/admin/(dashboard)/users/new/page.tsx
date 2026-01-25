@@ -1,22 +1,24 @@
-import { db } from "@/lib/db";
-import { roles } from "@/db/schema";
 import { createUser } from "@/actions/users";
-import { UserForm } from "@/components/admin/UserForm";
-import Link from "next/link";
+import { AccessDenied } from "@/components/admin/general/AccessDenied";
+import { UserForm } from "@/components/admin/users/UserForm";
 import { Button } from "@/components/ui/Button";
-import { checkPermission } from "@/lib/auth";
 import { PERMISSIONS } from "@/config/permissions";
+import { roles } from "@/db/schema";
+import { hasPermission } from "@/lib/auth";
+import { db } from "@/lib/db";
+import Link from "next/link";
 
 export default async function NewUserPage() {
-  await checkPermission(PERMISSIONS.MANAGE_USERS);
+  const allowed = await hasPermission(PERMISSIONS.MANAGE_USERS);
+  if (!allowed) return <AccessDenied />;
   const roleList = await db.select().from(roles);
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex justify-between items-center">
+      <div className="flex items-center justify-between">
         <h1 className="h2 text-neutral-900">Tambah Pengguna Baru</h1>
         <Link href="/admin/users" className="hidden md:block">
-          <Button variant="outline">Batal</Button>
+          <Button variant="outline">Kembali</Button>
         </Link>
       </div>
 

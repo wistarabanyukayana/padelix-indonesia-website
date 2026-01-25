@@ -1,7 +1,7 @@
-import "server-only";
+import { relations } from "@/db/relations";
 import { drizzle } from "drizzle-orm/mysql2";
 import mysql from "mysql2/promise";
-import { relations } from "@/db/relations";
+import "server-only";
 
 const poolConnection = mysql.createPool({
   uri: process.env.DATABASE_URL!,
