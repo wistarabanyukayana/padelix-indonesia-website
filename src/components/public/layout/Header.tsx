@@ -8,8 +8,9 @@ import { useEffect, useRef, useState } from "react";
 const NAV_LINKS = [
   { id: 1, text: "Beranda", href: "/" },
   { id: 2, text: "Produk", href: "/products" },
-  { id: 3, text: "Sertifikat", href: "/#certifications" },
-  { id: 4, text: "Kontak", href: "/#contact" },
+  { id: 4, text: "Aktivitas", href: "/#activities" },
+  { id: 5, text: "Sertifikat", href: "/#certifications" },
+  { id: 6, text: "Kontak", href: "/#contact" },
 ];
 
 export function Header() {
@@ -129,7 +130,7 @@ export function Header() {
       )}
       <div className="relative mx-auto flex h-20 max-w-7xl items-center justify-between px-6">
         {/* Logo Container - 1.5x larger visual size with vertical overflow */}
-        <div className="relative h-10 w-48 shrink-0">
+        <div className="relative w-32 shrink-0 md:w-36">
           <Link
             href="/"
             className="absolute top-1/2 left-0 h-25 w-full -translate-y-1/2 md:h-37.5"
@@ -143,13 +144,12 @@ export function Header() {
             onPointerUp={handleLogoPressEnd}
             onPointerLeave={handleLogoPressEnd}
           >
-            <div className="relative h-full w-full">
+            <div className="realtive h-full w-full">
               <AppImage
-                src="/assets/padelix-word-with-transparent-background.svg"
+                src="/assets/padelix-wordmark-v2.webp"
                 alt="Padelix Indonesia"
                 fill
-                loading="eager"
-                fetchPriority="high"
+                sizes="192px"
                 className="object-contain object-left"
               />
             </div>

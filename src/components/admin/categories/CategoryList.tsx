@@ -76,6 +76,7 @@ function CategoryItem({
                 src={node.imageUrl}
                 alt={node.name}
                 fill
+                sizes="48px"
                 className="object-cover"
               />
             ) : (

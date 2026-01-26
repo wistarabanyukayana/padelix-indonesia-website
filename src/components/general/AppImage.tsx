@@ -17,9 +17,12 @@ export function AppImage({
   fill,
   sizes,
   fallbackSrc,
+  onLoad,
+  onError,
   ...props
 }: AppImageProps) {
   const [hasError, setHasError] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
   if (!src) return null;
   const isLocalUpload = src.startsWith("/uploads/");
   const isDev = process.env.NODE_ENV === "development";
@@ -72,8 +75,19 @@ export function AppImage({
       alt={alt}
       fill={fill}
       sizes={sizes || defaultSizes}
-      className={cn("object-cover object-center", className)}
-      onError={() => setHasError(true)}
+      className={cn(
+        "object-cover object-center",
+        !isLoaded ? "image-loading-blink" : "",
+        className,
+      )}
+      onLoad={(event) => {
+        setIsLoaded(true);
+        onLoad?.(event);
+      }}
+      onError={(event) => {
+        setHasError(true);
+        onError?.(event);
+      }}
       {...props}
     />
   );

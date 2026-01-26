@@ -42,11 +42,11 @@ export function Portfolio({ items }: PortfolioProps) {
   });
 
   return (
-    <section id="portfolio" className="section bg-brand-dark text-white">
+    <section id="activities" className="section bg-brand-dark text-white">
       <div className="wrapper gap-12">
         <div className="flex flex-col gap-2 text-center">
-          <span className="subheading text-brand-green">Hasil Kerja</span>
-          <h2 className="h2 text-white">Proyek Berjalan</h2>
+          <span className="subheading text-brand-green">Portofolio</span>
+          <h2 className="h2 text-white">Aktivitas & Proyek</h2>
         </div>
 
         <div className="grid w-full grid-cols-1 gap-8 md:grid-cols-2">
@@ -66,6 +66,7 @@ export function Portfolio({ items }: PortfolioProps) {
                   src={item.image}
                   alt={item.title}
                   fill
+                  sizes="(max-width: 768px) 100vw, 50vw"
                   className="opacity-70 transition-transform duration-700 group-hover:scale-105 group-hover:opacity-100"
                 />
                 <div className="absolute inset-0 flex flex-col justify-end bg-linear-to-t from-black/90 via-black/20 to-transparent p-8">

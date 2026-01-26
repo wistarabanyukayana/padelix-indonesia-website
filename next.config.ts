@@ -4,16 +4,17 @@ const isDev = process.env.NODE_ENV === "development";
 
 const contentSecurityPolicy = `
   default-src 'self';
-  script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} https://connect.facebook.net;
+  script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} https://connect.facebook.net https://src.litix.io;
   style-src 'self' 'unsafe-inline';
-  img-src 'self' data: blob: https://firebasestorage.googleapis.com https://padelix.co.id https://image.mux.com https://www.facebook.com;
+  img-src 'self' data: blob: https://firebasestorage.googleapis.com https://padelix.co.id https://image.mux.com https://www.facebook.com https://*.litix.io;
   font-src 'self' data:;
-  connect-src 'self' https://www.facebook.com https://graph.facebook.com;
+  connect-src 'self' https://www.facebook.com https://graph.facebook.com https://*.mux.com https://*.litix.io https://storage.googleapis.com;
   frame-src https://www.facebook.com;
-  media-src 'self' blob: https://image.mux.com;
+  media-src 'self' blob: https://image.mux.com https://*.mux.com;
   object-src 'none';
   base-uri 'self';
   form-action 'self' https://www.facebook.com;
+  worker-src 'self' blob:;
   frame-ancestors 'none';
   ${isDev ? "" : "upgrade-insecure-requests;"}
 `;

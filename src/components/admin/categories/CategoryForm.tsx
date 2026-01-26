@@ -327,6 +327,7 @@ export function CategoryForm({
                       )}
                       alt="Preview"
                       fill
+                      sizes="128px"
                       className="object-cover"
                     />
                     <button

@@ -1,12 +1,14 @@
-# Release 2.2.2 (2026-01-26)
+# Release 2.2.3 (2026-01-26)
 
 ## Summary
 
-This patch adds HEIC support end‑to‑end: uploads convert HEIC/HEIF to JPEG automatically, and the media sync action backfills any existing HEIC files by converting and updating database references.
+This patch upgrades image handling across the stack: uploads and sync now optimize raster images to WebP, UI images gain explicit responsive sizing and loading indicators, and CSP is aligned with Mux playback/data requirements.
 
 ## Major Changes
 
-- **HEIC uploads:** HEIC/HEIF images are converted to JPEG on upload.
-- **HEIC backfill:** “Sinkron Assets” converts existing HEIC files, updates DB URLs, and removes the originals.
+- **WebP uploads:** raster images are optimized to WebP on upload (max 2400px, quality 80).
+- **WebP sync:** media sync converts legacy raster uploads to WebP and updates DB references.
+- **Image UX:** AppImage now shows a subtle loading indicator; responsive `sizes` added for all `fill` images.
+- **CSP:** Mux playback/data domains and worker usage are allowed for reliable streaming.
 
 _For full technical details, see the CHANGELOG.md._

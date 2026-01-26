@@ -111,4 +111,18 @@
       transform: translateX(0);
     }
   }
+
+  @keyframes image-loading-blink {
+    0%,
+    100% {
+      background-color: #f3f4f6;
+    }
+    50% {
+      background-color: #e5e7eb;
+    }
+  }
+
+  .image-loading-blink {
+    animation: image-loading-blink 1.2s ease-in-out infinite;
+  }
 }

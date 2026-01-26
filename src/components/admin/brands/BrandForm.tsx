@@ -223,6 +223,7 @@ export function BrandForm({ action, initialData, allMedias }: BrandFormProps) {
                       )}
                       alt="Preview"
                       fill
+                      sizes="128px"
                       className="object-contain p-3"
                     />
                     <button
