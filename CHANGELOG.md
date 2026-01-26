@@ -4,6 +4,25 @@ All notable changes to this project will be documented in this file.
 
 The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/)**, and this project adheres to **[Semantic Versioning](https://semver.org/spec/v2.0.0.html)**.
 
+## [2.2.1] - 2026-01-26
+
+### Added
+
+- **Error boundaries:** public/admin/global error UIs, plus admin login error boundary for safer auth failures.
+- **Session hardening:** session version invalidation with rotation guard and optional revocation hooks.
+- **Meta Pixel tracking:** PageView + ViewContent + Search + Lead/Contact instrumentation on public pages.
+- **CI pipeline:** lint + tsc + build workflow with DB-gated build step and ops note.
+
+### Changed
+
+- **Proxy/session handling:** centralized session checks and refresh throttling to avoid redirect loops.
+- **Image reliability:** AppImage now handles error fallback without breaking render.
+- **Security headers:** CSP/Permissions-Policy updated to support Meta Pixel while retaining strict defaults.
+
+### Fixed
+
+- **Admin access denied UX:** redirects and error handling align with access control states.
+
 ## [2.2.0] - 2026-01-25
 
 ### Added
@@ -154,6 +173,7 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
   - Strapi CMS backend
 - Baseline support for B2B, B2C, and planned advertising features.
 
+[2.2.1]: https://github.com/wistarabanyukayana/padelix-indonesia-website/compare/v2.2.0...v2.2.1
 [2.2.0]: https://github.com/wistarabanyukayana/padelix-indonesia-website/compare/v2.1.0...v2.2.0
 [2.1.0]: https://github.com/wistarabanyukayana/padelix-indonesia-website/compare/v2.0.2...v2.1.0
 [2.0.2]: https://github.com/wistarabanyukayana/padelix-indonesia-website/compare/v2.0.1...v2.0.2

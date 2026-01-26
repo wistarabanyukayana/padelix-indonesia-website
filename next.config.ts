@@ -4,15 +4,16 @@ const isDev = process.env.NODE_ENV === "development";
 
 const contentSecurityPolicy = `
   default-src 'self';
-  script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""};
+  script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} https://connect.facebook.net;
   style-src 'self' 'unsafe-inline';
-  img-src 'self' data: blob: https://firebasestorage.googleapis.com https://padelix.co.id https://image.mux.com;
+  img-src 'self' data: blob: https://firebasestorage.googleapis.com https://padelix.co.id https://image.mux.com https://www.facebook.com;
   font-src 'self' data:;
-  connect-src 'self';
+  connect-src 'self' https://www.facebook.com https://graph.facebook.com;
+  frame-src https://www.facebook.com;
   media-src 'self' blob: https://image.mux.com;
   object-src 'none';
   base-uri 'self';
-  form-action 'self';
+  form-action 'self' https://www.facebook.com;
   frame-ancestors 'none';
   ${isDev ? "" : "upgrade-insecure-requests;"}
 `;
@@ -32,7 +33,11 @@ const securityHeaders = [
   },
   {
     key: "Permissions-Policy",
-    value: "camera=(), microphone=(), geolocation=()",
+    value: "camera=(), microphone=(), geolocation=(), payment=(), usb=()",
+  },
+  {
+    key: "X-DNS-Prefetch-Control",
+    value: "on",
   },
   {
     key: "Cross-Origin-Opener-Policy",
@@ -40,7 +45,7 @@ const securityHeaders = [
   },
   {
     key: "Cross-Origin-Resource-Policy",
-    value: "cross-origin",
+    value: "same-site",
   },
   {
     key: "Content-Security-Policy",

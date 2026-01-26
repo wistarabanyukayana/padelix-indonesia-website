@@ -1,0 +1,4 @@
+Contact: mailto:business@padelix.co.id
+Preferred-Languages: id, en
+Canonical: https://padelix.co.id/security.txt
+Policy: https://padelix.co.id

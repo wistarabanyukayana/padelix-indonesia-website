@@ -1,9 +1,9 @@
 "use server";
 
 import { PERMISSIONS } from "@/config/permissions";
-import { roles, rolesPermissions } from "@/db/schema";
+import { roles, rolesPermissions, usersRoles } from "@/db/schema";
 import { createAuditLog } from "@/lib/audit";
-import { checkPermission, getSession } from "@/lib/auth";
+import { bumpSessionVersion, checkPermission, getSession } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { ActionState } from "@/types";
 import { eq } from "drizzle-orm";
@@ -109,6 +109,12 @@ export async function updateRole(
   const { data } = validated;
 
   try {
+    const affectedUsers = await db
+      .select({ userId: usersRoles.usersId })
+      .from(usersRoles)
+      .where(eq(usersRoles.rolesId, id));
+    const affectedUserIds = affectedUsers.map((u) => u.userId);
+
     await db
       .update(roles)
       .set({
@@ -126,6 +132,10 @@ export async function updateRole(
           permissionsId: permId,
         })),
       );
+    }
+
+    if (affectedUserIds.length > 0) {
+      await bumpSessionVersion(affectedUserIds);
     }
 
     await createAuditLog("ROLE_UPDATE", id, `Updated role: ${data.name}`);
@@ -158,7 +168,16 @@ export async function deleteRole(id: number): Promise<ActionState> {
       };
     }
 
+    const affectedUsers = await db
+      .select({ userId: usersRoles.usersId })
+      .from(usersRoles)
+      .where(eq(usersRoles.rolesId, id));
+    const affectedUserIds = affectedUsers.map((u) => u.userId);
+
     await db.delete(roles).where(eq(roles.id, id));
+    if (affectedUserIds.length > 0) {
+      await bumpSessionVersion(affectedUserIds);
+    }
     await createAuditLog("ROLE_DELETE", id, `Deleted role ID: ${id}`);
     revalidatePath("/admin/roles");
     return { success: true };

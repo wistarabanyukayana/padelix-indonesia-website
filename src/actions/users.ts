@@ -3,7 +3,7 @@
 import { PERMISSIONS } from "@/config/permissions";
 import { users, usersRoles } from "@/db/schema";
 import { createAuditLog } from "@/lib/audit";
-import { checkPermission, getSession } from "@/lib/auth";
+import { bumpSessionVersion, checkPermission, getSession } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { ActionState } from "@/types";
 import { hash } from "bcryptjs";
@@ -21,6 +21,13 @@ const userSchema = z.object({
     .optional()
     .or(z.literal("")),
 });
+
+const areRolesEqual = (a: number[], b: number[]) => {
+  if (a.length !== b.length) return false;
+  const sortedA = [...a].sort((x, y) => x - y);
+  const sortedB = [...b].sort((x, y) => x - y);
+  return sortedA.every((value, index) => value === sortedB[index]);
+};
 
 export async function createUser(
   prevState: ActionState,
@@ -139,23 +146,25 @@ export async function updateUser(
       PERMISSIONS.MANAGE_USERS,
     );
 
+    const [currentUser] = await db
+      .select({ isActive: users.isActive })
+      .from(users)
+      .where(eq(users.id, id))
+      .limit(1);
+
+    if (!currentUser) {
+      return { message: "Pengguna tidak ditemukan" };
+    }
+
+    const currentRoles = await db
+      .select({ roleId: usersRoles.rolesId })
+      .from(usersRoles)
+      .where(eq(usersRoles.usersId, id));
+    const currentRoleIds = currentRoles.map((r) => r.roleId);
+
     if (isSelfUpdate && !isSuperAdmin) {
-      const [currentUser] = await db
-        .select({ isActive: users.isActive })
-        .from(users)
-        .where(eq(users.id, id))
-        .limit(1);
-
-      if (!currentUser) {
-        return { message: "Pengguna tidak ditemukan" };
-      }
-
       data.isActive = currentUser.isActive;
-      const currentRoles = await db
-        .select({ roleId: usersRoles.rolesId })
-        .from(usersRoles)
-        .where(eq(usersRoles.usersId, id));
-      selectedRoles = currentRoles.map((r) => r.roleId);
+      selectedRoles = currentRoleIds;
     }
 
     const updateData: {
@@ -184,6 +193,13 @@ export async function updateUser(
           rolesId: roleId,
         })),
       );
+    }
+
+    const rolesChanged = !areRolesEqual(currentRoleIds, selectedRoles);
+    const isActiveChanged = currentUser.isActive !== data.isActive;
+    const passwordChanged = Boolean(updateData.passwordHash);
+    if (rolesChanged || isActiveChanged || passwordChanged) {
+      await bumpSessionVersion(id);
     }
 
     await createAuditLog("USER_UPDATE", id, `Updated user: ${data.username}`);

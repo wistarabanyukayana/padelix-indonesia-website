@@ -63,3 +63,17 @@ export function getDisplayUrl(
   }
   return media.url;
 }
+
+export function handleUploadError(
+  error: unknown,
+  fallbackMessage: string,
+  options?: { suppressPattern?: RegExp },
+) {
+  const message =
+    error instanceof Error && error.message ? error.message : fallbackMessage;
+  const suppressPattern = options?.suppressPattern;
+  if (!suppressPattern?.test(message)) {
+    console.error("Upload error:", error);
+  }
+  return message;
+}

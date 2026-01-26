@@ -1,5 +1,6 @@
 "use client";
 
+import { useActionFeedback } from "@/components/admin/general/useActionFeedback";
 import { useFormDirty } from "@/components/admin/general/useFormDirty";
 import { useNewItemToast } from "@/components/admin/general/useNewItemToast";
 import { MediaDetailsModal } from "@/components/admin/medias/MediaDetailsModal";
@@ -7,7 +8,7 @@ import { MediaSelector } from "@/components/admin/medias/MediaSelector";
 import { AppImage } from "@/components/general/AppImage";
 import { Button } from "@/components/ui/Button";
 import { CollapsibleTree, TreeNode } from "@/components/ui/CollapsibleTree";
-import { getDisplayUrl } from "@/lib/utils";
+import { getDisplayUrl, handleUploadError } from "@/lib/utils";
 import { ActionState, CategoryFormProps, DBCategory, DBMedia } from "@/types";
 import {
   ChevronDown,
@@ -35,34 +36,14 @@ export function CategoryForm({
     {} as ActionState,
   );
   const { hasNew, clearNewParam } = useNewItemToast("Kategori berhasil dibuat");
-  const lastToastRef = useRef<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
   // Details Modal State
   const [detailMedia, setDetailMedia] = useState<DBMedia | null>(null);
 
-  useEffect(() => {
-    if (state?.redirectTo) {
-      window.location.assign(state.redirectTo);
-    }
-  }, [state?.redirectTo]);
-
-  useEffect(() => {
-    if (isPending) lastToastRef.current = null;
-  }, [isPending]);
-
-  useEffect(() => {
-    if (!state?.message) return;
-    const toastKey = `${state.success}-${state.message}`;
-    if (lastToastRef.current === toastKey) return;
-    lastToastRef.current = toastKey;
-    if (state.success) {
-      toast.success(state.message);
-      if (hasNew) clearNewParam();
-    } else {
-      toast.error(state.message);
-    }
-  }, [clearNewParam, hasNew, state]);
+  useActionFeedback(state, isPending, {
+    newItem: { hasNew, clearNewParam },
+  });
 
   // Slug Logic
   const [name, setName] = useState(initialData?.name || "");
@@ -108,11 +89,28 @@ export function CategoryForm({
       const uploadPromise = new Promise<DBMedia>((resolve, reject) => {
         xhr.open("POST", "/api/media/upload");
         xhr.onload = () => {
+          const payload = xhr.responseText
+            ? (JSON.parse(xhr.responseText) as
+                | { ok: true; data: DBMedia }
+                | { ok: false; error: { message: string } })
+            : null;
           if (xhr.status >= 200 && xhr.status < 300) {
-            resolve(JSON.parse(xhr.responseText));
-          } else {
-            reject(new Error(xhr.statusText));
+            if (payload && "ok" in payload && payload.ok) {
+              resolve(payload.data);
+              return;
+            }
+            if (payload && "error" in payload) {
+              reject(new Error(payload.error.message));
+              return;
+            }
+            reject(new Error("Upload gagal."));
+            return;
           }
+          if (payload && "error" in payload) {
+            reject(new Error(payload.error.message));
+            return;
+          }
+          reject(new Error(xhr.statusText || "Upload gagal."));
         };
         xhr.onerror = () => reject(new Error("Network error"));
         xhr.onabort = () => reject("ABORTED");
@@ -130,8 +128,10 @@ export function CategoryForm({
       if (error === "ABORTED") return;
       setIsUploading(false);
       xhrRef.current = null;
-      console.error("Upload error:", error);
-      toast.error("Gagal mengunggah gambar.");
+      const message = handleUploadError(error, "Gagal mengunggah gambar.", {
+        suppressPattern: /Sesi berakhir/i,
+      });
+      toast.error(message);
     }
   };
 

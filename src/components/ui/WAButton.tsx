@@ -1,4 +1,7 @@
+"use client";
+
 import { siteConfig } from "@/config/site";
+import { trackMetaEvent } from "@/lib/metaPixel";
 import { SiWhatsapp } from "@icons-pack/react-simple-icons";
 import Link from "next/link";
 
@@ -7,6 +10,7 @@ export function WAButton() {
     <Link
       href={siteConfig.links.whatsapp}
       target="_blank"
+      onClick={() => trackMetaEvent("Contact")}
       className="group fixed right-6 bottom-6 z-50 flex items-center justify-center rounded-full bg-[#25D366] p-4 text-white shadow-2xl transition-all hover:scale-110 active:scale-95"
     >
       <SiWhatsapp size={32} />

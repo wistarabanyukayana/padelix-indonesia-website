@@ -430,6 +430,7 @@ export const users = mysqlTable(
       .default(sql`CURRENT_TIMESTAMP`)
       .$onUpdate(() => sql`CURRENT_TIMESTAMP`)
       .notNull(),
+    sessionVersion: int("session_version").default(0).notNull(),
   },
   (table) => [
     uniqueIndex("users_uq_email").on(table.email),

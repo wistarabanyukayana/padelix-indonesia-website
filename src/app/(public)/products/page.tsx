@@ -1,7 +1,7 @@
 import { EmptyState } from "@/components/general/EmptyState";
 import { ProductCard } from "@/components/public/products/ProductCard";
 import { ProductCategorySidebar } from "@/components/public/products/ProductCategorySidebar";
-import { Button } from "@/components/ui/Button";
+import { ProductSearchForm } from "@/components/public/products/ProductSearchForm";
 import { TreeNode } from "@/components/ui/CollapsibleTree";
 import { siteConfig } from "@/config/site";
 import { getAllProducts, getBrands, getCategories } from "@/data/public";
@@ -83,18 +83,7 @@ async function ProductsContent({ searchParams }: PageProps) {
               <h3 className="text-sm font-black tracking-widest text-neutral-400 uppercase">
                 Cari
               </h3>
-              <form className="flex gap-2">
-                <input
-                  type="text"
-                  name="q"
-                  placeholder="Nama produk..."
-                  defaultValue={query}
-                  className="flex-1 rounded-xl bg-neutral-100 p-3 text-sm transition-all outline-none focus:ring-2 focus:ring-brand-green"
-                />
-                <Button type="submit" variant="dark" size="sm">
-                  Cari
-                </Button>
-              </form>
+              <ProductSearchForm defaultQuery={query} />
             </div>
 
             {/* Categories Tree */}
