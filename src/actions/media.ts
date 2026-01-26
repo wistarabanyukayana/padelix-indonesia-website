@@ -9,9 +9,28 @@ import { mux } from "@/lib/mux";
 import { parseMetadata } from "@/lib/utils";
 import { ActionState, MediaMetadata, UploadResult } from "@/types";
 import { desc, eq } from "drizzle-orm";
-import { mkdir, readdir, stat, unlink, writeFile } from "fs/promises";
+import { mkdir, readdir, readFile, stat, unlink, writeFile } from "fs/promises";
 import { revalidatePath } from "next/cache";
 import { join } from "path";
+
+const HEIC_EXTENSIONS = ["heic", "heif"];
+const HEIC_MIME_TYPES = ["image/heic", "image/heif"];
+
+const isHeicFilename = (filename: string) =>
+  HEIC_EXTENSIONS.some((ext) => filename.toLowerCase().endsWith(`.${ext}`));
+
+const replaceHeicExtension = (filename: string) =>
+  filename.replace(/\.(heic|heif)$/i, ".jpg");
+
+const convertHeicToJpeg = async (buffer: Buffer) => {
+  const { default: heicConvert } = await import("heic-convert");
+  const output = await heicConvert({
+    buffer,
+    format: "JPEG",
+    quality: 0.85,
+  });
+  return Buffer.from(output);
+};
 
 export async function getPhysicalFolders(): Promise<string[]> {
   const session = await getSession();
@@ -166,10 +185,22 @@ export async function uploadFile(formData: FormData): Promise<UploadResult> {
     }
 
     const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
+    let buffer = Buffer.from(bytes);
+
+    const isHeicUpload =
+      HEIC_MIME_TYPES.includes(file.type) || isHeicFilename(file.name);
+    let storedMimeType = file.type;
+    let storedName = file.name;
+
+    if (isHeicUpload) {
+      buffer = await convertHeicToJpeg(buffer);
+      storedMimeType = "image/jpeg";
+      storedName = replaceHeicExtension(file.name);
+      type = "image";
+    }
 
     // Create unique filename
-    const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
+    const safeName = storedName.replace(/[^a-zA-Z0-9.-]/g, "_");
     const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
     const filename = `${uniqueSuffix}-${safeName}`;
 
@@ -185,12 +216,12 @@ export async function uploadFile(formData: FormData): Promise<UploadResult> {
     const [result] = await db
       .insert(medias)
       .values({
-        name: file.name,
+        name: storedName,
         fileKey: filename,
         type: type,
         provider: "local",
-        mimeType: file.type,
-        fileSize: file.size,
+        mimeType: storedMimeType,
+        fileSize: buffer.length,
         url: fileUrl,
         metadata: folder ? { folder } : null,
       })
@@ -338,25 +369,78 @@ export async function syncFileSystemMedias(): Promise<
     let muxUpdatedCount = 0;
 
     // Fetch all existing media URLs once
-    const existingMedias = await db.select({ url: medias.url }).from(medias);
+    const existingMedias = await db
+      .select({ id: medias.id, url: medias.url, name: medias.name })
+      .from(medias);
     const existingUrls = new Set(existingMedias.map((m) => m.url));
+    const mediaByUrl = new Map(
+      existingMedias.map((media) => [media.url, media]),
+    );
 
     const scanDir = async (relativeDir: string) => {
       const fullPath = join(publicDir, relativeDir);
       const entries = await readdir(fullPath, { withFileTypes: true });
 
       for (const entry of entries) {
-        const entryRelativePath = join(relativeDir, entry.name);
-        const url = `/${entryRelativePath.replace(/\\/g, "/")}`;
+        let entryRelativePath = join(relativeDir, entry.name);
+        let url = `/${entryRelativePath.replace(/\\/g, "/")}`;
 
         if (entry.isDirectory()) {
           await scanDir(entryRelativePath);
         } else {
+          let ext = entry.name.split(".").pop()?.toLowerCase();
+          if (ext && HEIC_EXTENSIONS.includes(ext)) {
+            const sourcePath = join(publicDir, entryRelativePath);
+            const convertedName = replaceHeicExtension(entry.name);
+            const targetRelativePath = join(relativeDir, convertedName);
+            const targetPath = join(publicDir, targetRelativePath);
+            const targetUrl = `/${targetRelativePath.replace(/\\/g, "/")}`;
+
+            try {
+              await stat(targetPath);
+            } catch {
+              const sourceBuffer = await readFile(sourcePath);
+              const convertedBuffer = await convertHeicToJpeg(sourceBuffer);
+              await writeFile(targetPath, convertedBuffer);
+            }
+
+            try {
+              await unlink(sourcePath);
+            } catch (error) {
+              console.error("Failed to delete HEIC source:", error);
+            }
+
+            const existingHeic = mediaByUrl.get(url);
+            if (existingHeic && !existingUrls.has(targetUrl)) {
+              const convertedStat = await stat(targetPath);
+              await db
+                .update(medias)
+                .set({
+                  name: convertedName,
+                  fileKey: targetRelativePath.replace(/\\/g, "/"),
+                  mimeType: "image/jpeg",
+                  fileSize: convertedStat.size,
+                  url: targetUrl,
+                })
+                .where(eq(medias.id, existingHeic.id));
+              existingUrls.delete(url);
+              mediaByUrl.delete(url);
+              existingUrls.add(targetUrl);
+              mediaByUrl.set(targetUrl, {
+                ...existingHeic,
+                url: targetUrl,
+                name: convertedName,
+              });
+            }
+
+            entryRelativePath = targetRelativePath;
+            url = targetUrl;
+            ext = "jpg";
+          }
+
           // Check against set instead of DB query
           if (!existingUrls.has(url)) {
             const fileStat = await stat(join(publicDir, entryRelativePath));
-
-            const ext = entry.name.split(".").pop()?.toLowerCase();
             let type: "image" | "video" | "document" | "audio" | "other" =
               "other";
             if (
@@ -382,7 +466,10 @@ export async function syncFileSystemMedias(): Promise<
               fileKey: url,
               type: type,
               provider: "local",
-              mimeType: `${type}/${ext}`,
+              mimeType:
+                type === "image" && ext === "jpg"
+                  ? "image/jpeg"
+                  : `${type}/${ext}`,
               fileSize: fileStat.size,
               url: url,
               metadata: folder ? { folder } : null,

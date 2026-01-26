@@ -48,7 +48,7 @@ export function MetaPixel() {
       (window as Window & { fbq?: Fbq }).fbq = fbq;
 
       const existingScript = document.querySelector(
-        'script[src="https://connect.facebook.net/en_US/fbevents.js"]'
+        'script[src="https://connect.facebook.net/en_US/fbevents.js"]',
       );
       if (!existingScript) {
         const script = document.createElement("script");
