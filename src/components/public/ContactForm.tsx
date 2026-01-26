@@ -2,6 +2,7 @@
 
 import { sendContactEmail } from "@/actions/contact";
 import { Button } from "@/components/ui/Button";
+import { trackMetaEvent } from "@/lib/metaPixel";
 import { useActionState, useEffect } from "react";
 import { toast } from "sonner";
 
@@ -12,6 +13,8 @@ export function ContactForm() {
     if (state?.message) {
       if (state.success) {
         toast.success(state.message);
+        trackMetaEvent("Lead");
+        trackMetaEvent("Contact");
       } else {
         toast.error(state.message);
       }

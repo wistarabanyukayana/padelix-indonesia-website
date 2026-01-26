@@ -287,6 +287,8 @@ export interface SessionPayload {
     username: string;
     email: string;
     permissions: string[];
+    sessionVersion: number;
   };
   expires: string | Date;
+  iat?: number;
 }

@@ -16,7 +16,10 @@ export async function POST(req: Request) {
     const signature = req.headers.get("mux-signature");
 
     if (process.env.MUX_WEBHOOK_SECRET && !signature) {
-      return NextResponse.json({ error: "Missing signature" }, { status: 401 });
+      return NextResponse.json(
+        { ok: false, error: { message: "Missing signature" } },
+        { status: 401 },
+      );
     }
 
     // Verify signature if secret is provided
@@ -30,7 +33,7 @@ export async function POST(req: Request) {
       } catch {
         console.error("[Mux Webhook] Signature verification failed");
         return NextResponse.json(
-          { error: "Invalid signature" },
+          { ok: false, error: { message: "Invalid signature" } },
           { status: 401 },
         );
       }
@@ -107,12 +110,12 @@ export async function POST(req: Request) {
     if (!mediaRecord) {
       // If it's a delete event and we don't have it, just ignore
       if (type === "video.asset.deleted")
-        return NextResponse.json({ received: true });
+        return NextResponse.json({ ok: true, received: true });
 
       console.warn(
         `[Mux Webhook] No media found for Asset:${assetId} / Upload:${uploadId}`,
       );
-      return NextResponse.json({ received: true });
+      return NextResponse.json({ ok: true, received: true });
     }
 
     console.log(
@@ -194,11 +197,11 @@ export async function POST(req: Request) {
     revalidatePath("/admin");
     revalidatePath("/admin/media");
 
-    return NextResponse.json({ received: true });
+    return NextResponse.json({ ok: true, received: true });
   } catch (error) {
     console.error("Mux Webhook Error:", error);
     return NextResponse.json(
-      { error: "Webhook handler failed" },
+      { ok: false, error: { message: "Webhook handler failed" } },
       { status: 500 },
     );
   }

@@ -30,12 +30,13 @@ import Link from "next/link";
 import { useActionState, useEffect, useState } from "react";
 
 import { createMuxUpload, getMuxMediaByUploadId } from "@/actions/mux";
+import { useActionFeedback } from "@/components/admin/general/useActionFeedback";
 import { useFormDirty } from "@/components/admin/general/useFormDirty";
 import { useNewItemToast } from "@/components/admin/general/useNewItemToast";
 import { MediaDetailsModal } from "@/components/admin/medias/MediaDetailsModal";
 import { MediaSelector } from "@/components/admin/medias/MediaSelector";
 import { CollapsibleTree, TreeNode } from "@/components/ui/CollapsibleTree";
-import { getDisplayUrl, parseMetadata } from "@/lib/utils";
+import { getDisplayUrl, handleUploadError, parseMetadata } from "@/lib/utils";
 import { useRef } from "react";
 import { toast } from "sonner";
 
@@ -53,34 +54,14 @@ export function ProductForm({
     {} as ActionState,
   );
   const { hasNew, clearNewParam } = useNewItemToast("Produk berhasil dibuat");
-  const lastToastRef = useRef<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
   // Details Modal State
   const [detailMedia, setDetailMedia] = useState<DBMedia | null>(null);
 
-  useEffect(() => {
-    if (state?.redirectTo) {
-      window.location.assign(state.redirectTo);
-    }
-  }, [state?.redirectTo]);
-
-  useEffect(() => {
-    if (isPending) lastToastRef.current = null;
-  }, [isPending]);
-
-  useEffect(() => {
-    if (!state?.message) return;
-    const toastKey = `${state.success}-${state.message}`;
-    if (lastToastRef.current === toastKey) return;
-    lastToastRef.current = toastKey;
-    if (state.success) {
-      toast.success(state.message);
-      if (hasNew) clearNewParam();
-    } else {
-      toast.error(state.message);
-    }
-  }, [clearNewParam, hasNew, state]);
+  useActionFeedback(state, isPending, {
+    newItem: { hasNew, clearNewParam },
+  });
 
   const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
   const isUploading = uploadingIndex !== null;
@@ -296,13 +277,24 @@ export function ProductForm({
       });
       primary.isPrimary = true;
       newMedias.unshift(primary);
-      newMedias.forEach((media, idx) => {
-        media.sortOrder = idx + 1;
-      });
-      setMedias(newMedias);
+      setMedias(normalizePrimaryOrder(newMedias));
       return;
     }
     setMedias(newMedias);
+  };
+
+  const normalizePrimaryOrder = (items: MediaUI[]) => {
+    if (items.length === 0) return items;
+    const primaryIndex = items.findIndex((m) => m.isPrimary);
+    if (primaryIndex > 0) {
+      const [primary] = items.splice(primaryIndex, 1);
+      items.unshift(primary);
+    }
+    items.forEach((media, idx) => {
+      media.sortOrder = idx + 1;
+      media.isPrimary = idx === 0;
+    });
+    return items;
   };
 
   const reorderMedia = (fromIndex: number, toIndex: number) => {
@@ -310,10 +302,7 @@ export function ProductForm({
     const newMedias = [...medias];
     const [moved] = newMedias.splice(fromIndex, 1);
     newMedias.splice(toIndex, 0, moved);
-    newMedias.forEach((media, idx) => {
-      media.sortOrder = idx + 1;
-    });
-    setMedias(newMedias);
+    setMedias(normalizePrimaryOrder(newMedias));
   };
 
   const moveMediaToOrder = (fromIndex: number, targetOrder: number) => {
@@ -323,7 +312,7 @@ export function ProductForm({
   };
   const removeMedia = (index: number) => {
     const filtered = medias.filter((_, i) => i !== index);
-    setMedias(normalizeMedias(filtered));
+    setMedias(normalizePrimaryOrder(normalizeMedias(filtered)));
   };
 
   const handleFileUpload = async (index: number, file: File) => {
@@ -339,6 +328,10 @@ export function ProductForm({
           currentFolder,
           file.size,
         );
+        if ("error" in uploadInfo) {
+          toast.error(uploadInfo.error);
+          return;
+        }
 
         // Link record ID for potential cleanup
         const initialRecord = await getMuxMediaByUploadId(uploadInfo.id);
@@ -404,14 +397,16 @@ export function ProductForm({
         const formData = new FormData();
         formData.append("file", file);
         const result = await uploadFile(formData);
-        if (result.url && result.id) {
+        const url = result.url;
+        const id = result.id;
+        if (url !== undefined && id !== undefined) {
           setMedias((prev) => {
             if (!prev[index]) return prev;
             const next = [...prev];
             next[index] = {
               ...next[index],
-              url: result.url,
-              id: result.id,
+              url,
+              id,
               metadata: null,
               type: file.type.startsWith("image/") ? "image" : "document",
             };
@@ -423,8 +418,12 @@ export function ProductForm({
       }
     } catch (error) {
       if (error === "ABORTED") return;
-      console.error("Upload error:", error);
-      toast.error("Gagal mengunggah file. Silakan coba lagi.");
+      const message = handleUploadError(
+        error,
+        "Gagal mengunggah file. Silakan coba lagi.",
+        { suppressPattern: /Sesi berakhir/i },
+      );
+      toast.error(message);
     } finally {
       setUploadingIndex(null);
       setUploadProgress(0);
@@ -706,7 +705,12 @@ export function ProductForm({
       {/* --- Section 2: Medias --- */}
       <div className="rounded-brand border border-neutral-200 bg-white p-6 shadow-sm">
         <div className="mb-4 flex items-center justify-between border-b pb-2">
-          <h2 className="text-lg font-bold text-neutral-900">Media Produk</h2>
+          <div>
+            <h2 className="text-lg font-bold text-neutral-900">Media Produk</h2>
+            <p className="text-xs text-neutral-500">
+              Thumbnail selalu berada di urutan pertama.
+            </p>
+          </div>
           <MediaSelector
             allMedias={allMedias}
             onSelect={addMediaFromLibrary}
@@ -1001,7 +1005,7 @@ export function ProductForm({
                         className="h-4 w-4 accent-brand-green"
                       />
                       <span className="text-xs font-bold text-neutral-700 uppercase">
-                        Utama
+                        Thumbnail
                       </span>
                     </label>
                   </div>

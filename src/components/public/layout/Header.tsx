@@ -148,6 +148,8 @@ export function Header() {
                 src="/assets/padelix-word-with-transparent-background.svg"
                 alt="Padelix Indonesia"
                 fill
+                loading="eager"
+                fetchPriority="high"
                 className="object-contain object-left"
               />
             </div>

@@ -2,6 +2,7 @@
 
 import { deleteMedia, uploadFile } from "@/actions/media";
 import { createMuxUpload, getMuxMediaByUploadId } from "@/actions/mux";
+import { handleUploadError } from "@/lib/utils";
 import { Plus, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
@@ -51,6 +52,10 @@ export function MediaUploadButton({
           currentFolder,
           file.size,
         );
+        if ("error" in uploadInfo) {
+          toast.error(uploadInfo.error);
+          return;
+        }
 
         // Link record ID for potential cleanup
         const initialRecord = await getMuxMediaByUploadId(uploadInfo.id);
@@ -111,8 +116,10 @@ export function MediaUploadButton({
       router.refresh();
     } catch (error) {
       if (error === "ABORTED") return;
-      console.error("Upload error:", error);
-      toast.error("Gagal mengunggah file.");
+      const message = handleUploadError(error, "Gagal mengunggah file.", {
+        suppressPattern: /Sesi berakhir/i,
+      });
+      toast.error(message);
     }
   };
 

@@ -1,4 +1,4 @@
-import { decrypt } from "@/lib/session";
+import { getSessionFromCookie, updateSession } from "@/lib/auth";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
@@ -16,7 +16,7 @@ export async function proxy(req: NextRequest) {
 
   // 3. Decrypt the session from the cookie
   const cookie = req.cookies.get("session")?.value;
-  const session = await decrypt(cookie);
+  const session = await getSessionFromCookie(cookie);
 
   // 4. Redirect to /login if the user is not authenticated
   if (isProtectedRoute && !isPublicRoute && !session?.user?.id) {
@@ -26,6 +26,11 @@ export async function proxy(req: NextRequest) {
   // 5. Redirect to /admin if the user is authenticated
   if (isPublicRoute && session?.user?.id) {
     return NextResponse.redirect(new URL("/admin", req.nextUrl));
+  }
+
+  if (session?.user?.id) {
+    const refreshed = await updateSession(req);
+    if (refreshed) return refreshed;
   }
 
   return NextResponse.next();

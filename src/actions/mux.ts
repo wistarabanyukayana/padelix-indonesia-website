@@ -12,13 +12,24 @@ import { createAuditLog } from "@/lib/audit";
 import { parseMetadata } from "@/lib/utils";
 import { revalidatePath } from "next/cache";
 
+type MuxUploadResponse =
+  | {
+      id: string;
+      url: string;
+    }
+  | {
+      error: string;
+    };
+
 export async function createMuxUpload(
   filename: string,
   folder?: string | null,
   fileSize?: number,
-) {
+): Promise<MuxUploadResponse> {
   const session = await getSession();
-  if (!session) throw new Error("Unauthorized");
+  if (!session) {
+    return { error: "Sesi berakhir, silakan login kembali" };
+  }
 
   try {
     await checkPermission(PERMISSIONS.MANAGE_MEDIA);
@@ -60,13 +71,15 @@ export async function createMuxUpload(
     };
   } catch (error) {
     console.error("Mux upload creation error:", error);
-    throw new Error("Failed to create Mux upload");
+    const message =
+      error instanceof Error ? error.message : "Gagal membuat upload Mux";
+    return { error: message };
   }
 }
 
 export async function getMuxMediaByUploadId(uploadId: string) {
   const session = await getSession();
-  if (!session) throw new Error("Unauthorized");
+  if (!session) return null;
 
   try {
     await checkPermission(PERMISSIONS.MANAGE_MEDIA);

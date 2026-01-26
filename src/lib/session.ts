@@ -32,7 +32,11 @@ export async function decrypt(session: string | undefined = "") {
 
 export async function createSession(user: SessionPayload["user"]) {
   const expires = new Date(Date.now() + 24 * 60 * 60 * 1000);
-  const session = await encrypt({ user, expires });
+  const normalizedUser = {
+    ...user,
+    sessionVersion: user.sessionVersion ?? 0,
+  };
+  const session = await encrypt({ user: normalizedUser, expires });
   const cookieStore = await cookies();
 
   cookieStore.set("session", session, {
@@ -56,6 +60,9 @@ export async function updateSession() {
   // Ensure permissions array exists
   if (payload.user && !Array.isArray(payload.user.permissions)) {
     payload.user.permissions = [];
+  }
+  if (typeof payload.user.sessionVersion !== "number") {
+    payload.user.sessionVersion = 0;
   }
 
   const expires = new Date(Date.now() + 24 * 60 * 60 * 1000);

@@ -1,4 +1,4 @@
-# Padelix Indonesia Website v2.2.0
+# Padelix Indonesia Website v2.2.1
 
 A unified fullstack web application for Padelix Indonesia, built with Next.js 15+, Drizzle ORM, and MySQL. This version represents a complete architectural shift from the previous Next.js/Strapi decoupled setup to a more efficient, single-repo fullstack solution.
 
@@ -9,7 +9,7 @@ A unified fullstack web application for Padelix Indonesia, built with Next.js 15
 ## Production Status
 
 - **Live:** [https://padelix.co.id](https://padelix.co.id)
-- **Current Version:** 2.2.0 (Unified Fullstack)
+- **Current Version:** 2.2.1 (Unified Fullstack)
 - **Previous Version:** 1.2.0 (Next.js + Strapi)
 
 ---
@@ -111,6 +111,7 @@ BUSINESS_EMAIL='business@padelix.co.id'
 # Site Configuration
 NEXT_DEV_SITE_URL='http://localhost:3000'
 NEXT_PUBLIC_SITE_URL='https://padelix.co.id'
+NEXT_PUBLIC_META_PIXEL_ID='your-meta-pixel-id'
 ```
 
 ### 4. Initialize Database
@@ -199,6 +200,19 @@ This will:
 
 > **Note:** See the generated `DEPLOY_README.md` inside the `release` folder for specific details.
 
+---
+
+## Ops Notes
+
+### CI Build Requirements
+
+This project runs `lint`, `check`, and `build` in CI. The build step is **conditional** and will only run if `DATABASE_URL` is set in CI secrets. If you want CI to build, add these secrets:
+
+- `DATABASE_URL` (staging or read-only DB)
+- `NEXT_PUBLIC_SITE_URL`
+
+Without `DATABASE_URL`, CI will still run lint and type checks but skip the build step.
+
 ### Production Note (cPanel/LiteSpeed)
 
 On the shared cPanel + LiteSpeed environment, we observed intermittent client-side exceptions after auth or form submits (e.g., login/logout/create). The browser requested stale chunk IDs that no longer existed, and a hard refresh fixed it. The current workaround is to force a full page reload after these server actions:
@@ -231,7 +245,7 @@ Admin users with the `view_audit_logs` permission can view these records in the 
 
 ## 🚀 Recent Updates
 
-**Latest Version: [v2.2.0]** (2026-01-25)
+**Latest Version: [v2.2.1]** (2026-01-26)
 
 - Added Mux asset scan on Sync Assets for missing video entries.
 - Improved admin save UX with reliable dirty detection and multi-file uploads.

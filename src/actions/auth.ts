@@ -97,6 +97,7 @@ export async function login(
     username: user.username,
     email: user.email,
     permissions: permissionSlugs,
+    sessionVersion: user.sessionVersion ?? 0,
   });
 
   await db

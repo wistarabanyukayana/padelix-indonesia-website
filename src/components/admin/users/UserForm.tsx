@@ -1,13 +1,13 @@
 "use client";
 
+import { useActionFeedback } from "@/components/admin/general/useActionFeedback";
 import { useFormDirty } from "@/components/admin/general/useFormDirty";
 import { useNewItemToast } from "@/components/admin/general/useNewItemToast";
 import { Button } from "@/components/ui/Button";
 import { ActionState, DBRole, DetailedUser, FormAction } from "@/types";
 import { Eye, EyeOff, Save, Shield, User as UserIcon, X } from "lucide-react";
 import Link from "next/link";
-import { useActionState, useEffect, useRef, useState } from "react";
-import { toast } from "sonner";
+import { useActionState, useRef, useState } from "react";
 
 interface UserFormProps {
   action: FormAction;
@@ -30,31 +30,11 @@ export function UserForm({
     {} as ActionState,
   );
   const { hasNew, clearNewParam } = useNewItemToast("Pengguna berhasil dibuat");
-  const lastToastRef = useRef<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
-  useEffect(() => {
-    if (state?.redirectTo) {
-      window.location.assign(state.redirectTo);
-    }
-  }, [state?.redirectTo]);
-
-  useEffect(() => {
-    if (isPending) lastToastRef.current = null;
-  }, [isPending]);
-
-  useEffect(() => {
-    if (!state?.message) return;
-    const toastKey = `${state.success}-${state.message}`;
-    if (lastToastRef.current === toastKey) return;
-    lastToastRef.current = toastKey;
-    if (state.success) {
-      toast.success(state.message);
-      if (hasNew) clearNewParam();
-    } else {
-      toast.error(state.message);
-    }
-  }, [clearNewParam, hasNew, state]);
+  useActionFeedback(state, isPending, {
+    newItem: { hasNew, clearNewParam },
+  });
 
   // Selected Roles State
   const [selectedRoles, setSelectedRoles] = useState<number[]>(

@@ -3,9 +3,10 @@
 import { Button } from "@/components/ui/Button";
 import { ProductInfoProps } from "@/types";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { siteConfig } from "@/config/site";
+import { trackMetaEvent } from "@/lib/metaPixel";
 
 export function ProductInfo({ product }: ProductInfoProps) {
   const [selectedVariantId, setSelectedVariantId] = useState<number | null>(
@@ -36,6 +37,14 @@ export function ProductInfo({ product }: ProductInfoProps) {
     : "";
   const whatsappMessage = `Halo Padelix, saya tertarik dengan produk ${product.name}${variantText}. Bisakah saya mendapatkan info lebih lanjut?`;
   const whatsappLink = `https://wa.me/${siteConfig.contact.whatsapp}?text=${encodeURIComponent(whatsappMessage)}`;
+
+  useEffect(() => {
+    trackMetaEvent("ViewContent", {
+      content_name: product.name,
+      content_type: "product",
+      content_ids: [product.id],
+    });
+  }, [product.id, product.name]);
 
   return (
     <div className="flex flex-col gap-8">
@@ -139,6 +148,7 @@ export function ProductInfo({ product }: ProductInfoProps) {
         <Link href={whatsappLink} target="_blank">
           <Button
             size="lg"
+            onClick={() => trackMetaEvent("Contact")}
             className="w-full bg-[#25D366] text-white shadow-xl transition-all hover:-translate-y-1 hover:bg-[#20ba5a] hover:shadow-2xl"
           >
             Pesan via WhatsApp

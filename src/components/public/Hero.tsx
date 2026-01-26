@@ -17,7 +17,8 @@ export function Hero({
         src={backgroundImage}
         alt="Hero Background"
         fill
-        priority
+        loading="eager"
+        fetchPriority="high"
         className="opacity-60"
       />
 
