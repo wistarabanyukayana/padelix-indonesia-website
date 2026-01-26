@@ -1,6 +1,6 @@
 {
   "name": "padelix-indonesia-website",
-  "version": "2.2.1",
+  "version": "2.2.2",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -28,6 +28,7 @@
     "dotenv": "^17.2.3",
     "drizzle-orm": "1.0.0-beta.9-e89174b",
     "eslint-plugin-drizzle": "^0.2.3",
+    "heic-convert": "^2.1.0",
     "hls.js": "^1.6.15",
     "jose": "^6.1.3",
     "lucide-react": "^0.562.0",
