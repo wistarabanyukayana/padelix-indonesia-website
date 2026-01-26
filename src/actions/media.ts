@@ -11,10 +11,27 @@ import { ActionState, MediaMetadata, UploadResult } from "@/types";
 import { desc, eq } from "drizzle-orm";
 import { mkdir, readdir, readFile, stat, unlink, writeFile } from "fs/promises";
 import { revalidatePath } from "next/cache";
-import { join } from "path";
+import { join, parse } from "path";
+import sharp from "sharp";
 
 const HEIC_EXTENSIONS = ["heic", "heif"];
 const HEIC_MIME_TYPES = ["image/heic", "image/heif"];
+const WEBP_QUALITY = 80;
+const MAX_IMAGE_DIMENSION = 2400;
+const NON_OPTIMIZABLE_IMAGE_MIME_TYPES = new Set([
+  "image/svg+xml",
+  "image/gif",
+]);
+const OPTIMIZABLE_IMAGE_EXTENSIONS = new Set([
+  "jpg",
+  "jpeg",
+  "png",
+  "bmp",
+  "tif",
+  "tiff",
+  "heic",
+  "heif",
+]);
 
 const isHeicFilename = (filename: string) =>
   HEIC_EXTENSIONS.some((ext) => filename.toLowerCase().endsWith(`.${ext}`));
@@ -30,6 +47,37 @@ const convertHeicToJpeg = async (buffer: Buffer) => {
     quality: 0.85,
   });
   return Buffer.from(output);
+};
+
+const shouldOptimizeImage = (mimeType: string) =>
+  mimeType.startsWith("image/") &&
+  !NON_OPTIMIZABLE_IMAGE_MIME_TYPES.has(mimeType);
+
+const toWebpName = (filename: string) => {
+  const parsed = parse(filename);
+  const base = parsed.name || filename;
+  return `${base}.webp`;
+};
+
+const optimizeImageBuffer = async (buffer: Buffer): Promise<Buffer> => {
+  const image = sharp(buffer, { failOn: "none" });
+  const metadata = await image.metadata();
+  const width = metadata.width ?? 0;
+  const height = metadata.height ?? 0;
+  let pipeline = image;
+  if (width > 0 && height > 0) {
+    const maxDim = Math.max(width, height);
+    if (maxDim > MAX_IMAGE_DIMENSION) {
+      pipeline = image.resize({
+        width: width >= height ? MAX_IMAGE_DIMENSION : undefined,
+        height: height > width ? MAX_IMAGE_DIMENSION : undefined,
+        fit: "inside",
+        withoutEnlargement: true,
+      });
+    }
+  }
+  const optimized = await pipeline.webp({ quality: WEBP_QUALITY }).toBuffer();
+  return Buffer.from(optimized);
 };
 
 export async function getPhysicalFolders(): Promise<string[]> {
@@ -185,7 +233,7 @@ export async function uploadFile(formData: FormData): Promise<UploadResult> {
     }
 
     const bytes = await file.arrayBuffer();
-    let buffer = Buffer.from(bytes);
+    let buffer: Buffer = Buffer.from(bytes) as Buffer;
 
     const isHeicUpload =
       HEIC_MIME_TYPES.includes(file.type) || isHeicFilename(file.name);
@@ -197,6 +245,12 @@ export async function uploadFile(formData: FormData): Promise<UploadResult> {
       storedMimeType = "image/jpeg";
       storedName = replaceHeicExtension(file.name);
       type = "image";
+    }
+
+    if (type === "image" && shouldOptimizeImage(storedMimeType)) {
+      buffer = await optimizeImageBuffer(buffer);
+      storedMimeType = "image/webp";
+      storedName = toWebpName(storedName);
     }
 
     // Create unique filename
@@ -389,53 +443,71 @@ export async function syncFileSystemMedias(): Promise<
           await scanDir(entryRelativePath);
         } else {
           let ext = entry.name.split(".").pop()?.toLowerCase();
-          if (ext && HEIC_EXTENSIONS.includes(ext)) {
-            const sourcePath = join(publicDir, entryRelativePath);
-            const convertedName = replaceHeicExtension(entry.name);
-            const targetRelativePath = join(relativeDir, convertedName);
-            const targetPath = join(publicDir, targetRelativePath);
-            const targetUrl = `/${targetRelativePath.replace(/\\/g, "/")}`;
-
+          if (ext && OPTIMIZABLE_IMAGE_EXTENSIONS.has(ext)) {
             try {
-              await stat(targetPath);
-            } catch {
-              const sourceBuffer = await readFile(sourcePath);
-              const convertedBuffer = await convertHeicToJpeg(sourceBuffer);
-              await writeFile(targetPath, convertedBuffer);
-            }
+              const sourcePath = join(publicDir, entryRelativePath);
+              const targetName = toWebpName(entry.name);
+              const targetRelativePath = join(relativeDir, targetName);
+              const targetPath = join(publicDir, targetRelativePath);
+              const targetUrl = `/${targetRelativePath.replace(/\\/g, "/")}`;
 
-            try {
-              await unlink(sourcePath);
+              let targetExists = false;
+              try {
+                await stat(targetPath);
+                targetExists = true;
+              } catch {
+                targetExists = false;
+              }
+
+              if (existingUrls.has(targetUrl) || targetExists) {
+                console.warn(
+                  `Skip optimizing ${url}. Target already exists: ${targetUrl}`,
+                );
+              } else {
+                let sourceBuffer = await readFile(sourcePath);
+                if (HEIC_EXTENSIONS.includes(ext)) {
+                  sourceBuffer = await convertHeicToJpeg(sourceBuffer);
+                }
+                const optimizedBuffer = await optimizeImageBuffer(sourceBuffer);
+                await writeFile(targetPath, optimizedBuffer);
+
+                try {
+                  await unlink(sourcePath);
+                } catch (error) {
+                  console.error("Failed to delete source image:", error);
+                }
+
+                const existingSource = mediaByUrl.get(url);
+                if (existingSource) {
+                  const targetStat = await stat(targetPath);
+                  await db
+                    .update(medias)
+                    .set({
+                      name: targetName,
+                      fileKey: targetRelativePath.replace(/\\/g, "/"),
+                      mimeType: "image/webp",
+                      fileSize: targetStat.size,
+                      url: targetUrl,
+                      type: "image",
+                    })
+                    .where(eq(medias.id, existingSource.id));
+                  existingUrls.delete(url);
+                  mediaByUrl.delete(url);
+                  existingUrls.add(targetUrl);
+                  mediaByUrl.set(targetUrl, {
+                    ...existingSource,
+                    url: targetUrl,
+                    name: targetName,
+                  });
+                }
+
+                entryRelativePath = targetRelativePath;
+                url = targetUrl;
+                ext = "webp";
+              }
             } catch (error) {
-              console.error("Failed to delete HEIC source:", error);
+              console.error(`Failed to optimize ${url}:`, error);
             }
-
-            const existingHeic = mediaByUrl.get(url);
-            if (existingHeic && !existingUrls.has(targetUrl)) {
-              const convertedStat = await stat(targetPath);
-              await db
-                .update(medias)
-                .set({
-                  name: convertedName,
-                  fileKey: targetRelativePath.replace(/\\/g, "/"),
-                  mimeType: "image/jpeg",
-                  fileSize: convertedStat.size,
-                  url: targetUrl,
-                })
-                .where(eq(medias.id, existingHeic.id));
-              existingUrls.delete(url);
-              mediaByUrl.delete(url);
-              existingUrls.add(targetUrl);
-              mediaByUrl.set(targetUrl, {
-                ...existingHeic,
-                url: targetUrl,
-                name: convertedName,
-              });
-            }
-
-            entryRelativePath = targetRelativePath;
-            url = targetUrl;
-            ext = "jpg";
           }
 
           // Check against set instead of DB query

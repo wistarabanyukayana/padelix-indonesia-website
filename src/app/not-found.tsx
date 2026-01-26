@@ -7,9 +7,10 @@ export default function NotFound() {
     <div className="flex min-h-screen flex-col items-center justify-center bg-white p-6 text-center">
       <div className="relative mb-8 h-48 w-48">
         <AppImage
-          src="/assets/padelix-word-with-transparent-background.svg"
+          src="/assets/padelix-wordmark-v2.webp"
           alt="Padelix Indonesia"
           fill
+          sizes="192px"
           className="object-contain opacity-20"
         />
         <div className="absolute inset-0 flex items-center justify-center">

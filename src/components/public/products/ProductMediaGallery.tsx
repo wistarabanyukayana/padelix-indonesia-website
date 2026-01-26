@@ -64,7 +64,8 @@ export function ProductMediaGallery({
               src={activeMedia.url}
               alt={activeMedia.altText || productName}
               fill
-              priority
+              preload
+              sizes="(max-width: 1024px) 100vw, 50vw"
               className="object-cover transition-transform duration-500 group-hover:scale-105"
             />
             <div className="absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition-colors group-hover:bg-black/10 group-hover:opacity-100">
@@ -105,6 +106,7 @@ export function ProductMediaGallery({
                 src={getDisplayUrl(m)}
                 alt={m.altText || productName}
                 fill
+                sizes="(max-width: 640px) 25vw, (max-width: 1024px) 20vw, 12vw"
                 className="object-cover"
               />
               {m.type !== "image" && (

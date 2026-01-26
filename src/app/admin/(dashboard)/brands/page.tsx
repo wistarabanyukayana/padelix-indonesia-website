@@ -128,6 +128,7 @@ export default async function AdminBrandsPage({ searchParams }: PageProps) {
                           src={brand.logoUrl}
                           alt={brand.name}
                           fill
+                          sizes="56px"
                           className="object-contain"
                         />
                       ) : (
@@ -182,6 +183,7 @@ export default async function AdminBrandsPage({ searchParams }: PageProps) {
                               src={brand.logoUrl}
                               alt={brand.name}
                               fill
+                              sizes="48px"
                               className="object-contain"
                             />
                           ) : (

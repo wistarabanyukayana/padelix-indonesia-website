@@ -181,6 +181,7 @@ export default async function AdminProductsPage({ searchParams }: PageProps) {
                           src={product.imageUrl}
                           alt={product.name}
                           fill
+                          sizes="64px"
                           className="object-cover"
                         />
                       ) : (
@@ -269,6 +270,7 @@ export default async function AdminProductsPage({ searchParams }: PageProps) {
                               src={product.imageUrl}
                               alt={product.name}
                               fill
+                              sizes="48px"
                               className="object-cover"
                             />
                           ) : (

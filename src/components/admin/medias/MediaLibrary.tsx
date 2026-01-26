@@ -731,6 +731,7 @@ export function MediaLibrary({
                       src={getDisplayUrl(m)}
                       alt={m.name}
                       fill
+                      sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, (max-width: 1280px) 16vw, 12vw"
                       className="object-cover"
                     />
                     {m.type === "video" && !isProcessing && (

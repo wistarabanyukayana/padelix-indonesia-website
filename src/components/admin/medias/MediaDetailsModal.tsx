@@ -88,6 +88,7 @@ export function MediaDetailsModal({
                 src={media.url}
                 alt={media.name}
                 fill
+                sizes="(max-width: 768px) 100vw, 60vw"
                 className="object-contain"
               />
               <div className="absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition-colors group-hover:bg-black/5 group-hover:opacity-100">

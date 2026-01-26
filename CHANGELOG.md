@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 
 The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/)**, and this project adheres to **[Semantic Versioning](https://semver.org/spec/v2.0.0.html)**.
 
+## [2.2.3] - 2026-01-26
+
+### Added
+
+- **WebP optimization:** image uploads now optimize to WebP (max 2400px, quality 80) and store only the optimized asset.
+- **Sync optimization:** media sync now converts legacy raster uploads to WebP, updates DB references, and removes originals.
+- **Mux CSP support:** CSP updated to allow Mux playback + data domains and worker usage.
+
+### Changed
+
+- **Image loading UX:** AppImage now shows a subtle blinking background while loading.
+- **Responsive sizing:** added explicit `sizes` for all `fill` images across public + admin UIs.
+- **Logo asset:** replaced header/404 logo with optimized wordmark and responsive sizing.
+- **Hero LCP:** hero image now uses `preload` with explicit `sizes`.
+
 ## [2.2.2] - 2026-01-26
 
 ### Added
@@ -179,6 +194,7 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
   - Strapi CMS backend
 - Baseline support for B2B, B2C, and planned advertising features.
 
+[2.2.3]: https://github.com/wistarabanyukayana/padelix-indonesia-website/compare/v2.2.2...v2.2.3
 [2.2.2]: https://github.com/wistarabanyukayana/padelix-indonesia-website/compare/v2.2.1...v2.2.2
 [2.2.1]: https://github.com/wistarabanyukayana/padelix-indonesia-website/compare/v2.2.0...v2.2.1
 [2.2.0]: https://github.com/wistarabanyukayana/padelix-indonesia-website/compare/v2.1.0...v2.2.0

@@ -162,6 +162,7 @@ export default async function AdminPortfoliosPage({ searchParams }: PageProps) {
                           src={p.imageUrl}
                           alt={p.title}
                           fill
+                          sizes="64px"
                           className="object-cover"
                         />
                       ) : (
@@ -240,6 +241,7 @@ export default async function AdminPortfoliosPage({ searchParams }: PageProps) {
                               src={p.imageUrl}
                               alt={p.title}
                               fill
+                              sizes="48px"
                               className="object-cover"
                             />
                           ) : (

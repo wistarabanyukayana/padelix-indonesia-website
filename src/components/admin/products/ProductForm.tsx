@@ -806,6 +806,7 @@ export function ProductForm({
                         src={getDisplayUrl(m)}
                         alt="Preview"
                         fill
+                        sizes="96px"
                         className="object-cover"
                       />
                       {m.type !== "image" && (
