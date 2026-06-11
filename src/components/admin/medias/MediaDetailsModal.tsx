@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { parseMetadata } from "@/lib/utils";
 import { DBMedia } from "@/types";
-import MuxPlayer from "@mux/mux-player-react";
 import {
   Calendar,
   Copy,
@@ -12,7 +11,6 @@ import {
   HardDrive,
   MapPin,
   Move,
-  Play,
   Trash2,
   ZoomIn,
 } from "lucide-react";
@@ -65,14 +63,7 @@ export function MediaDetailsModal({
     (media.url.split("/").length > 3
       ? media.url.split("/").slice(2, -1).join("/")
       : "Root");
-  const isVideoReady =
-    media.type === "video" &&
-    media.provider === "mux" &&
-    meta.status === "ready";
-  const isVideoUploading =
-    media.type === "video" &&
-    media.provider === "mux" &&
-    meta.status === "uploading";
+  const isVideo = media.type === "video";
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Detail Media">
@@ -97,29 +88,18 @@ export function MediaDetailsModal({
                 </div>
               </div>
             </div>
-          ) : isVideoReady ? (
-            <MuxPlayer
-              playbackId={meta.playbackId as string}
-              metadata={{
-                video_title: media.name,
-              }}
-              style={{ height: "100%", width: "100%" }}
+          ) : isVideo ? (
+            // Cloudinary serves H.264 MP4 directly — a plain video tag is enough
+            <video
+              src={media.url}
+              controls
+              preload="metadata"
+              className="h-full w-full object-contain"
             />
           ) : (
             <div className="flex flex-col items-center justify-center gap-4 p-12 text-neutral-400">
-              {media.type === "video" ? (
-                <Play size={48} className="animate-pulse" />
-              ) : (
-                <FileType size={48} />
-              )}
+              <FileType size={48} />
               <span className="font-mono text-sm">{media.mimeType}</span>
-              {media.type === "video" && !isVideoReady && (
-                <span className="rounded bg-yellow-100 px-2 py-1 text-[10px] font-bold text-yellow-700 uppercase">
-                  {isVideoUploading
-                    ? "Sedang diunggah..."
-                    : "Sedang diproses..."}
-                </span>
-              )}
             </div>
           )}
         </div>

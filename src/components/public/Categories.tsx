@@ -26,7 +26,7 @@ export function Categories({ categories }: CategoriesProps) {
                   src={c.imageUrl}
                   alt={c.name}
                   fill
-                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                  sizes="(max-width: 640px) 90vw, (max-width: 1024px) 45vw, 280px"
                   className="object-cover transition-transform duration-700 group-hover:scale-110"
                 />
               ) : (

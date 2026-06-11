@@ -1,83 +1,45 @@
 "use server";
 
+import { MAX_IMAGE_BYTES, MAX_VIDEO_BYTES } from "@/config/media";
 import { PERMISSIONS } from "@/config/permissions";
 import { medias } from "@/db/schema";
 import { createAuditLog } from "@/lib/audit";
 import { checkPermission, getSession } from "@/lib/auth";
+import { cloudinary } from "@/lib/cloudinary";
 import { db } from "@/lib/db";
-import { mux } from "@/lib/mux";
 import { parseMetadata } from "@/lib/utils";
-import { ActionState, MediaMetadata, UploadResult } from "@/types";
-import { desc, eq } from "drizzle-orm";
-import { mkdir, readdir, readFile, stat, unlink, writeFile } from "fs/promises";
+import { ActionState, UploadResult } from "@/types";
+import { desc, eq, or, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
-import { join, parse } from "path";
-import sharp from "sharp";
 
-const HEIC_EXTENSIONS = ["heic", "heif"];
-const HEIC_MIME_TYPES = ["image/heic", "image/heif"];
-const WEBP_QUALITY = 80;
-const MAX_IMAGE_DIMENSION = 2400;
-const NON_OPTIMIZABLE_IMAGE_MIME_TYPES = new Set([
-  "image/svg+xml",
-  "image/gif",
-]);
-const OPTIMIZABLE_IMAGE_EXTENSIONS = new Set([
-  "jpg",
-  "jpeg",
-  "png",
-  "bmp",
-  "tif",
-  "tiff",
-  "heic",
-  "heif",
-]);
+// All admin uploads live under this Cloudinary folder, mirroring the old
+// public/uploads directory. The DB metadata->>'folder' keeps the relative
+// folder path (without this prefix) — that is what the media library filters
+// on. Folders themselves are Cloudinary folders, not DB records.
+const ROOT_FOLDER = "uploads";
 
-const isHeicFilename = (filename: string) =>
-  HEIC_EXTENSIONS.some((ext) => filename.toLowerCase().endsWith(`.${ext}`));
+// Vercel functions cap request bodies at ~4.5MB, so files go directly from
+// the browser to Cloudinary with a signature from signMediaUpload().
 
-const replaceHeicExtension = (filename: string) =>
-  filename.replace(/\.(heic|heif)$/i, ".jpg");
-
-const convertHeicToJpeg = async (buffer: Buffer) => {
-  const { default: heicConvert } = await import("heic-convert");
-  const output = await heicConvert({
-    buffer,
-    format: "JPEG",
-    quality: 0.85,
-  });
-  return Buffer.from(output);
+const toRelativeFolder = (publicId: string): string | null => {
+  const segments = publicId.split("/");
+  segments.pop(); // drop the filename
+  if (segments[0] === ROOT_FOLDER) segments.shift();
+  return segments.length ? segments.join("/") : null;
 };
 
-const shouldOptimizeImage = (mimeType: string) =>
-  mimeType.startsWith("image/") &&
-  !NON_OPTIMIZABLE_IMAGE_MIME_TYPES.has(mimeType);
-
-const toWebpName = (filename: string) => {
-  const parsed = parse(filename);
-  const base = parsed.name || filename;
-  return `${base}.webp`;
-};
-
-const optimizeImageBuffer = async (buffer: Buffer): Promise<Buffer> => {
-  const image = sharp(buffer, { failOn: "none" });
-  const metadata = await image.metadata();
-  const width = metadata.width ?? 0;
-  const height = metadata.height ?? 0;
-  let pipeline = image;
-  if (width > 0 && height > 0) {
-    const maxDim = Math.max(width, height);
-    if (maxDim > MAX_IMAGE_DIMENSION) {
-      pipeline = image.resize({
-        width: width >= height ? MAX_IMAGE_DIMENSION : undefined,
-        height: height > width ? MAX_IMAGE_DIMENSION : undefined,
-        fit: "inside",
-        withoutEnlargement: true,
-      });
-    }
-  }
-  const optimized = await pipeline.webp({ quality: WEBP_QUALITY }).toBuffer();
-  return Buffer.from(optimized);
+const toMimeType = (
+  type: "image" | "video" | "document" | "audio" | "other",
+  format: string | undefined,
+): string => {
+  if (!format) return "application/octet-stream";
+  const normalized = format.toLowerCase();
+  if (type === "image")
+    return `image/${normalized === "jpg" ? "jpeg" : normalized}`;
+  if (type === "video") return `video/${normalized}`;
+  if (type === "audio") return `audio/${normalized}`;
+  if (normalized === "pdf") return "application/pdf";
+  return "application/octet-stream";
 };
 
 export async function getPhysicalFolders(): Promise<string[]> {
@@ -87,23 +49,22 @@ export async function getPhysicalFolders(): Promise<string[]> {
   try {
     await checkPermission(PERMISSIONS.MANAGE_MEDIA);
 
-    const publicDir = join(process.cwd(), "public", "uploads");
     const folders: string[] = [];
 
-    const scan = async (dir: string, relativeBase: string) => {
-      const entries = await readdir(dir, { withFileTypes: true });
-      for (const entry of entries) {
-        if (entry.isDirectory()) {
-          const relativePath = relativeBase
-            ? `${relativeBase}/${entry.name}`
-            : entry.name;
-          folders.push(relativePath);
-          await scan(join(dir, entry.name), relativePath);
-        }
+    const scan = async (path: string, relativeBase: string) => {
+      const result = (await cloudinary.api.sub_folders(path)) as {
+        folders?: { name: string; path: string }[];
+      };
+      for (const folder of result.folders ?? []) {
+        const relativePath = relativeBase
+          ? `${relativeBase}/${folder.name}`
+          : folder.name;
+        folders.push(relativePath);
+        await scan(folder.path, relativePath);
       }
     };
 
-    await scan(publicDir, "");
+    await scan(ROOT_FOLDER, "");
     return folders;
   } catch (error) {
     console.error("Get folders error:", error);
@@ -120,22 +81,12 @@ export async function createPhysicalFolder(
   try {
     await checkPermission(PERMISSIONS.MANAGE_MEDIA);
 
-    // Validate path (basic security to prevent directory traversal)
+    // Validate path (basic security to prevent path tricks)
     if (folderPath.includes("..") || folderPath.startsWith("/")) {
       return { message: "Nama folder tidak valid" };
     }
 
-    const publicDir = join(process.cwd(), "public", "uploads");
-    const fullPath = join(publicDir, folderPath);
-
-    try {
-      await stat(fullPath);
-      return { message: "Folder sudah ada" };
-    } catch {
-      // Folder doesn't exist, proceed
-    }
-
-    await mkdir(fullPath, { recursive: true });
+    await cloudinary.api.create_folder(`${ROOT_FOLDER}/${folderPath}`);
     await createAuditLog(
       "MEDIA_FOLDER_CREATE",
       undefined,
@@ -165,28 +116,25 @@ export async function deletePhysicalFolder(
       return { message: "Nama folder tidak valid" };
     }
 
-    const publicDir = join(process.cwd(), "public", "uploads");
-    const fullPath = join(publicDir, folderPath);
-
-    // Check if folder exists
-    try {
-      await stat(fullPath);
-    } catch {
-      return { message: "Folder tidak ditemukan" };
-    }
-
-    // Check if folder is empty
-    const entries = await readdir(fullPath);
-    if (entries.length > 0) {
+    // Refuse if any media row still lives in this folder (or a subfolder)
+    const occupied = await db
+      .select({ id: medias.id })
+      .from(medias)
+      .where(
+        or(
+          sql`${medias.metadata}->>'folder' = ${folderPath}`,
+          sql`${medias.metadata}->>'folder' LIKE ${folderPath + "/%"}`,
+        ),
+      )
+      .limit(1);
+    if (occupied.length > 0) {
       return {
         message:
           "Folder tidak kosong. Harap hapus atau pindahkan isinya terlebih dahulu.",
       };
     }
 
-    // Delete folder (using rmdir since it must be empty)
-    const { rmdir } = await import("fs/promises");
-    await rmdir(fullPath);
+    await cloudinary.api.delete_folder(`${ROOT_FOLDER}/${folderPath}`);
     await createAuditLog(
       "MEDIA_FOLDER_DELETE",
       undefined,
@@ -202,100 +150,135 @@ export async function deletePhysicalFolder(
   }
 }
 
-export async function uploadFile(formData: FormData): Promise<UploadResult> {
+export interface SignedUploadParams {
+  cloudName: string;
+  apiKey: string;
+  timestamp: number;
+  signature: string;
+  folder: string;
+}
+
+/**
+ * Issues signed parameters for a direct browser → Cloudinary upload.
+ * The signature only authorizes uploading into the requested folder at the
+ * issued timestamp (valid for 1 hour, enforced by Cloudinary).
+ */
+export async function signMediaUpload(
+  folder?: string | null,
+): Promise<SignedUploadParams | { error: string }> {
   const session = await getSession();
   if (!session) return { error: "Sesi berakhir, silakan login kembali" };
 
   try {
     await checkPermission(PERMISSIONS.MANAGE_MEDIA);
-    const file = formData.get("file") as File;
-    if (!file) {
-      return { error: "Tidak ada file yang diunggah" };
-    }
 
-    const folder = formData.get("folder") as string | null;
+    const targetFolder = folder ? `${ROOT_FOLDER}/${folder}` : ROOT_FOLDER;
+    const timestamp = Math.round(Date.now() / 1000);
+    const signature = cloudinary.utils.api_sign_request(
+      { folder: targetFolder, timestamp },
+      process.env.CLOUDINARY_API_SECRET!,
+    );
 
-    // Determine type based on mime type
+    return {
+      cloudName: process.env.CLOUDINARY_CLOUD_NAME!,
+      apiKey: process.env.CLOUDINARY_API_KEY!,
+      timestamp,
+      signature,
+      folder: targetFolder,
+    };
+  } catch (error: unknown) {
+    console.error("Sign upload error:", error);
+    const message =
+      error instanceof Error ? error.message : "Gagal menyiapkan upload";
+    return { error: message };
+  }
+}
+
+/**
+ * Records a finished direct upload in the medias table. The public_id is
+ * verified against Cloudinary's Admin API — the DB row is built from the
+ * canonical resource, not from client-supplied values.
+ */
+export async function registerUploadedMedia(
+  publicId: string,
+  originalFilename: string,
+  resourceType: "image" | "video" | "raw",
+): Promise<UploadResult> {
+  const session = await getSession();
+  if (!session) return { error: "Sesi berakhir, silakan login kembali" };
+
+  try {
+    await checkPermission(PERMISSIONS.MANAGE_MEDIA);
+
+    const resource = (await cloudinary.api.resource(publicId, {
+      resource_type: resourceType,
+    })) as {
+      public_id: string;
+      secure_url: string;
+      resource_type: string;
+      format?: string;
+      bytes: number;
+      width?: number;
+      height?: number;
+      duration?: number;
+    };
+
     let type: "image" | "video" | "document" | "audio" | "other" = "other";
-    if (file.type.startsWith("image/")) type = "image";
-    else if (file.type.startsWith("video/")) type = "video";
-    else if (file.type.startsWith("audio/")) type = "audio";
-    else if (
-      file.type === "application/pdf" ||
-      file.type.includes("msword") ||
-      file.type.includes("officedocument")
-    )
-      type = "document";
+    if (resource.resource_type === "image") type = "image";
+    else if (resource.resource_type === "video") type = "video";
+    else if (resource.format === "pdf") type = "document";
 
-    if (file.size > 50 * 1024 * 1024) {
-      // Increased to 50MB
-      return { error: "Ukuran file maksimal 50MB" };
+    const maxBytes = type === "video" ? MAX_VIDEO_BYTES : MAX_IMAGE_BYTES;
+    if (resource.bytes > maxBytes) {
+      // Enforce the size cap server-side: drop the oversized asset again.
+      await cloudinary.uploader.destroy(publicId, {
+        resource_type: resourceType,
+      });
+      const maxLabel = type === "video" ? "100MB" : "20MB";
+      return {
+        error: `Ukuran file melebihi batas ${maxLabel}, upload dibatalkan`,
+      };
     }
 
-    const bytes = await file.arrayBuffer();
-    let buffer: Buffer = Buffer.from(bytes) as Buffer;
+    const name =
+      originalFilename ||
+      resource.public_id.split("/").pop() ||
+      resource.public_id;
 
-    const isHeicUpload =
-      HEIC_MIME_TYPES.includes(file.type) || isHeicFilename(file.name);
-    let storedMimeType = file.type;
-    let storedName = file.name;
-
-    if (isHeicUpload) {
-      buffer = await convertHeicToJpeg(buffer);
-      storedMimeType = "image/jpeg";
-      storedName = replaceHeicExtension(file.name);
-      type = "image";
-    }
-
-    if (type === "image" && shouldOptimizeImage(storedMimeType)) {
-      buffer = await optimizeImageBuffer(buffer);
-      storedMimeType = "image/webp";
-      storedName = toWebpName(storedName);
-    }
-
-    // Create unique filename
-    const safeName = storedName.replace(/[^a-zA-Z0-9.-]/g, "_");
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    const filename = `${uniqueSuffix}-${safeName}`;
-
-    const uploadDir = join(process.cwd(), "public", "uploads");
-    await mkdir(uploadDir, { recursive: true });
-
-    const filepath = join(uploadDir, filename);
-    await writeFile(filepath, buffer);
-
-    const fileUrl = `/uploads/${filename}`;
-
-    // Create record in medias table
     const [result] = await db
       .insert(medias)
       .values({
-        name: storedName,
-        fileKey: filename,
-        type: type,
-        provider: "local",
-        mimeType: storedMimeType,
-        fileSize: buffer.length,
-        url: fileUrl,
-        metadata: folder ? { folder } : null,
+        name,
+        fileKey: resource.public_id,
+        type,
+        provider: "cloudinary",
+        mimeType: toMimeType(type, resource.format),
+        fileSize: resource.bytes,
+        url: resource.secure_url,
+        metadata: {
+          folder: toRelativeFolder(resource.public_id),
+          width: resource.width,
+          height: resource.height,
+          duration: resource.duration,
+        },
       })
-      .$returningId();
+      .returning({ id: medias.id });
 
     await createAuditLog(
       "MEDIA_UPLOAD",
       result.id,
-      `Uploaded file: ${file.name} (local)`,
+      `Uploaded file: ${name} (cloudinary)`,
     );
 
     revalidatePath("/admin");
-    return { url: fileUrl, id: result.id };
+    return { url: resource.secure_url, id: result.id };
   } catch (error: unknown) {
-    console.error("Upload error:", error);
+    console.error("Register upload error:", error);
     const message =
       error instanceof Error
         ? error.message
         : "Terjadi kesalahan tidak dikenal";
-    return { error: "Gagal mengunggah file: " + message };
+    return { error: "Gagal menyimpan media: " + message };
   }
 }
 
@@ -314,25 +297,19 @@ export async function deleteMedia(id: number): Promise<ActionState> {
 
     if (!media) return { message: "Media tidak ditemukan" };
 
-    if (media.provider === "local") {
-      const filepath = join(
-        process.cwd(),
-        "public",
-        media.url.startsWith("/") ? media.url.substring(1) : media.url,
-      );
+    if (media.provider === "cloudinary") {
+      const resourceType =
+        media.type === "video" || media.type === "audio"
+          ? "video"
+          : media.type === "image"
+            ? "image"
+            : "raw";
       try {
-        await unlink(filepath);
+        await cloudinary.uploader.destroy(media.fileKey, {
+          resource_type: resourceType,
+        });
       } catch (err) {
-        console.error("Failed to delete local file:", err);
-      }
-    } else if (media.provider === "mux") {
-      const meta = media.metadata as unknown as MediaMetadata;
-      if (meta?.assetId) {
-        try {
-          await mux.video.assets.delete(meta.assetId);
-        } catch (err) {
-          console.error("Failed to delete Mux asset:", err);
-        }
+        console.error("Failed to delete Cloudinary asset:", err);
       }
     }
 
@@ -383,6 +360,8 @@ export async function updateMediaFolder(
 
     const currentMeta = parseMetadata(media.metadata);
 
+    // Cloudinary asset stays where it is — the URL keeps serving. Only the
+    // library's logical folder (DB metadata) changes.
     await db
       .update(medias)
       .set({
@@ -408,8 +387,12 @@ export async function updateMediaFolder(
   }
 }
 
-export async function syncFileSystemMedias(): Promise<
-  ActionState & { addedCount?: number; muxUpdatedCount?: number }
+/**
+ * Reconciles the medias table with what actually exists in Cloudinary under
+ * the uploads folder — the replacement for the old filesystem sync.
+ */
+export async function syncCloudinaryMedias(): Promise<
+  ActionState & { addedCount?: number }
 > {
   const session = await getSession();
   if (!session) return { message: "Sesi berakhir, silakan login kembali" };
@@ -417,275 +400,78 @@ export async function syncFileSystemMedias(): Promise<
   try {
     await checkPermission(PERMISSIONS.MANAGE_MEDIA);
 
-    const publicDir = join(process.cwd(), "public");
-    const foldersToSync = ["uploads"];
-    let addedCount = 0;
-    let muxUpdatedCount = 0;
-
-    // Fetch all existing media URLs once
-    const existingMedias = await db
-      .select({ id: medias.id, url: medias.url, name: medias.name })
+    const existing = await db
+      .select({ fileKey: medias.fileKey })
       .from(medias);
-    const existingUrls = new Set(existingMedias.map((m) => m.url));
-    const mediaByUrl = new Map(
-      existingMedias.map((media) => [media.url, media]),
-    );
+    const existingKeys = new Set(existing.map((m) => m.fileKey));
 
-    const scanDir = async (relativeDir: string) => {
-      const fullPath = join(publicDir, relativeDir);
-      const entries = await readdir(fullPath, { withFileTypes: true });
+    let addedCount = 0;
 
-      for (const entry of entries) {
-        let entryRelativePath = join(relativeDir, entry.name);
-        let url = `/${entryRelativePath.replace(/\\/g, "/")}`;
-
-        if (entry.isDirectory()) {
-          await scanDir(entryRelativePath);
-        } else {
-          let ext = entry.name.split(".").pop()?.toLowerCase();
-          if (ext && OPTIMIZABLE_IMAGE_EXTENSIONS.has(ext)) {
-            try {
-              const sourcePath = join(publicDir, entryRelativePath);
-              const targetName = toWebpName(entry.name);
-              const targetRelativePath = join(relativeDir, targetName);
-              const targetPath = join(publicDir, targetRelativePath);
-              const targetUrl = `/${targetRelativePath.replace(/\\/g, "/")}`;
-
-              let targetExists = false;
-              try {
-                await stat(targetPath);
-                targetExists = true;
-              } catch {
-                targetExists = false;
-              }
-
-              if (existingUrls.has(targetUrl) || targetExists) {
-                console.warn(
-                  `Skip optimizing ${url}. Target already exists: ${targetUrl}`,
-                );
-              } else {
-                let sourceBuffer = await readFile(sourcePath);
-                if (HEIC_EXTENSIONS.includes(ext)) {
-                  sourceBuffer = await convertHeicToJpeg(sourceBuffer);
-                }
-                const optimizedBuffer = await optimizeImageBuffer(sourceBuffer);
-                await writeFile(targetPath, optimizedBuffer);
-
-                try {
-                  await unlink(sourcePath);
-                } catch (error) {
-                  console.error("Failed to delete source image:", error);
-                }
-
-                const existingSource = mediaByUrl.get(url);
-                if (existingSource) {
-                  const targetStat = await stat(targetPath);
-                  await db
-                    .update(medias)
-                    .set({
-                      name: targetName,
-                      fileKey: targetRelativePath.replace(/\\/g, "/"),
-                      mimeType: "image/webp",
-                      fileSize: targetStat.size,
-                      url: targetUrl,
-                      type: "image",
-                    })
-                    .where(eq(medias.id, existingSource.id));
-                  existingUrls.delete(url);
-                  mediaByUrl.delete(url);
-                  existingUrls.add(targetUrl);
-                  mediaByUrl.set(targetUrl, {
-                    ...existingSource,
-                    url: targetUrl,
-                    name: targetName,
-                  });
-                }
-
-                entryRelativePath = targetRelativePath;
-                url = targetUrl;
-                ext = "webp";
-              }
-            } catch (error) {
-              console.error(`Failed to optimize ${url}:`, error);
-            }
-          }
-
-          // Check against set instead of DB query
-          if (!existingUrls.has(url)) {
-            const fileStat = await stat(join(publicDir, entryRelativePath));
-            let type: "image" | "video" | "document" | "audio" | "other" =
-              "other";
-            if (
-              ["jpg", "jpeg", "png", "gif", "webp", "svg"].includes(ext || "")
-            )
-              type = "image";
-            else if (["mp4", "webm", "ogg"].includes(ext || "")) type = "video";
-            else if (["pdf", "doc", "docx"].includes(ext || ""))
-              type = "document";
-            else if (["mp3", "wav"].includes(ext || "")) type = "audio";
-
-            let folder: string | null = null;
-            const normalizedPath = relativeDir.replace(/\\/g, "/");
-            if (normalizedPath.startsWith("uploads/"))
-              folder = normalizedPath.replace("uploads/", "");
-            else if (normalizedPath === "uploads") folder = null;
-            else folder = normalizedPath;
-
-            if (folder === "") folder = null;
-
-            await db.insert(medias).values({
-              name: entry.name,
-              fileKey: url,
-              type: type,
-              provider: "local",
-              mimeType:
-                type === "image" && ext === "jpg"
-                  ? "image/jpeg"
-                  : `${type}/${ext}`,
-              fileSize: fileStat.size,
-              url: url,
-              metadata: folder ? { folder } : null,
-            });
-            addedCount++;
-          }
-        }
-      }
+    type CloudinaryResource = {
+      public_id: string;
+      secure_url: string;
+      resource_type: string;
+      format?: string;
+      bytes: number;
+      width?: number;
+      height?: number;
+      duration?: number;
     };
 
-    for (const folder of foldersToSync) {
-      const folderPath = join(publicDir, folder);
-      try {
-        await mkdir(folderPath, { recursive: true });
-        await scanDir(folder);
-      } catch (e) {
-        console.error(`Failed to sync folder ${folder}:`, e);
-      }
-    }
+    for (const resourceType of ["image", "video", "raw"] as const) {
+      let nextCursor: string | undefined;
+      do {
+        const page = (await cloudinary.api.resources({
+          type: "upload",
+          resource_type: resourceType,
+          prefix: `${ROOT_FOLDER}/`,
+          max_results: 500,
+          next_cursor: nextCursor,
+        })) as { resources: CloudinaryResource[]; next_cursor?: string };
 
-    const muxMedias = await db
-      .select()
-      .from(medias)
-      .where(eq(medias.provider, "mux"));
-    for (const media of muxMedias) {
-      const meta = parseMetadata(media.metadata);
-      let assetId = meta?.assetId;
-      const uploadId =
-        typeof meta?.uploadId === "string" ? meta.uploadId : null;
-      let playbackId = meta?.playbackId;
+        for (const resource of page.resources) {
+          if (existingKeys.has(resource.public_id)) continue;
 
-      if (!assetId && uploadId) {
-        try {
-          const upload = await mux.video.uploads.retrieve(uploadId);
-          if (upload?.asset_id) {
-            assetId = upload.asset_id;
-          } else if (
-            upload?.status === "errored" ||
-            upload?.status === "cancelled" ||
-            upload?.status === "timed_out"
-          ) {
-            await db
-              .update(medias)
-              .set({
-                metadata: {
-                  ...meta,
-                  status: "errored",
-                  uploadStatus: upload.status,
-                  error: `Mux upload ${upload.status}`,
-                },
-              })
-              .where(eq(medias.id, media.id));
-            muxUpdatedCount += 1;
-            continue;
-          } else if (upload?.status) {
-            const createdAt = media.createdAt
-              ? new Date(media.createdAt).getTime()
-              : 0;
-            const ageMs = createdAt ? Math.max(0, Date.now() - createdAt) : 0;
-            const staleThresholdMs = 60 * 60 * 1000;
+          let type: "image" | "video" | "document" | "audio" | "other" =
+            "other";
+          if (resource.resource_type === "image") type = "image";
+          else if (resource.resource_type === "video") type = "video";
+          else if (resource.format === "pdf") type = "document";
 
-            if (ageMs && ageMs > staleThresholdMs) {
-              await db
-                .update(medias)
-                .set({
-                  metadata: {
-                    ...meta,
-                    status: "errored",
-                    uploadStatus: upload.status,
-                    error: `Mux upload stale (${upload.status})`,
-                  },
-                })
-                .where(eq(medias.id, media.id));
-              muxUpdatedCount += 1;
-              continue;
-            }
-
-            console.warn(
-              `Mux upload ${uploadId} has no asset yet (status: ${upload.status}, ageMs: ${ageMs}).`,
-            );
-          }
-        } catch (error) {
-          console.error(`Failed to retrieve Mux upload ${uploadId}:`, error);
-          await db
-            .update(medias)
-            .set({
-              metadata: {
-                ...meta,
-                status: "errored",
-                error: "Mux upload not found",
-              },
-            })
-            .where(eq(medias.id, media.id));
-          muxUpdatedCount += 1;
-          continue;
-        }
-      }
-
-      if (!assetId) continue;
-
-      try {
-        const asset = await mux.video.assets.retrieve(assetId);
-        const assetPlaybackId = asset.playback_ids?.[0]?.id;
-        if (assetPlaybackId) playbackId = assetPlaybackId;
-        await db
-          .update(medias)
-          .set({
-            fileKey: assetId,
-            url: playbackId
-              ? `https://stream.mux.com/${playbackId}.m3u8`
-              : media.url,
+          await db.insert(medias).values({
+            name: resource.public_id.split("/").pop() || resource.public_id,
+            fileKey: resource.public_id,
+            type,
+            provider: "cloudinary",
+            mimeType: toMimeType(type, resource.format),
+            fileSize: resource.bytes,
+            url: resource.secure_url,
             metadata: {
-              ...meta,
-              assetId,
-              uploadId: uploadId ?? meta.uploadId,
-              playbackId,
-              status: asset.status,
-              duration: asset.duration ?? meta.duration,
-              aspectRatio: asset.aspect_ratio ?? meta.aspectRatio,
+              folder: toRelativeFolder(resource.public_id),
+              width: resource.width,
+              height: resource.height,
+              duration: resource.duration,
             },
-          })
-          .where(eq(medias.id, media.id));
-        muxUpdatedCount += 1;
-      } catch (error) {
-        console.error(`Failed to sync Mux media ${media.id}:`, error);
-      }
+          });
+          existingKeys.add(resource.public_id);
+          addedCount++;
+        }
+
+        nextCursor = page.next_cursor;
+      } while (nextCursor);
     }
 
     await createAuditLog(
       "MEDIA_SYNC",
       undefined,
-      `Synchronized filesystem. Added ${addedCount} files. Synced ${muxUpdatedCount} Mux items.`,
+      `Synchronized Cloudinary. Added ${addedCount} files.`,
     );
 
     revalidatePath("/admin");
-    const muxSuffix =
-      muxUpdatedCount > 0
-        ? ` Status ${muxUpdatedCount} video Mux diperbarui.`
-        : "";
     return {
       success: true,
-      message: `Sinkronisasi selesai. ${addedCount} file baru ditambahkan.${muxSuffix}`,
+      message: `Sinkronisasi selesai. ${addedCount} file baru ditambahkan.`,
       addedCount,
-      muxUpdatedCount,
     };
   } catch (error: unknown) {
     console.error("Sync error:", error);

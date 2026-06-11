@@ -6,7 +6,7 @@ import { PERMISSIONS } from "@/config/permissions";
 import { brands } from "@/db/schema";
 import { hasPermission } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { and, asc, desc, like, or } from "drizzle-orm";
+import { and, asc, desc, ilike, or } from "drizzle-orm";
 import { Edit, Plus } from "lucide-react";
 import Link from "next/link";
 
@@ -37,8 +37,8 @@ export default async function AdminBrandsPage({ searchParams }: PageProps) {
   if (searchQuery) {
     filters.push(
       or(
-        like(brands.name, `%${searchQuery}%`),
-        like(brands.slug, `%${searchQuery}%`),
+        ilike(brands.name, `%${searchQuery}%`),
+        ilike(brands.slug, `%${searchQuery}%`),
       ),
     );
   }

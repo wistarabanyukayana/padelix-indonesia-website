@@ -24,8 +24,9 @@ export function Certifications({
                 <AppImage
                   src={cert.src}
                   alt={cert.name}
-                  width={120}
-                  height={120}
+                  width={96}
+                  height={96}
+                  disableLoadingAnimation
                   className="h-24 w-24 object-contain"
                 />
               </div>

@@ -2,7 +2,7 @@
 
 import { createAuditLog } from "@/lib/audit";
 import { ActionState } from "@/types";
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 import { z } from "zod";
 
 const contactSchema = z.object({
@@ -39,12 +39,7 @@ export async function sendContactEmail(
     };
   }
 
-  if (
-    !process.env.SMTP_HOST ||
-    !process.env.SMTP_PORT ||
-    !process.env.SMTP_USER ||
-    !process.env.SMTP_PASS
-  ) {
+  if (!process.env.RESEND_API_KEY) {
     return {
       success: false,
       message: "Konfigurasi email belum lengkap. Silakan hubungi admin.",
@@ -52,21 +47,10 @@ export async function sendContactEmail(
   }
 
   try {
-    const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: Number(process.env.SMTP_PORT),
-      secure: process.env.SMTP_SECURE === "true",
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-      },
-      connectionTimeout: 10_000,
-      greetingTimeout: 10_000,
-      socketTimeout: 10_000,
-    });
+    const resend = new Resend(process.env.RESEND_API_KEY);
 
-    const mailOptions = {
-      from: process.env.SMTP_FROM || "website@padelix.co.id",
+    const { error } = await resend.emails.send({
+      from: process.env.EMAIL_FROM || "website@padelix.co.id",
       to: process.env.BUSINESS_EMAIL || "business@padelix.co.id",
       subject: `New Contact Message from ${validated.data.name}`,
       text: `
@@ -82,9 +66,9 @@ export async function sendContactEmail(
         <p><strong>Pesan:</strong></p>
         <p>${validated.data.message.replace(/\n/g, "<br>")}</p>
       `,
-    };
+    });
 
-    await transporter.sendMail(mailOptions);
+    if (error) throw new Error(error.message);
 
     void createAuditLog(
       "CONTACT_SUBMISSION",

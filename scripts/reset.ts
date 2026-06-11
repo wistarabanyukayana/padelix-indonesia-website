@@ -8,36 +8,10 @@ import { db } from "../src/lib/db";
 async function reset() {
   console.log("🗑️  Dropping all tables...");
 
-  // Disable foreign key checks to allow dropping tables in any order
-  await db.execute(sql.raw("SET FOREIGN_KEY_CHECKS = 0"));
-
-  // Get all table names
-  const [results] = await db.execute(sql`
-    SELECT table_name 
-    FROM information_schema.tables 
-    WHERE table_schema = DATABASE();
-  `);
-
-  // @ts-expect-error - Drizzle execute result type varies by driver
-  const tables = (results as Record<string, unknown>[]).map(
-    (row) => row.TABLE_NAME || row.table_name,
-  );
-
-  if (tables.length === 0) {
-    console.log("No tables found to drop.");
-  } else {
-    for (const tableName of tables) {
-      console.log(`...Dropping table: ${tableName}`);
-      await db.execute(
-        sql.raw(`DROP TABLE IF EXISTS 
-${tableName}
-`),
-      );
-    }
-  }
-
-  // Re-enable foreign key checks
-  await db.execute(sql.raw("SET FOREIGN_KEY_CHECKS = 1"));
+  // Recreate the schema instead of dropping tables one by one — CASCADE
+  // handles FK ordering (Postgres has no FOREIGN_KEY_CHECKS toggle).
+  await db.execute(sql.raw("DROP SCHEMA public CASCADE"));
+  await db.execute(sql.raw("CREATE SCHEMA public"));
   console.log("✅ Tables dropped.");
 
   // 2. Run Drizzle Kit Push
@@ -50,7 +24,7 @@ ${tableName}
     process.exit(1);
   }
 
-  // 3. Run SQL Seed from /database folder
+  // 3. Run SQL Seed from /database folder (expects PostgreSQL-format dump)
   console.log(`
 📂 Running SQL Seed from database folder...`);
   const databaseDir = path.join(process.cwd(), "database");
@@ -67,7 +41,7 @@ ${tableName}
     const sqlContent = fs.readFileSync(sqlFile, "utf-8");
 
     // Split commands by semicolon, but be careful about semicolons in strings
-    // Simple split for now, assuming standard mysqldump format
+    // Simple split for now, assuming standard pg_dump format
     const statements = sqlContent
       .split(";")
       .map((s) => s.trim())

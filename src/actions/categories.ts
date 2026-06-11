@@ -68,7 +68,7 @@ export async function createCategory(
         imageUrl: validated.data.imageUrl ?? null,
         parentId: validated.data.parentId,
       })
-      .$returningId();
+      .returning({ id: categories.id });
     newId = result.id;
     await createAuditLog(
       "CATEGORY_CREATE",

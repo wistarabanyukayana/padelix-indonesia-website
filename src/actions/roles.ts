@@ -52,7 +52,7 @@ export async function createRole(
         name: data.name,
         description: data.description,
       })
-      .$returningId();
+      .returning({ id: roles.id });
 
     newId = result.id;
 

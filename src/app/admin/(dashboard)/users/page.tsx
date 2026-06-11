@@ -5,7 +5,7 @@ import { PERMISSIONS } from "@/config/permissions";
 import { roles, users, usersRoles } from "@/db/schema";
 import { getSession, hasPermission } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { and, asc, desc, eq, like, or } from "drizzle-orm";
+import { and, asc, desc, eq, ilike, or } from "drizzle-orm";
 import { Clock, Edit, Plus, Shield } from "lucide-react";
 import Link from "next/link";
 
@@ -40,8 +40,8 @@ export default async function AdminUsersPage({ searchParams }: PageProps) {
   if (searchQuery) {
     filters.push(
       or(
-        like(users.username, `%${searchQuery}%`),
-        like(users.email, `%${searchQuery}%`),
+        ilike(users.username, `%${searchQuery}%`),
+        ilike(users.email, `%${searchQuery}%`),
       ),
     );
   }

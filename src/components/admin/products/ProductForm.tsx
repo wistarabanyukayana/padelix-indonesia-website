@@ -1,6 +1,5 @@
 "use client";
 
-import { deleteMedia, uploadFile } from "@/actions/media";
 import { AppImage } from "@/components/general/AppImage";
 import { Button } from "@/components/ui/Button";
 import {
@@ -29,13 +28,13 @@ import {
 import Link from "next/link";
 import { useActionState, useEffect, useState } from "react";
 
-import { createMuxUpload, getMuxMediaByUploadId } from "@/actions/mux";
 import { useActionFeedback } from "@/components/admin/general/useActionFeedback";
 import { useFormDirty } from "@/components/admin/general/useFormDirty";
 import { useNewItemToast } from "@/components/admin/general/useNewItemToast";
 import { MediaDetailsModal } from "@/components/admin/medias/MediaDetailsModal";
 import { MediaSelector } from "@/components/admin/medias/MediaSelector";
 import { CollapsibleTree, TreeNode } from "@/components/ui/CollapsibleTree";
+import { uploadFileToCloudinary } from "@/lib/upload";
 import { getDisplayUrl, handleUploadError, parseMetadata } from "@/lib/utils";
 import { useRef } from "react";
 import { toast } from "sonner";
@@ -72,18 +71,13 @@ export function ProductForm({
     null,
   );
   const xhrRef = useRef<XMLHttpRequest | null>(null);
-  const pendingMediaIdRef = useRef<number | null>(null);
 
-  const handleCancelUpload = async () => {
+  const handleCancelUpload = () => {
     if (xhrRef.current) {
+      // Nothing to clean up: the asset only reaches Cloudinary on completion
+      // and the DB row is only created after that.
       xhrRef.current.abort();
       xhrRef.current = null;
-
-      // Clean up DB record
-      if (pendingMediaIdRef.current) {
-        await deleteMedia(pendingMediaIdRef.current);
-        pendingMediaIdRef.current = null;
-      }
 
       setUploadingIndex(null);
       setUploadProgress(0);
@@ -321,101 +315,28 @@ export function ProductForm({
     setUploadProgress(0);
 
     try {
-      if (file.type.startsWith("video/")) {
-        // --- Mux Video Flow ---
-        const uploadInfo = await createMuxUpload(
-          file.name,
-          currentFolder,
-          file.size,
-        );
-        if ("error" in uploadInfo) {
-          toast.error(uploadInfo.error);
-          return;
-        }
+      const uploaded = await uploadFileToCloudinary(file, {
+        folder: currentFolder,
+        xhrRef,
+        onProgress: setUploadProgress,
+      });
 
-        // Link record ID for potential cleanup
-        const initialRecord = await getMuxMediaByUploadId(uploadInfo.id);
-        if (initialRecord) pendingMediaIdRef.current = initialRecord.id;
-
-        // Perform the actual upload to Mux
-        const xhr = new XMLHttpRequest();
-        xhrRef.current = xhr;
-        xhr.open("PUT", uploadInfo.url);
-
-        xhr.upload.onprogress = (event) => {
-          if (event.lengthComputable) {
-            const percentComplete = (event.loaded / event.total) * 100;
-            setUploadProgress(Math.round(percentComplete));
-          }
+      setMedias((prev) => {
+        if (!prev[index]) return prev;
+        const next = [...prev];
+        next[index] = {
+          ...next[index],
+          url: uploaded.url,
+          id: uploaded.id,
+          metadata: null,
+          type: file.type.startsWith("video/")
+            ? "video"
+            : file.type.startsWith("image/")
+              ? "image"
+              : "document",
         };
-
-        const uploadPromise = new Promise<DBMedia>((resolve, reject) => {
-          xhr.onload = () =>
-            xhr.status >= 200 && xhr.status < 300
-              ? resolve(JSON.parse(xhr.response))
-              : reject(new Error("Mux upload failed"));
-          xhr.onerror = () => reject(new Error("Mux upload error"));
-          xhr.onabort = () => reject("ABORTED");
-        });
-
-        xhr.send(file);
-        await uploadPromise;
-        xhrRef.current = null;
-        pendingMediaIdRef.current = null;
-
-        let mediaRecord = null;
-        let attempts = 0;
-        // Poll for the DB record to be updated with asset ID (by webhook)
-        while (attempts < 10) {
-          try {
-            mediaRecord = await getMuxMediaByUploadId(uploadInfo.id);
-            if (mediaRecord && mediaRecord.url) break; // Linked and has URL
-            attempts++;
-            await new Promise((r) => setTimeout(r, 2000));
-          } catch {
-            attempts++;
-            await new Promise((r) => setTimeout(r, 2000));
-          }
-        }
-
-        if (mediaRecord) {
-          setMedias((prev) => {
-            if (!prev[index]) return prev;
-            const next = [...prev];
-            next[index] = {
-              ...next[index],
-              url: mediaRecord.url,
-              id: mediaRecord.id,
-              type: "video",
-              metadata: parseMetadata(mediaRecord.metadata),
-            };
-            return next;
-          });
-        }
-      } else {
-        // --- Local Image/Doc Flow ---
-        const formData = new FormData();
-        formData.append("file", file);
-        const result = await uploadFile(formData);
-        const url = result.url;
-        const id = result.id;
-        if (url !== undefined && id !== undefined) {
-          setMedias((prev) => {
-            if (!prev[index]) return prev;
-            const next = [...prev];
-            next[index] = {
-              ...next[index],
-              url,
-              id,
-              metadata: null,
-              type: file.type.startsWith("image/") ? "image" : "document",
-            };
-            return next;
-          });
-        } else if (result.error) {
-          toast.error(result.error);
-        }
-      }
+        return next;
+      });
     } catch (error) {
       if (error === "ABORTED") return;
       const message = handleUploadError(
