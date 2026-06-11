@@ -20,7 +20,7 @@ export function Certifications({
               key={cert.id}
               className="group flex flex-col items-center gap-4"
             >
-              <div className="rounded-brand bg-white p-6 shadow-lg transition-transform group-hover:-translate-y-2">
+              <div className="rounded-brand bg-white p-6 shadow-lg transition-all duration-300 group-hover:-translate-y-2 group-hover:shadow-2xl">
                 <AppImage
                   src={cert.src}
                   alt={cert.name}
