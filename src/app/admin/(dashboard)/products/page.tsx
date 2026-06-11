@@ -9,7 +9,7 @@ import { categories, medias, productMedias, products } from "@/db/schema";
 import { hasPermission } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getDisplayUrl } from "@/lib/utils";
-import { and, asc, desc, eq, like, or } from "drizzle-orm";
+import { and, asc, desc, eq, ilike, or } from "drizzle-orm";
 import { Edit, Plus } from "lucide-react";
 import Link from "next/link";
 
@@ -41,8 +41,8 @@ export default async function AdminProductsPage({ searchParams }: PageProps) {
   if (searchQuery) {
     filters.push(
       or(
-        like(products.name, `%${searchQuery}%`),
-        like(products.slug, `%${searchQuery}%`),
+        ilike(products.name, `%${searchQuery}%`),
+        ilike(products.slug, `%${searchQuery}%`),
       ),
     );
   }

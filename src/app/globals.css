@@ -13,6 +13,10 @@
 }
 
 @layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
     @apply overflow-x-hidden bg-white text-neutral-900;
     font-family: var(--font-lato), sans-serif;
@@ -20,6 +24,14 @@
     padding-bottom: env(safe-area-inset-bottom);
     padding-left: env(safe-area-inset-left);
     padding-right: env(safe-area-inset-right);
+  }
+
+  ::selection {
+    @apply bg-brand-green text-neutral-900;
+  }
+
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-lime-500;
   }
 }
 
@@ -33,11 +45,11 @@
   }
 
   .h1 {
-    @apply text-4xl leading-tight font-bold sm:text-5xl lg:text-6xl;
+    @apply text-4xl leading-tight font-black tracking-tight text-balance sm:text-5xl lg:text-6xl;
   }
 
   .h2 {
-    @apply text-2xl leading-snug font-bold sm:text-3xl lg:text-4xl;
+    @apply text-2xl leading-snug font-bold tracking-tight text-balance sm:text-3xl lg:text-4xl;
   }
 
   .subheading {
@@ -45,7 +57,16 @@
   }
 
   .nav-link {
-    @apply font-inter text-lg font-bold transition-colors hover:text-lime-500;
+    @apply font-inter relative text-lg font-bold transition-colors hover:text-lime-500;
+  }
+
+  .nav-link::after {
+    content: "";
+    @apply absolute -bottom-1 left-0 h-0.5 w-0 bg-brand-green transition-all duration-300;
+  }
+
+  .nav-link:hover::after {
+    @apply w-full;
   }
 
   /* Lightbox Fixes */
@@ -115,14 +136,15 @@
   @keyframes image-loading-blink {
     0%,
     100% {
-      background-color: #f3f4f6;
+      opacity: 0.6;
     }
     50% {
-      background-color: #e5e7eb;
+      opacity: 0.9;
     }
   }
 
   .image-loading-blink {
     animation: image-loading-blink 1.2s ease-in-out infinite;
+    will-change: opacity;
   }
 }

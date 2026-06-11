@@ -35,9 +35,8 @@ export type DBAuditLog = InferSelectModel<typeof auditLogs>;
 
 export interface MediaMetadata {
   folder?: string | null;
-  assetId?: string;
-  playbackId?: string;
-  status?: string;
+  width?: number;
+  height?: number;
   duration?: number;
   aspectRatio?: string;
   error?: string;

@@ -4,7 +4,7 @@ import { PERMISSIONS } from "@/config/permissions";
 import { auditLogs } from "@/db/schema";
 import { hasPermission } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { and, asc, desc, like, or } from "drizzle-orm";
+import { and, asc, desc, ilike, or } from "drizzle-orm";
 
 interface PageProps {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
@@ -34,9 +34,9 @@ export default async function AuditLogsPage({ searchParams }: PageProps) {
   if (searchQuery) {
     filters.push(
       or(
-        like(auditLogs.action, `%${searchQuery}%`),
-        like(auditLogs.usernameSnapshot, `%${searchQuery}%`),
-        like(auditLogs.details, `%${searchQuery}%`),
+        ilike(auditLogs.action, `%${searchQuery}%`),
+        ilike(auditLogs.usernameSnapshot, `%${searchQuery}%`),
+        ilike(auditLogs.details, `%${searchQuery}%`),
       ),
     );
   }

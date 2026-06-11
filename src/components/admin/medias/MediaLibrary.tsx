@@ -5,10 +5,9 @@ import {
   deleteMedia,
   deletePhysicalFolder,
   getPhysicalFolders,
-  syncFileSystemMedias,
+  syncCloudinaryMedias,
   updateMediaFolder,
 } from "@/actions/media";
-import { scanMuxAssets, syncMuxAssetStatus } from "@/actions/mux";
 import { FolderDialog } from "@/components/admin/medias/FolderDialog";
 import { MediaDetailsModal } from "@/components/admin/medias/MediaDetailsModal";
 import { MediaUploadButton } from "@/components/admin/medias/MediaUploadButton";
@@ -26,7 +25,6 @@ import {
   Music,
   Play,
   RefreshCcw,
-  RefreshCw,
   Search,
   Trash2,
 } from "lucide-react";
@@ -91,7 +89,6 @@ export function MediaLibrary({
   const [sortKey, setSortKey] = useState("name");
   const [sortDir, setSortDir] = useState("asc");
   const [currentFolder, setCurrentFolder] = useState<string | null>(null);
-  const [isSyncing, setIsSyncing] = useState<number | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const router = useRouter();
   const breadcrumbRef = useRef<HTMLDivElement>(null);
@@ -342,38 +339,18 @@ export function MediaLibrary({
     setSelectedMedias(newSet);
   };
 
-  const handleSyncFS = async () => {
+  const handleSync = async () => {
     setIsRefreshing(true);
-    const result = await syncFileSystemMedias();
-    const muxResult = await scanMuxAssets();
+    const result = await syncCloudinaryMedias();
     const folders = await getPhysicalFolders();
     setPhysicalFolders(folders);
     setIsRefreshing(false);
 
-    const successMessages: string[] = [];
-    const errorMessages: string[] = [];
-
     if (result.success) {
-      successMessages.push(result.message || "Sync file system berhasil");
-    } else if (result.message) {
-      errorMessages.push(result.message);
-    }
-
-    if (muxResult.success) {
-      successMessages.push(muxResult.message || "Sync Mux berhasil");
-    } else if (muxResult.message) {
-      errorMessages.push(muxResult.message);
-    }
-
-    const hasSuccess = successMessages.length > 0;
-
-    if (errorMessages.length > 0) {
-      toast.error(errorMessages.join(" "));
-    }
-
-    if (hasSuccess) {
-      toast.success(successMessages.join(" "));
+      toast.success(result.message || "Sinkronisasi berhasil");
       router.refresh();
+    } else if (result.message) {
+      toast.error(result.message);
     }
   };
 
@@ -403,48 +380,6 @@ export function MediaLibrary({
       toast.error(result.message || "Gagal membuat folder");
     }
   };
-
-  const handleSyncMux = async (id: number) => {
-    setIsSyncing(id);
-    const newStatus = await syncMuxAssetStatus(id);
-    setIsSyncing(null);
-
-    if (newStatus === "ready") {
-      setMedias((prev) =>
-        prev.map((m) => {
-          if (m.id === id) {
-            const meta = parseMetadata(m.metadata);
-            return {
-              ...m,
-              metadata: {
-                ...meta,
-                status: "ready",
-              },
-            } as DBMedia;
-          }
-          return m;
-        }),
-      );
-    }
-    router.refresh();
-  };
-
-  // Auto-poll for processing videos to pick up webhook updates
-  useEffect(() => {
-    const hasProcessing = medias.some((m) => {
-      if (m.type !== "video" || m.provider !== "mux") return false;
-      const meta = parseMetadata(m.metadata);
-      return meta?.status !== "ready";
-    });
-
-    if (!hasProcessing) return;
-
-    const interval = setInterval(() => {
-      router.refresh();
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, [medias, router]);
 
   const handleMediaClick = (m: DBMedia) => {
     if (allowSelection) {
@@ -586,7 +521,7 @@ export function MediaLibrary({
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={handleSyncFS}
+                  onClick={handleSync}
                   disabled={isRefreshing}
                   className="w-full gap-2 border-neutral-200 text-neutral-600 lg:w-auto"
                 >
@@ -682,16 +617,6 @@ export function MediaLibrary({
 
           {/* Medias */}
           {sortedMedias.map((m) => {
-            const meta = parseMetadata(m.metadata);
-
-            const muxStatus = meta.status;
-            const isErrored = muxStatus === "errored";
-            const isUploading = muxStatus === "uploading";
-            const isProcessing =
-              m.type === "video" &&
-              m.provider === "mux" &&
-              muxStatus !== "ready" &&
-              !isErrored;
             const isSelected = selectedMedias.has(m.id);
 
             return (
@@ -704,28 +629,25 @@ export function MediaLibrary({
                       ? "cursor-pointer border-neutral-200 bg-white shadow-sm hover:ring-2 hover:ring-brand-green hover:ring-offset-2"
                       : "cursor-pointer border-neutral-200 bg-white shadow-sm hover:shadow-md"
                 }`}
-                onClick={() => !isProcessing && handleMediaClick(m)}
+                onClick={() => handleMediaClick(m)}
               >
                 {/* Selection Checkbox */}
-                {!isProcessing && (
-                  <div
-                    className={`absolute top-2 right-2 z-10 transition-opacity ${isSelected ? "opacity-100" : "opacity-100 md:opacity-0 md:group-hover:opacity-100"}`}
+                <div
+                  className={`absolute top-2 right-2 z-10 transition-opacity ${isSelected ? "opacity-100" : "opacity-100 md:opacity-0 md:group-hover:opacity-100"}`}
+                >
+                  <button
+                    onClick={(e) => toggleMediaSelection(m.id, e)}
+                    className={`rounded-full border p-1 transition-colors ${isSelected ? "border-brand-green bg-brand-green text-white" : "border-neutral-200 bg-white text-neutral-400 hover:border-brand-green"}`}
                   >
-                    <button
-                      onClick={(e) => toggleMediaSelection(m.id, e)}
-                      className={`rounded-full border p-1 transition-colors ${isSelected ? "border-brand-green bg-brand-green text-white" : "border-neutral-200 bg-white text-neutral-400 hover:border-brand-green"}`}
-                    >
-                      <Check
-                        size={14}
-                        className={isSelected ? "stroke-[3px]" : ""}
-                      />
-                    </button>
-                  </div>
-                )}
+                    <Check
+                      size={14}
+                      className={isSelected ? "stroke-[3px]" : ""}
+                    />
+                  </button>
+                </div>
 
                 {/* Media Content */}
-                {m.type === "image" ||
-                (m.type === "video" && meta.status === "ready") ? (
+                {m.type === "image" || m.type === "video" ? (
                   <div className="relative h-full w-full">
                     <AppImage
                       src={getDisplayUrl(m)}
@@ -734,7 +656,7 @@ export function MediaLibrary({
                       sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, (max-width: 1280px) 16vw, 12vw"
                       className="object-cover"
                     />
-                    {m.type === "video" && !isProcessing && (
+                    {m.type === "video" && (
                       <div className="absolute inset-0 flex items-center justify-center bg-black/10">
                         <Play
                           size={32}
@@ -745,26 +667,7 @@ export function MediaLibrary({
                   </div>
                 ) : (
                   <div className="flex h-full w-full flex-col items-center justify-center gap-2 bg-transparent p-2 text-center">
-                    {m.type === "video" ? (
-                      <div className="relative">
-                        <Play
-                          size={32}
-                          className={
-                            isProcessing
-                              ? "text-neutral-300"
-                              : "text-brand-green"
-                          }
-                        />
-                        {isProcessing && (
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <RefreshCw
-                              size={16}
-                              className="animate-spin text-neutral-400"
-                            />
-                          </div>
-                        )}
-                      </div>
-                    ) : m.type === "audio" ? (
+                    {m.type === "audio" ? (
                       <Music size={32} className="text-blue-500" />
                     ) : (
                       <FileText size={32} className="text-neutral-400" />
@@ -772,51 +675,8 @@ export function MediaLibrary({
                     <span className="line-clamp-1 px-2 text-[10px] font-bold text-neutral-500 uppercase">
                       {m.name}
                     </span>
-                    {isProcessing && (
-                      <span className="rounded bg-yellow-100 px-1 text-[8px] font-black tracking-tighter text-yellow-700 uppercase">
-                        {isUploading ? "Mengunggah" : "Memproses"}
-                      </span>
-                    )}
-                    {isErrored && (
-                      <span className="rounded bg-red-100 px-1 text-[8px] font-black tracking-tighter text-red-700 uppercase">
-                        Errored
-                      </span>
-                    )}
                   </div>
                 )}
-
-                {/* Processing Overlay */}
-                {isProcessing && (
-                  <div className="absolute inset-0 flex cursor-not-allowed items-center justify-center bg-white/40">
-                    <span className="rounded bg-white/90 px-2 py-1 text-[10px] font-bold text-neutral-500 uppercase shadow-sm">
-                      {isUploading ? "Mengunggah..." : "Memproses..."}
-                    </span>
-                  </div>
-                )}
-
-                {/* Mux Sync (Only for stuck videos) */}
-                {m.type === "video" &&
-                  isProcessing &&
-                  !isUploading &&
-                  !allowSelection && (
-                    <div className="absolute top-2 right-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-7 w-7 border-white bg-white p-0 text-brand-green shadow-sm hover:bg-neutral-100"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleSyncMux(m.id);
-                        }}
-                        disabled={isSyncing === m.id}
-                      >
-                        <RefreshCw
-                          size={12}
-                          className={isSyncing === m.id ? "animate-spin" : ""}
-                        />
-                      </Button>
-                    </div>
-                  )}
               </div>
             );
           })}

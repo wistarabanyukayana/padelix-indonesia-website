@@ -5,7 +5,7 @@ import { PERMISSIONS } from "@/config/permissions";
 import { roles, rolesPermissions } from "@/db/schema";
 import { hasPermission } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { and, asc, count, desc, eq, like, or } from "drizzle-orm";
+import { and, asc, count, desc, eq, ilike, or } from "drizzle-orm";
 import { Edit, Key, Plus, ShieldCheck, Users } from "lucide-react";
 import Link from "next/link";
 
@@ -36,8 +36,8 @@ export default async function AdminRolesPage({ searchParams }: PageProps) {
   if (searchQuery) {
     filters.push(
       or(
-        like(roles.name, `%${searchQuery}%`),
-        like(roles.description, `%${searchQuery}%`),
+        ilike(roles.name, `%${searchQuery}%`),
+        ilike(roles.description, `%${searchQuery}%`),
       ),
     );
   }

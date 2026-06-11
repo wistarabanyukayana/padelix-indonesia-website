@@ -19,8 +19,8 @@ import {
   FeaturedProduct,
   MediaUI,
 } from "@/types";
-import { and, asc, desc, eq, inArray, like } from "drizzle-orm";
-import { alias } from "drizzle-orm/mysql-core";
+import { and, asc, desc, eq, inArray, ilike } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 import { cacheTag } from "next/cache";
 
 const logPublicError = (scope: string, error: unknown) => {
@@ -228,7 +228,7 @@ async function getAllProductsCached(
   try {
     const whereClause = and(
       eq(products.isActive, true),
-      query ? like(products.name, `%${query}%`) : undefined,
+      query ? ilike(products.name, `%${query}%`) : undefined,
       categoryId ? eq(products.categoryId, categoryId) : undefined,
       brandId ? eq(products.brandId, brandId) : undefined,
     );

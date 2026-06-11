@@ -42,7 +42,8 @@ export function parseMetadata(val: unknown): MediaMetadata {
 }
 
 /**
- * Resolves the correct display URL for a media item (handles Mux video thumbnails)
+ * Resolves the correct display URL for a media item (derives a Cloudinary
+ * still-frame thumbnail for videos so they can render inside <img>/<Image>)
  */
 export function getDisplayUrl(
   media: { url: string; type: string; metadata?: unknown } | null | undefined,
@@ -52,14 +53,13 @@ export function getDisplayUrl(
   if (
     media.type === "video" &&
     typeof media.url === "string" &&
-    media.url.includes("mux.com")
+    media.url.includes("res.cloudinary.com")
   ) {
-    const meta = parseMetadata(media.metadata);
-    const playbackId =
-      meta?.playbackId || media.url.split("/").pop()?.split(".")[0];
-    if (playbackId) {
-      return `https://image.mux.com/${playbackId}/thumbnail.jpg`;
-    }
+    // so_0 = frame at 0s; swapping the extension makes Cloudinary serve it
+    // as an image instead of a video file
+    return media.url
+      .replace("/video/upload/", "/video/upload/so_0/")
+      .replace(/\.[^/.]+$/, ".jpg");
   }
   return media.url;
 }

@@ -79,9 +79,9 @@ export function ContactForm() {
 
       <Button
         type="submit"
-        variant="primary"
+        variant="secondary"
         disabled={isPending}
-        className="h-auto rounded-brand bg-brand-red py-4 font-bold text-white transition-colors hover:bg-red-600"
+        className="h-auto py-4 font-bold shadow-lg shadow-red-500/20 hover:shadow-xl hover:shadow-red-500/25"
       >
         {isPending ? "Mengirim..." : "Kirim Pesan"}
       </Button>

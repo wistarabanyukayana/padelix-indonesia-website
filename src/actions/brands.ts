@@ -55,7 +55,7 @@ export async function createBrand(
         website: validated.data.website,
         logoUrl: validated.data.logoUrl,
       })
-      .$returningId();
+      .returning({ id: brands.id });
     newId = result.id;
     await createAuditLog(
       "BRAND_CREATE",

@@ -67,8 +67,12 @@ async function seed() {
         description: "Dapat melihat catatan audit sistem",
       },
     ])
-    .onDuplicateKeyUpdate({
-      set: { slug: sql`values(slug)`, description: sql`values(description)` },
+    .onConflictDoUpdate({
+      target: permissions.id,
+      set: {
+        slug: sql`excluded.slug`,
+        description: sql`excluded.description`,
+      },
     });
 
   await db
@@ -81,8 +85,12 @@ async function seed() {
         description: "Hanya dapat mengelola konten (Produk, Portfolio, dll)",
       },
     ])
-    .onDuplicateKeyUpdate({
-      set: { name: sql`values(name)`, description: sql`values(description)` },
+    .onConflictDoUpdate({
+      target: roles.id,
+      set: {
+        name: sql`excluded.name`,
+        description: sql`excluded.description`,
+      },
     });
 
   await db
@@ -97,7 +105,7 @@ async function seed() {
       { rolesId: 1, permissionsId: 7 },
       { rolesId: 1, permissionsId: 8 },
     ])
-    .onDuplicateKeyUpdate({ set: { rolesId: 1 } });
+    .onConflictDoNothing();
 
   await db
     .insert(rolesPermissions)
@@ -109,7 +117,7 @@ async function seed() {
       { rolesId: 2, permissionsId: 6 },
       { rolesId: 2, permissionsId: 7 },
     ])
-    .onDuplicateKeyUpdate({ set: { rolesId: 2 } });
+    .onConflictDoNothing();
 
   // 2. Admin User
   console.log("...Creating Admin User");
@@ -125,14 +133,15 @@ async function seed() {
       isActive: true,
       lastLogin: new Date(),
     })
-    .onDuplicateKeyUpdate({
+    .onConflictDoUpdate({
+      target: users.id,
       set: { username: "admin", passwordHash: passwordHash },
     });
 
   await db
     .insert(usersRoles)
     .values({ usersId: 1, rolesId: 1 })
-    .onDuplicateKeyUpdate({ set: { rolesId: 1 } });
+    .onConflictDoNothing();
 
   // 3. Brands & Categories
   console.log("...Creating Brands & Categories");
@@ -146,7 +155,10 @@ async function seed() {
       logoUrl:
         "/uploads/brands/padelix/Padelix Word With Moto And Transparent Background.png",
     })
-    .onDuplicateKeyUpdate({ set: { name: "Padelix Indonesia" } });
+    .onConflictDoUpdate({
+      target: brands.id,
+      set: { name: "Padelix Indonesia" },
+    });
 
   await db
     .insert(categories)
@@ -160,11 +172,12 @@ async function seed() {
           "/uploads/courts/padelix-panorama-standard/padelix-panorama-standard-04a-2.jpg",
       },
     ])
-    .onDuplicateKeyUpdate({
+    .onConflictDoUpdate({
+      target: categories.id,
       set: {
-        name: sql`values(name)`,
-        description: sql`values(description)`,
-        imageUrl: sql`values(image_url)`,
+        name: sql`excluded.name`,
+        description: sql`excluded.description`,
+        imageUrl: sql`excluded.image_url`,
       },
     });
 
@@ -174,7 +187,7 @@ async function seed() {
   await db.delete(portfolioMedias);
   await db.delete(medias);
 
-  const mediaAssets = [
+  const mediaAssets: (typeof medias.$inferInsert)[] = [
     // --- Panorama Standard ---
     {
       id: 1,
@@ -362,7 +375,6 @@ async function seed() {
     },
   ];
 
-  // @ts-expect-error - DB insert mapping issue
   await db.insert(medias).values(mediaAssets);
 
   // 5. Products
@@ -486,6 +498,26 @@ async function seed() {
     { portfolioId: 2, mediaId: 15, isPrimary: false, sortOrder: 2 },
     { portfolioId: 2, mediaId: 16, isPrimary: false, sortOrder: 3 },
   ]);
+
+  // Explicit ids above bypass the serial sequences — sync them so the
+  // next insert without an id doesn't collide.
+  console.log("...Syncing serial sequences");
+  for (const table of [
+    "permissions",
+    "roles",
+    "users",
+    "brands",
+    "categories",
+    "medias",
+    "products",
+    "portfolios",
+  ]) {
+    await db.execute(
+      sql.raw(
+        `SELECT setval(pg_get_serial_sequence('${table}', 'id'), (SELECT COALESCE(MAX(id), 1) FROM "${table}"))`,
+      ),
+    );
+  }
 
   console.log("✅ Seeding Complete");
   process.exit(0);

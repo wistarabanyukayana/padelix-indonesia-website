@@ -3,7 +3,6 @@
 import { AppImage } from "@/components/general/AppImage";
 import { getDisplayUrl } from "@/lib/utils";
 import { ProductMediaGalleryProps } from "@/types";
-import MuxPlayer from "@mux/mux-player-react";
 import { FileText, Music, Play } from "lucide-react";
 import { useState } from "react";
 import Lightbox, { Slide } from "yet-another-react-lightbox";
@@ -25,16 +24,15 @@ export function ProductMediaGallery({
   // Prepare slides for lightbox
   const slides = medias.map((m) => {
     if (m.type === "video") {
-      const playbackId = m.url.split("/").pop()?.split(".")[0];
       return {
         type: "video",
         sources: [
           {
             src: m.url,
-            type: "application/x-mpegURL",
+            type: "video/mp4",
           },
         ],
-        poster: `https://image.mux.com/${playbackId}/thumbnail.jpg`,
+        poster: getDisplayUrl(m),
       };
     }
     return { src: m.url, alt: m.altText || productName };
@@ -46,12 +44,11 @@ export function ProductMediaGallery({
       <div className="group relative aspect-square w-full overflow-hidden rounded-brand bg-neutral-100 shadow-xl">
         {activeMedia.type === "video" ? (
           <div className="h-full w-full bg-black">
-            <MuxPlayer
-              streamType="on-demand"
-              playbackId={activeMedia.url.split("/").pop()?.split(".")[0]}
-              metadata={{
-                video_title: productName,
-              }}
+            <video
+              src={activeMedia.url}
+              controls
+              preload="metadata"
+              poster={getDisplayUrl(activeMedia)}
               className="h-full w-full object-contain"
             />
           </div>
@@ -65,7 +62,7 @@ export function ProductMediaGallery({
               alt={activeMedia.altText || productName}
               fill
               preload
-              sizes="(max-width: 1024px) 100vw, 50vw"
+              sizes="(max-width: 1024px) 92vw, 520px"
               className="object-cover transition-transform duration-500 group-hover:scale-105"
             />
             <div className="absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition-colors group-hover:bg-black/10 group-hover:opacity-100">
@@ -106,7 +103,7 @@ export function ProductMediaGallery({
                 src={getDisplayUrl(m)}
                 alt={m.altText || productName}
                 fill
-                sizes="(max-width: 640px) 25vw, (max-width: 1024px) 20vw, 12vw"
+                sizes="(max-width: 640px) 22vw, (max-width: 1024px) 16vw, 96px"
                 className="object-cover"
               />
               {m.type !== "image" && (

@@ -56,3 +56,6 @@ next-env.d.ts
 *.tgz
 *.rar
 *.7z
+
+CLAUDE.md
+AGENTS.md

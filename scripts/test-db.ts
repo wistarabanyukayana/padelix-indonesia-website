@@ -1,5 +1,5 @@
+import { neon } from "@neondatabase/serverless";
 import "dotenv/config";
-import mysql from "mysql2/promise";
 
 async function testConnection() {
   const url = process.env.DATABASE_URL;
@@ -13,25 +13,23 @@ async function testConnection() {
   console.log(`🔌 Testing connection to: ${maskedUrl}`);
 
   try {
-    const conn = await mysql.createConnection({ uri: url });
-    console.log("✅ Connection established!");
+    const sql = neon(url);
 
-    const [rows] = await conn.query("SHOW TABLES");
+    const tables = await sql`
+      SELECT table_name
+      FROM information_schema.tables
+      WHERE table_schema = 'public'
+      ORDER BY table_name
+    `;
+    console.log("✅ Connection established!");
     console.log(
       "📊 Tables found:",
-      (rows as Record<string, unknown>[]).map((r) => Object.values(r)[0]),
+      tables.map((r) => r.table_name),
     );
 
     // Check products count
-    const [products] = await conn.query(
-      "SELECT count(*) as count FROM products",
-    );
-    console.log(
-      "📦 Products count:",
-      (products as Record<string, unknown>[])[0].count,
-    );
-
-    await conn.end();
+    const products = await sql`SELECT count(*)::int AS count FROM products`;
+    console.log("📦 Products count:", products[0].count);
   } catch (error: unknown) {
     console.error(
       "❌ Connection Failed:",
