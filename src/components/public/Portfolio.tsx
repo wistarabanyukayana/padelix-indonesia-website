@@ -55,7 +55,7 @@ export function Portfolio({ items }: PortfolioProps) {
             return (
               <div
                 key={item.id}
-                className="group relative aspect-video cursor-pointer overflow-hidden rounded-brand bg-neutral-800 shadow-2xl"
+                className="group relative aspect-video cursor-pointer overflow-hidden rounded-brand bg-neutral-800 shadow-2xl transition-all duration-300 hover:-translate-y-1 hover:ring-2 hover:ring-brand-green/50"
                 onClick={() => {
                   setActivePortfolioIndex(idx);
                   setImageIndex(0);

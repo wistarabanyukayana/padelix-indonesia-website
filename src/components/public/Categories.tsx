@@ -19,7 +19,7 @@ export function Categories({ categories }: CategoriesProps) {
             <Link
               key={c.id}
               href={`/products?category=${c.id}`}
-              className="group relative flex aspect-square flex-col justify-end overflow-hidden rounded-brand border border-neutral-100 bg-neutral-100 p-6"
+              className="group relative flex aspect-square flex-col justify-end overflow-hidden rounded-brand border border-neutral-100 bg-neutral-100 p-6 shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
             >
               {c.imageUrl ? (
                 <AppImage
@@ -47,7 +47,11 @@ export function Categories({ categories }: CategoriesProps) {
                   </p>
                 )}
                 <span className="mt-2 flex items-center gap-1 text-xs font-black tracking-widest text-brand-green uppercase">
-                  Lihat Produk <ChevronRight size={12} />
+                  Lihat Produk{" "}
+                  <ChevronRight
+                    size={12}
+                    className="transition-transform duration-300 group-hover:translate-x-1"
+                  />
                 </span>
               </div>
             </Link>

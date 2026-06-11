@@ -7,14 +7,18 @@ export function About({ subheading, heading, description, image }: AboutProps) {
       <div className="wrapper items-center gap-12 lg:flex-row-reverse lg:gap-20">
         {/* Image */}
         <div className="flex w-full justify-center lg:w-1/2">
-          <AppImage
-            src={image}
-            alt="About Padelix Indonesia"
-            width={384}
-            height={384}
-            disableLoadingAnimation
-            className="h-64 w-64 rounded-brand shadow-2xl sm:h-80 sm:w-80 lg:h-96 lg:w-96"
-          />
+          <div className="relative">
+            {/* Offset accent frame behind the photo */}
+            <div className="absolute -inset-3 translate-x-4 translate-y-4 rounded-brand border-2 border-brand-green/40" />
+            <AppImage
+              src={image}
+              alt="About Padelix Indonesia"
+              width={384}
+              height={384}
+              disableLoadingAnimation
+              className="relative h-64 w-64 rounded-brand shadow-2xl sm:h-80 sm:w-80 lg:h-96 lg:w-96"
+            />
+          </div>
         </div>
 
         {/* Text */}
@@ -22,7 +26,10 @@ export function About({ subheading, heading, description, image }: AboutProps) {
           <span className="subheading text-brand-green">{subheading}</span>
           <h2 className="h2 text-white">{heading}</h2>
           {description.map((paragraph, index) => (
-            <p key={index} className="text-lg leading-relaxed text-neutral-400">
+            <p
+              key={index}
+              className="text-lg leading-relaxed text-pretty text-neutral-400"
+            >
               {paragraph}
             </p>
           ))}
