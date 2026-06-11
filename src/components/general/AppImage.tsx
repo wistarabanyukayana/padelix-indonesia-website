@@ -8,6 +8,7 @@ interface AppImageProps extends Omit<ImageProps, "src"> {
   src?: string | null;
   alt: string;
   fallbackSrc?: string;
+  disableLoadingAnimation?: boolean;
 }
 
 export function AppImage({
@@ -17,6 +18,7 @@ export function AppImage({
   fill,
   sizes,
   fallbackSrc,
+  disableLoadingAnimation = false,
   onLoad,
   onError,
   ...props
@@ -77,7 +79,7 @@ export function AppImage({
       sizes={sizes || defaultSizes}
       className={cn(
         "object-cover object-center",
-        !isLoaded ? "image-loading-blink" : "",
+        !disableLoadingAnimation && !isLoaded ? "image-loading-blink" : "",
         className,
       )}
       onLoad={(event) => {

@@ -1,7 +1,6 @@
 "use client";
 
-import { deleteMedia, uploadFile } from "@/actions/media";
-import { createMuxUpload, getMuxMediaByUploadId } from "@/actions/mux";
+import { uploadFileToCloudinary } from "@/lib/upload";
 import { handleUploadError } from "@/lib/utils";
 import { Plus, X } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -21,18 +20,13 @@ export function MediaUploadButton({
   } | null>(null);
   const router = useRouter();
   const xhrRef = useRef<XMLHttpRequest | null>(null);
-  const pendingMediaIdRef = useRef<number | null>(null);
 
-  const handleCancel = async () => {
+  const handleCancel = () => {
     if (xhrRef.current) {
+      // Nothing to clean up: the asset only reaches Cloudinary on completion
+      // and the DB row is only created after that.
       xhrRef.current.abort();
       xhrRef.current = null;
-
-      // Clean up DB record
-      if (pendingMediaIdRef.current) {
-        await deleteMedia(pendingMediaIdRef.current);
-        pendingMediaIdRef.current = null;
-      }
 
       setIsUploading(false);
       setProgress(0);
@@ -46,73 +40,15 @@ export function MediaUploadButton({
     setProgress(0);
 
     try {
-      if (file.type.startsWith("video/")) {
-        const uploadInfo = await createMuxUpload(
-          file.name,
-          currentFolder,
-          file.size,
-        );
-        if ("error" in uploadInfo) {
-          toast.error(uploadInfo.error);
-          return;
-        }
-
-        // Link record ID for potential cleanup
-        const initialRecord = await getMuxMediaByUploadId(uploadInfo.id);
-        if (initialRecord) pendingMediaIdRef.current = initialRecord.id;
-
-        const xhr = new XMLHttpRequest();
-        xhrRef.current = xhr;
-        xhr.open("PUT", uploadInfo.url);
-
-        xhr.upload.onprogress = (event) => {
-          if (event.lengthComputable) {
-            setProgress(Math.round((event.loaded / event.total) * 100));
-          }
-        };
-
-        const uploadPromise = new Promise((resolve, reject) => {
-          xhr.onload = () =>
-            xhr.status >= 200 && xhr.status < 300
-              ? resolve(xhr.response)
-              : reject(new Error("Mux upload failed"));
-          xhr.onerror = () => reject(new Error("Mux upload error"));
-          xhr.onabort = () => reject("ABORTED");
-        });
-
-        xhr.send(file);
-        await uploadPromise;
-        xhrRef.current = null;
-        pendingMediaIdRef.current = null;
-
-        // Finalize: Poll for the DB record to be updated with asset ID (by webhook)
-        let attempts = 0;
-        while (attempts < 10) {
-          try {
-            const media = await getMuxMediaByUploadId(uploadInfo.id);
-            if (media && media.url) break;
-            attempts++;
-            await new Promise((r) => setTimeout(r, 2000));
-          } catch {
-            attempts++;
-            await new Promise((r) => setTimeout(r, 2000));
-          }
-        }
-        toast.success("Video berhasil diunggah");
-      } else {
-        const formData = new FormData();
-        formData.append("file", file);
-        if (currentFolder) {
-          formData.append("folder", currentFolder);
-        }
-        const result = await uploadFile(formData);
-        if (result.error) {
-          toast.error(result.error);
-        } else {
-          toast.success("File berhasil diunggah");
-        }
-      }
-
+      const isVideo = file.type.startsWith("video/");
+      await uploadFileToCloudinary(file, {
+        folder: currentFolder,
+        xhrRef,
+        onProgress: setProgress,
+      });
+      toast.success(
+        isVideo ? "Video berhasil diunggah" : "File berhasil diunggah",
+      );
       router.refresh();
     } catch (error) {
       if (error === "ABORTED") return;

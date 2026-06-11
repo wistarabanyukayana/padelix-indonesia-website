@@ -7,6 +7,7 @@ import Zoom from "yet-another-react-lightbox/plugins/zoom";
 import "yet-another-react-lightbox/styles.css";
 
 import { AppImage } from "@/components/general/AppImage";
+import { getDisplayUrl } from "@/lib/utils";
 import { PortfolioProps } from "@/types";
 import { Play } from "lucide-react";
 
@@ -20,16 +21,15 @@ export function Portfolio({ items }: PortfolioProps) {
   const currentPortfolio = items[activePortfolioIndex];
   const slides = currentPortfolio.medias.map((m) => {
     if (m.type === "video") {
-      const playbackId = m.url.split("/").pop()?.split(".")[0];
       return {
         type: "video",
         sources: [
           {
             src: m.url,
-            type: "application/x-mpegURL",
+            type: "video/mp4",
           },
         ],
-        poster: `https://image.mux.com/${playbackId}/thumbnail.jpg`,
+        poster: getDisplayUrl(m),
         title: currentPortfolio.title,
         description: currentPortfolio.location || "",
       };
@@ -55,7 +55,7 @@ export function Portfolio({ items }: PortfolioProps) {
             return (
               <div
                 key={item.id}
-                className="group relative aspect-video cursor-pointer overflow-hidden rounded-brand bg-neutral-800 shadow-2xl"
+                className="group relative aspect-video cursor-pointer overflow-hidden rounded-brand bg-neutral-800 shadow-2xl transition-all duration-300 hover:-translate-y-1 hover:ring-2 hover:ring-brand-green/50"
                 onClick={() => {
                   setActivePortfolioIndex(idx);
                   setImageIndex(0);
@@ -66,7 +66,7 @@ export function Portfolio({ items }: PortfolioProps) {
                   src={item.image}
                   alt={item.title}
                   fill
-                  sizes="(max-width: 768px) 100vw, 50vw"
+                  sizes="(max-width: 768px) 92vw, 520px"
                   className="opacity-70 transition-transform duration-700 group-hover:scale-105 group-hover:opacity-100"
                 />
                 <div className="absolute inset-0 flex flex-col justify-end bg-linear-to-t from-black/90 via-black/20 to-transparent p-8">

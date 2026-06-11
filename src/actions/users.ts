@@ -79,7 +79,7 @@ export async function createUser(
         isActive: data.isActive,
         lastLogin: new Date(), // Initialize with current date
       })
-      .$returningId();
+      .returning({ id: users.id });
 
     newId = result.id;
 

@@ -20,12 +20,13 @@ export function Certifications({
               key={cert.id}
               className="group flex flex-col items-center gap-4"
             >
-              <div className="rounded-brand bg-white p-6 shadow-lg transition-transform group-hover:-translate-y-2">
+              <div className="rounded-brand bg-white p-6 shadow-lg transition-all duration-300 group-hover:-translate-y-2 group-hover:shadow-2xl">
                 <AppImage
                   src={cert.src}
                   alt={cert.name}
-                  width={120}
-                  height={120}
+                  width={96}
+                  height={96}
+                  disableLoadingAnimation
                   className="h-24 w-24 object-contain"
                 />
               </div>

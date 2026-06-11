@@ -1,15 +1,8 @@
 import { relations } from "@/db/relations";
-import { drizzle } from "drizzle-orm/mysql2";
-import mysql from "mysql2/promise";
+import { neon } from "@neondatabase/serverless";
+import { drizzle } from "drizzle-orm/neon-http";
 import "server-only";
 
-const poolConnection = mysql.createPool({
-  uri: process.env.DATABASE_URL!,
-  timezone: "Z",
-});
+const client = neon(process.env.DATABASE_URL!);
 
-poolConnection.on("connection", (connection) => {
-  connection.query("SET time_zone = '+00:00'");
-});
-
-export const db = drizzle({ client: poolConnection, relations });
+export const db = drizzle({ client, relations });
