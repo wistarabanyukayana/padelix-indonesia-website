@@ -5,13 +5,14 @@ import Link from "next/link";
 export default function NotFound() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-white p-6 text-center">
-      <div className="relative mb-8 h-48 w-48">
+      <div className="relative mb-8 flex h-48 w-48 items-center justify-center">
         <AppImage
           src="/assets/padelix-wordmark-v2.webp"
           alt="Padelix Indonesia"
-          fill
-          sizes="192px"
-          className="object-contain opacity-20"
+          width={192}
+          height={48}
+          disableLoadingAnimation
+          className="h-10 w-40 object-contain opacity-20 sm:h-12 sm:w-48"
         />
         <div className="absolute inset-0 flex items-center justify-center">
           <h1 className="text-9xl font-black tracking-tighter text-brand-green">

@@ -85,7 +85,7 @@ export async function createPortfolio(
         isFeatured: data.isFeatured,
         createdBy: session.user.id,
       })
-      .$returningId();
+      .returning({ id: portfolios.id });
 
     newId = result.id;
 

@@ -9,7 +9,7 @@ import { medias, portfolioMedias, portfolios } from "@/db/schema";
 import { hasPermission } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getDisplayUrl } from "@/lib/utils";
-import { and, asc, desc, eq, like, or } from "drizzle-orm";
+import { and, asc, desc, eq, ilike, or } from "drizzle-orm";
 import { Edit, Plus } from "lucide-react";
 import Link from "next/link";
 
@@ -40,8 +40,8 @@ export default async function AdminPortfoliosPage({ searchParams }: PageProps) {
   if (searchQuery) {
     filters.push(
       or(
-        like(portfolios.title, `%${searchQuery}%`),
-        like(portfolios.slug, `%${searchQuery}%`),
+        ilike(portfolios.title, `%${searchQuery}%`),
+        ilike(portfolios.slug, `%${searchQuery}%`),
       ),
     );
   }

@@ -10,9 +10,10 @@ export function About({ subheading, heading, description, image }: AboutProps) {
           <AppImage
             src={image}
             alt="About Padelix Indonesia"
-            width={600}
-            height={450}
-            className="w-full max-w-xl rounded-brand shadow-2xl"
+            width={384}
+            height={384}
+            disableLoadingAnimation
+            className="h-64 w-64 rounded-brand shadow-2xl sm:h-80 sm:w-80 lg:h-96 lg:w-96"
           />
         </div>
 

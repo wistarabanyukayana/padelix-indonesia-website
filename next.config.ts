@@ -4,13 +4,13 @@ const isDev = process.env.NODE_ENV === "development";
 
 const contentSecurityPolicy = `
   default-src 'self';
-  script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} https://connect.facebook.net https://src.litix.io;
+  script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} https://connect.facebook.net;
   style-src 'self' 'unsafe-inline';
-  img-src 'self' data: blob: https://firebasestorage.googleapis.com https://padelix.co.id https://image.mux.com https://www.facebook.com https://*.litix.io;
+  img-src 'self' data: blob: https://res.cloudinary.com https://padelix.co.id https://www.facebook.com;
   font-src 'self' data:;
-  connect-src 'self' https://www.facebook.com https://graph.facebook.com https://*.mux.com https://*.litix.io https://storage.googleapis.com;
+  connect-src 'self' https://www.facebook.com https://graph.facebook.com https://api.cloudinary.com https://res.cloudinary.com;
   frame-src https://www.facebook.com;
-  media-src 'self' blob: https://image.mux.com https://*.mux.com;
+  media-src 'self' blob: https://res.cloudinary.com;
   object-src 'none';
   base-uri 'self';
   form-action 'self' https://www.facebook.com;
@@ -62,7 +62,6 @@ if (process.env.NODE_ENV === "production") {
 }
 
 const nextConfig: NextConfig = {
-  output: "standalone",
   allowedDevOrigins: ["192.168.1.*"],
   cacheComponents: true,
   experimental: {
@@ -74,15 +73,11 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "firebasestorage.googleapis.com",
+        hostname: "res.cloudinary.com",
       },
       {
         protocol: "https",
         hostname: "padelix.co.id",
-      },
-      {
-        protocol: "https",
-        hostname: "image.mux.com",
       },
     ],
   },

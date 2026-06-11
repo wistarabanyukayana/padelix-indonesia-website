@@ -1,36 +1,42 @@
-import { sql } from "drizzle-orm";
 import {
   bigint,
+  bigserial,
   boolean,
   date,
-  datetime,
-  decimal,
   foreignKey,
-  int,
-  json,
-  longtext,
-  mysqlEnum,
-  mysqlTable,
+  integer,
+  jsonb,
+  numeric,
+  pgEnum,
+  pgTable,
   primaryKey,
+  serial,
   text,
+  timestamp,
   uniqueIndex,
   varchar,
-} from "drizzle-orm/mysql-core";
+} from "drizzle-orm/pg-core";
 
-export const auditLogs = mysqlTable(
+export const mediaType = pgEnum("media_type", [
+  "image",
+  "video",
+  "document",
+  "audio",
+  "other",
+]);
+
+export const auditLogs = pgTable(
   "audit_logs",
   {
-    id: bigint("id", { mode: "number" }).autoincrement().primaryKey(),
-    userId: int("user_id").default(sql`NULL`),
-    entityId: int("entity_id").default(sql`NULL`),
+    id: bigserial("id", { mode: "number" }).primaryKey(),
+    userId: integer("user_id"),
+    entityId: integer("entity_id"),
     usernameSnapshot: varchar("username_snapshot", { length: 50 }).notNull(),
     action: varchar("action", { length: 50 }).notNull(),
-    ipAddress: varchar("ip_address", { length: 45 }).default(sql`NULL`),
-    userAgent: varchar("user_agent", { length: 255 }).default(sql`NULL`),
-    details: text("details").default(sql`NULL`),
-    createdAt: datetime("created_at")
-      .default(sql`CURRENT_TIMESTAMP`)
-      .notNull(),
+    ipAddress: varchar("ip_address", { length: 45 }),
+    userAgent: varchar("user_agent", { length: 255 }),
+    details: text("details"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
   },
   (table) => [
     foreignKey({
@@ -43,21 +49,16 @@ export const auditLogs = mysqlTable(
   ],
 );
 
-export const brands = mysqlTable(
+export const brands = pgTable(
   "brands",
   {
-    id: int("id").autoincrement().primaryKey(),
+    id: serial("id").primaryKey(),
     name: varchar("name", { length: 50 }).notNull(),
     slug: varchar("slug", { length: 50 }).notNull(),
-    logoUrl: varchar("logo_url", { length: 255 }).default(sql`NULL`),
+    logoUrl: varchar("logo_url", { length: 255 }),
     website: varchar("website", { length: 255 }).notNull(),
-    createdAt: datetime("created_at")
-      .default(sql`CURRENT_TIMESTAMP`)
-      .notNull(),
-    updatedAt: datetime("updated_at")
-      .default(sql`CURRENT_TIMESTAMP`)
-      .$onUpdate(() => sql`CURRENT_TIMESTAMP`)
-      .notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },
   (table) => [
     uniqueIndex("brands_uq_slug").on(table.slug),
@@ -65,22 +66,17 @@ export const brands = mysqlTable(
   ],
 );
 
-export const categories = mysqlTable(
+export const categories = pgTable(
   "categories",
   {
-    id: int("id").autoincrement().primaryKey(),
-    parentId: int("parent_id").default(sql`NULL`),
+    id: serial("id").primaryKey(),
+    parentId: integer("parent_id"),
     name: varchar("name", { length: 50 }).notNull(),
     slug: varchar("slug", { length: 50 }).notNull(),
-    imageUrl: varchar("image_url", { length: 255 }).default(sql`NULL`),
-    description: text("description").default(sql`NULL`),
-    createdAt: datetime("created_at")
-      .default(sql`CURRENT_TIMESTAMP`)
-      .notNull(),
-    updatedAt: datetime("updated_at")
-      .default(sql`CURRENT_TIMESTAMP`)
-      .$onUpdate(() => sql`CURRENT_TIMESTAMP`)
-      .notNull(),
+    imageUrl: varchar("image_url", { length: 255 }),
+    description: text("description"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },
   (table) => [
     uniqueIndex("categories_uq_name").on(table.name),
@@ -95,72 +91,51 @@ export const categories = mysqlTable(
   ],
 );
 
-export const medias = mysqlTable(
+export const medias = pgTable(
   "medias",
   {
-    id: int("id").autoincrement().primaryKey(),
+    id: serial("id").primaryKey(),
     name: varchar("name", { length: 255 }).notNull(),
     fileKey: varchar("file_key", { length: 255 }).notNull(),
-    type: mysqlEnum("type", [
-      "image",
-      "video",
-      "document",
-      "audio",
-      "other",
-    ]).notNull(),
+    type: mediaType("type").notNull(),
     provider: varchar("provider", { length: 20 }).notNull(),
     mimeType: varchar("mime_type", { length: 100 }).notNull(),
     fileSize: bigint("file_size", { mode: "number" }).notNull(),
     url: text("url").notNull(),
-    metadata: json("metadata").default(sql`NULL`),
-    createdAt: datetime("created_at")
-      .default(sql`CURRENT_TIMESTAMP`)
-      .notNull(),
-    updatedAt: datetime("updated_at")
-      .default(sql`CURRENT_TIMESTAMP`)
-      .$onUpdate(() => sql`CURRENT_TIMESTAMP`)
-      .notNull(),
+    metadata: jsonb("metadata"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },
 
   (table) => [uniqueIndex("medias_uq_file_key").on(table.fileKey)],
 );
 
-export const permissions = mysqlTable(
+export const permissions = pgTable(
   "permissions",
   {
-    id: int("id").autoincrement().primaryKey(),
+    id: serial("id").primaryKey(),
     slug: varchar("slug", { length: 50 }).notNull(),
-    description: varchar("description", { length: 255 }).default(sql`NULL`),
-    createdAt: datetime("created_at")
-      .default(sql`CURRENT_TIMESTAMP`)
-      .notNull(),
-    updatedAt: datetime("updated_at")
-      .default(sql`CURRENT_TIMESTAMP`)
-      .$onUpdate(() => sql`CURRENT_TIMESTAMP`)
-      .notNull(),
+    description: varchar("description", { length: 255 }),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },
   (table) => [uniqueIndex("permissions_uq_slug").on(table.slug)],
 );
 
-export const portfolios = mysqlTable(
+export const portfolios = pgTable(
   "portfolios",
   {
-    id: int("id").autoincrement().primaryKey(),
-    createdBy: int("created_by").default(sql`NULL`),
+    id: serial("id").primaryKey(),
+    createdBy: integer("created_by"),
     title: varchar("title", { length: 150 }).notNull(),
     slug: varchar("slug", { length: 150 }).notNull(),
-    location: varchar("location", { length: 100 }).default(sql`NULL`),
+    location: varchar("location", { length: 100 }),
     isFeatured: boolean("is_featured").notNull(),
     isActive: boolean("is_active").notNull(),
-    description: longtext("description").default(sql`NULL`),
-    completionDate: date("completion_date"),
-    createdAt: datetime("created_at")
-      .default(sql`CURRENT_TIMESTAMP`)
-      .notNull(),
-    updatedAt: datetime("updated_at")
-      .default(sql`CURRENT_TIMESTAMP`)
-      .$onUpdate(() => sql`CURRENT_TIMESTAMP`)
-      .notNull(),
+    description: text("description"),
+    completionDate: date("completion_date", { mode: "date" }),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },
   (table) => [
     uniqueIndex("portfolios_uq_slug").on(table.slug),
@@ -175,22 +150,17 @@ export const portfolios = mysqlTable(
   ],
 );
 
-export const portfolioMedias = mysqlTable(
+export const portfolioMedias = pgTable(
   "portfolio_medias",
   {
-    id: int("id").autoincrement().primaryKey(),
-    portfolioId: int("portfolio_id").notNull(),
-    mediaId: int("media_id").notNull(),
+    id: serial("id").primaryKey(),
+    portfolioId: integer("portfolio_id").notNull(),
+    mediaId: integer("media_id").notNull(),
     isPrimary: boolean("is_primary").notNull(),
-    altText: varchar("alt_text", { length: 255 }).default(sql`NULL`),
-    sortOrder: int("sort_order").notNull(),
-    createdAt: datetime("created_at")
-      .default(sql`CURRENT_TIMESTAMP`)
-      .notNull(),
-    updatedAt: datetime("updated_at")
-      .default(sql`CURRENT_TIMESTAMP`)
-      .$onUpdate(() => sql`CURRENT_TIMESTAMP`)
-      .notNull(),
+    altText: varchar("alt_text", { length: 255 }),
+    sortOrder: integer("sort_order").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },
   (table) => [
     foreignKey({
@@ -210,19 +180,19 @@ export const portfolioMedias = mysqlTable(
   ],
 );
 
-export const products = mysqlTable(
+export const products = pgTable(
   "products",
   {
-    id: int("id").autoincrement().primaryKey(),
-    createdBy: int("created_by").default(sql`NULL`),
-    brandId: int("brand_id").default(sql`NULL`),
-    categoryId: int("category_id").default(sql`NULL`),
+    id: serial("id").primaryKey(),
+    createdBy: integer("created_by"),
+    brandId: integer("brand_id"),
+    categoryId: integer("category_id"),
     name: varchar("name", { length: 150 }).notNull(),
     slug: varchar("slug", { length: 150 }).notNull(),
     isFeatured: boolean("is_featured").default(false).notNull(),
     isActive: boolean("is_active").default(false).notNull(),
-    description: longtext("description").default(sql`NULL`),
-    basePrice: decimal("base_price", {
+    description: text("description"),
+    basePrice: numeric("base_price", {
       precision: 20,
       scale: 2,
       mode: "number",
@@ -230,13 +200,8 @@ export const products = mysqlTable(
       .default(0.0)
       .notNull(),
     showPrice: boolean("show_price").default(true).notNull(),
-    createdAt: datetime("created_at")
-      .default(sql`CURRENT_TIMESTAMP`)
-      .notNull(),
-    updatedAt: datetime("updated_at")
-      .default(sql`CURRENT_TIMESTAMP`)
-      .$onUpdate(() => sql`CURRENT_TIMESTAMP`)
-      .notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },
   (table) => [
     uniqueIndex("products_uq_name").on(table.name),
@@ -265,22 +230,17 @@ export const products = mysqlTable(
   ],
 );
 
-export const productMedias = mysqlTable(
+export const productMedias = pgTable(
   "product_medias",
   {
-    id: int("id").autoincrement().primaryKey(),
-    productId: int("product_id").notNull(),
-    mediaId: int("media_id").notNull(),
+    id: serial("id").primaryKey(),
+    productId: integer("product_id").notNull(),
+    mediaId: integer("media_id").notNull(),
     isPrimary: boolean("is_primary").notNull(),
-    altText: varchar("alt_text", { length: 255 }).default(sql`NULL`),
-    sortOrder: int("sort_order").notNull(),
-    createdAt: datetime("created_at")
-      .default(sql`CURRENT_TIMESTAMP`)
-      .notNull(),
-    updatedAt: datetime("updated_at")
-      .default(sql`CURRENT_TIMESTAMP`)
-      .$onUpdate(() => sql`CURRENT_TIMESTAMP`)
-      .notNull(),
+    altText: varchar("alt_text", { length: 255 }),
+    sortOrder: integer("sort_order").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },
   (table) => [
     foreignKey({
@@ -300,20 +260,15 @@ export const productMedias = mysqlTable(
   ],
 );
 
-export const productSpecifications = mysqlTable(
+export const productSpecifications = pgTable(
   "product_specifications",
   {
-    id: int("id").autoincrement().primaryKey(),
-    productId: int("product_id").notNull(),
+    id: serial("id").primaryKey(),
+    productId: integer("product_id").notNull(),
     specKey: varchar("spec_key", { length: 100 }).notNull(),
-    specValue: varchar("spec_value", { length: 50 }).default(sql`NULL`),
-    createdAt: datetime("created_at")
-      .default(sql`CURRENT_TIMESTAMP`)
-      .notNull(),
-    updatedAt: datetime("updated_at")
-      .default(sql`CURRENT_TIMESTAMP`)
-      .$onUpdate(() => sql`CURRENT_TIMESTAMP`)
-      .notNull(),
+    specValue: varchar("spec_value", { length: 50 }),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },
   (table) => [
     foreignKey({
@@ -326,22 +281,22 @@ export const productSpecifications = mysqlTable(
   ],
 );
 
-export const productVariants = mysqlTable(
+export const productVariants = pgTable(
   "product_variants",
   {
-    id: int("id").autoincrement().primaryKey(),
-    productId: int("product_id").notNull(),
+    id: serial("id").primaryKey(),
+    productId: integer("product_id").notNull(),
     isActive: boolean("is_active").default(true).notNull(),
     name: varchar("name", { length: 100 }).notNull(),
-    sku: varchar("sku", { length: 50 }).default(sql`NULL`),
-    priceAdjustment: decimal("price_adjustment", {
+    sku: varchar("sku", { length: 50 }),
+    priceAdjustment: numeric("price_adjustment", {
       precision: 20,
       scale: 2,
       mode: "number",
     })
       .default(0.0)
       .notNull(),
-    stockQuantity: decimal("stock_quantity", {
+    stockQuantity: numeric("stock_quantity", {
       precision: 10,
       scale: 2,
       mode: "number",
@@ -349,13 +304,8 @@ export const productVariants = mysqlTable(
       .default(0.0)
       .notNull(),
     isUnlimitedStock: boolean("is_unlimited_stock").default(false).notNull(),
-    createdAt: datetime("created_at")
-      .default(sql`CURRENT_TIMESTAMP`)
-      .notNull(),
-    updatedAt: datetime("updated_at")
-      .default(sql`CURRENT_TIMESTAMP`)
-      .$onUpdate(() => sql`CURRENT_TIMESTAMP`)
-      .notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },
   (table) => [
     uniqueIndex("product_variants_uq_sku").on(table.sku),
@@ -369,31 +319,24 @@ export const productVariants = mysqlTable(
   ],
 );
 
-export const roles = mysqlTable(
+export const roles = pgTable(
   "roles",
   {
-    id: int("id").autoincrement().primaryKey(),
+    id: serial("id").primaryKey(),
     name: varchar("name", { length: 50 }).notNull(),
-    description: varchar("description", { length: 255 }).default(sql`NULL`),
-    createdAt: datetime("created_at")
-      .default(sql`CURRENT_TIMESTAMP`)
-      .notNull(),
-    updatedAt: datetime("updated_at")
-      .default(sql`CURRENT_TIMESTAMP`)
-      .$onUpdate(() => sql`CURRENT_TIMESTAMP`)
-      .notNull(),
+    description: varchar("description", { length: 255 }),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },
   (table) => [uniqueIndex("roles_uq_name").on(table.name)],
 );
 
-export const rolesPermissions = mysqlTable(
+export const rolesPermissions = pgTable(
   "roles_permissions",
   {
-    rolesId: int("roles_id").notNull(),
-    permissionsId: int("permissions_id").notNull(),
-    grantedAt: datetime("granted_at")
-      .default(sql`CURRENT_TIMESTAMP`)
-      .notNull(),
+    rolesId: integer("roles_id").notNull(),
+    permissionsId: integer("permissions_id").notNull(),
+    grantedAt: timestamp("granted_at").defaultNow().notNull(),
   },
   (table) => [
     primaryKey({ columns: [table.rolesId, table.permissionsId] }),
@@ -414,23 +357,18 @@ export const rolesPermissions = mysqlTable(
   ],
 );
 
-export const users = mysqlTable(
+export const users = pgTable(
   "users",
   {
-    id: int("id").autoincrement().primaryKey(),
+    id: serial("id").primaryKey(),
     isActive: boolean("is_active").default(true).notNull(),
     username: varchar("username", { length: 50 }).notNull(),
     email: varchar("email", { length: 100 }).notNull(),
     passwordHash: varchar("password_hash", { length: 255 }).notNull(),
-    lastLogin: datetime("last_login").notNull(),
-    createdAt: datetime("created_at")
-      .default(sql`CURRENT_TIMESTAMP`)
-      .notNull(),
-    updatedAt: datetime("updated_at")
-      .default(sql`CURRENT_TIMESTAMP`)
-      .$onUpdate(() => sql`CURRENT_TIMESTAMP`)
-      .notNull(),
-    sessionVersion: int("session_version").default(0).notNull(),
+    lastLogin: timestamp("last_login").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+    sessionVersion: integer("session_version").default(0).notNull(),
   },
   (table) => [
     uniqueIndex("users_uq_email").on(table.email),
@@ -438,14 +376,12 @@ export const users = mysqlTable(
   ],
 );
 
-export const usersRoles = mysqlTable(
+export const usersRoles = pgTable(
   "users_roles",
   {
-    usersId: int("users_id").notNull(),
-    rolesId: int("roles_id").notNull(),
-    assignedAt: datetime("assigned_at")
-      .default(sql`CURRENT_TIMESTAMP`)
-      .notNull(),
+    usersId: integer("users_id").notNull(),
+    rolesId: integer("roles_id").notNull(),
+    assignedAt: timestamp("assigned_at").defaultNow().notNull(),
   },
   (table) => [
     primaryKey({ columns: [table.usersId, table.rolesId] }),

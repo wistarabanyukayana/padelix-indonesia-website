@@ -130,10 +130,10 @@ export function Header() {
       )}
       <div className="relative mx-auto flex h-20 max-w-7xl items-center justify-between px-6">
         {/* Logo Container - 1.5x larger visual size with vertical overflow */}
-        <div className="relative w-32 shrink-0 md:w-36">
+        <div className="shrink-0">
           <Link
             href="/"
-            className="absolute top-1/2 left-0 h-25 w-full -translate-y-1/2 md:h-37.5"
+            className="inline-flex items-center"
             onClick={(event) => {
               if (longPressTriggered.current) {
                 event.preventDefault();
@@ -144,15 +144,14 @@ export function Header() {
             onPointerUp={handleLogoPressEnd}
             onPointerLeave={handleLogoPressEnd}
           >
-            <div className="realtive h-full w-full">
-              <AppImage
-                src="/assets/padelix-wordmark-v2.webp"
-                alt="Padelix Indonesia"
-                fill
-                sizes="192px"
-                className="object-contain object-left"
-              />
-            </div>
+            <AppImage
+              src="/assets/padelix-wordmark-v2.webp"
+              alt="Padelix Indonesia"
+              width={144}
+              height={36}
+              disableLoadingAnimation
+              className="h-3 w-12 object-contain object-left sm:h-6 sm:w-24 md:h-9 md:w-36"
+            />
           </Link>
         </div>
         {showAdmin && (

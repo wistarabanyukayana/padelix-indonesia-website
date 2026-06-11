@@ -123,7 +123,7 @@ export async function createProduct(
         brandId: data.brandId,
         createdBy: session.user.id,
       })
-      .$returningId();
+      .returning({ id: products.id });
 
     newId = result.id;
 

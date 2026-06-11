@@ -18,6 +18,9 @@ export function Hero({
         alt="Hero Background"
         fill
         preload
+        fetchPriority="high"
+        loading="eager"
+        disableLoadingAnimation
         sizes="100vw"
         className="opacity-60"
       />
