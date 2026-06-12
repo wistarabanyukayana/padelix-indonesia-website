@@ -3,9 +3,15 @@ import { Certifications } from "@/components/public/Certifications";
 import { Contact } from "@/components/public/Contact";
 import { FeaturedProducts } from "@/components/public/FeaturedProducts";
 import { Hero } from "@/components/public/Hero";
+import { Marquee } from "@/components/public/Marquee";
 import { Portfolio } from "@/components/public/Portfolio";
 import { siteConfig } from "@/config/site";
-import { getFeaturedPortfolios, getFeaturedProducts } from "@/data/public";
+import {
+  getFeaturedPortfolios,
+  getFeaturedProducts,
+  getPublicStats,
+} from "@/data/public";
+import type { HeroStat } from "@/types";
 import {
   SiFacebook,
   SiInstagram,
@@ -22,13 +28,29 @@ export const metadata: Metadata = {
 
 // Content Configuration
 const HERO_CONTENT = {
-  heading: "Selamat datang di Padelix Indonesia!",
+  kicker: "Padel Starts Here",
+  heading: "Lapangan padel standar dunia,",
+  headingAccent: "dibangun di Indonesia.",
   subHeading:
-    "Padelix Indonesia menawarkan solusi terbaik untuk lapangan dan peralatan padel berkualitas tinggi. Bergabunglah dengan kami dan tingkatkan pengalaman bermain Anda.",
+    "Dari perencanaan hingga instalasi — Padelix menyediakan konstruksi lapangan dan peralatan padel berkualitas tinggi untuk klub, komunitas, dan bisnis Anda.",
   backgroundImage: "/assets/hero-image.jpg",
-  primaryCta: { text: "Lihat Produk", href: "/products" },
-  secondaryCta: { text: "Hubungi Kami", href: "/#contact" },
+  primaryCta: {
+    text: "Bangun Lapangan",
+    href: `${siteConfig.links.whatsapp}?text=${encodeURIComponent(
+      "Halo Padelix, saya tertarik untuk membangun lapangan padel. Bisakah saya berkonsultasi lebih lanjut?",
+    )}`,
+  },
+  secondaryCta: { text: "Lihat Peralatan", href: "/products" },
 };
+
+const MARQUEE_ITEMS = [
+  "Padel Starts Here",
+  "Lapangan",
+  "Peralatan",
+  "Konstruksi",
+  "Instalasi",
+  "Padelix Indonesia",
+];
 
 const ABOUT_CONTENT = {
   subheading: "Tentang Kami",
@@ -38,6 +60,22 @@ const ABOUT_CONTENT = {
     "Mulai dari perencanaan hingga instalasi, kami memastikan standar tertinggi dalam setiap proyek yang kami tangani.",
   ],
   image: "/assets/about-image.png",
+  steps: [
+    {
+      title: "Perencanaan",
+      description:
+        "Konsultasi kebutuhan, desain, dan spesifikasi lapangan bersama tim kami.",
+    },
+    {
+      title: "Konstruksi",
+      description:
+        "Pembangunan lapangan dengan material berkualitas dan standar internasional.",
+    },
+    {
+      title: "Instalasi",
+      description: "Pemasangan hingga serah terima — lapangan siap digunakan.",
+    },
+  ],
 };
 
 const CERTIFICATES_CONTENT = {
@@ -107,10 +145,20 @@ const CONTACT_CONTENT = {
 };
 
 export default async function Home() {
-  const [featuredProducts, featuredPortfolios] = await Promise.all([
-    getFeaturedProducts(),
-    getFeaturedPortfolios(),
-  ]);
+  const [featuredProducts, featuredPortfolios, publicStats] = await Promise.all(
+    [getFeaturedProducts(), getFeaturedPortfolios(), getPublicStats()],
+  );
+
+  // Real counts only — entries with zero are dropped
+  const heroStats: HeroStat[] = [
+    { value: `${publicStats.projects}`, label: "Proyek & Aktivitas" },
+    { value: `${publicStats.products}`, label: "Produk Katalog" },
+    { value: `${publicStats.brands}`, label: "Brand Dunia" },
+    {
+      value: `${CERTIFICATES_CONTENT.certificates.length}`,
+      label: "Sertifikasi Standar",
+    },
+  ].filter((stat) => stat.value !== "0");
 
   const orgJsonLd = {
     "@context": "https://schema.org",
@@ -148,29 +196,35 @@ export default async function Home() {
         }}
       />
       <Hero
+        kicker={HERO_CONTENT.kicker}
         heading={HERO_CONTENT.heading}
+        headingAccent={HERO_CONTENT.headingAccent}
         subHeading={HERO_CONTENT.subHeading}
         backgroundImage={HERO_CONTENT.backgroundImage}
         primaryCta={HERO_CONTENT.primaryCta}
         secondaryCta={HERO_CONTENT.secondaryCta}
+        stats={heroStats}
       />
+
+      <Marquee items={MARQUEE_ITEMS} />
 
       <About
         subheading={ABOUT_CONTENT.subheading}
         heading={ABOUT_CONTENT.heading}
         description={ABOUT_CONTENT.description}
         image={ABOUT_CONTENT.image}
+        steps={ABOUT_CONTENT.steps}
       />
 
       <FeaturedProducts products={featuredProducts} />
+
+      <Portfolio items={featuredPortfolios} />
 
       <Certifications
         heading={CERTIFICATES_CONTENT.heading}
         subheading={CERTIFICATES_CONTENT.subheading}
         certificates={CERTIFICATES_CONTENT.certificates}
       />
-
-      <Portfolio items={featuredPortfolios} />
 
       <Contact
         subheading={CONTACT_CONTENT.subheading}

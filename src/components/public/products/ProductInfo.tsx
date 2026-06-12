@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/Button";
 import { ProductInfoProps } from "@/types";
+import { SiWhatsapp } from "@icons-pack/react-simple-icons";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -47,12 +48,12 @@ export function ProductInfo({ product }: ProductInfoProps) {
   }, [product.id, product.name]);
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-8 pb-24 lg:pb-0">
       <div className="flex flex-col gap-4">
         {/* Badges */}
         <div className="flex flex-wrap items-center gap-2">
           {product.categoryName && (
-            <span className="rounded-full border border-brand-green/20 bg-brand-light px-3 py-1 text-xs font-black tracking-widest text-brand-green uppercase">
+            <span className="rounded-full border border-lime-500/30 bg-lime-50 px-3 py-1 text-xs font-black tracking-widest text-lime-700 uppercase">
               {product.parentCategoryName
                 ? `${product.parentCategoryName} > ${product.categoryName}`
                 : product.categoryName}
@@ -65,11 +66,13 @@ export function ProductInfo({ product }: ProductInfoProps) {
           )}
         </div>
 
-        <div className="flex flex-col gap-2">
-          <h1 className="h1 leading-tight text-neutral-900">{product.name}</h1>
+        <div className="flex flex-col gap-3">
+          <h1 className="text-3xl leading-tight font-black tracking-tight text-balance text-neutral-900 sm:text-4xl lg:text-5xl">
+            {product.name}
+          </h1>
           {product.showPrice ? (
             <div className="flex flex-col gap-1">
-              <p className="text-3xl font-black tracking-tight text-brand-green">
+              <p className="font-display text-4xl tracking-wide text-lime-600">
                 {formattedPrice}
               </p>
               {selectedVariant &&
@@ -86,7 +89,7 @@ export function ProductInfo({ product }: ProductInfoProps) {
                 )}
             </div>
           ) : (
-            <p className="text-3xl font-black tracking-tight text-brand-green">
+            <p className="font-display text-4xl tracking-wide text-lime-600">
               Hubungi Kami
             </p>
           )}
@@ -104,10 +107,10 @@ export function ProductInfo({ product }: ProductInfoProps) {
               <button
                 key={variant.id}
                 onClick={() => setSelectedVariantId(variant.id ?? null)}
-                className={`rounded-lg border px-4 py-2 text-sm font-medium transition-all ${
+                className={`rounded-full border px-4 py-2 text-sm font-bold transition-all ${
                   selectedVariantId === variant.id
-                    ? "border-brand-green bg-brand-green text-white shadow-md"
-                    : "border-neutral-200 bg-white text-neutral-600 hover:border-brand-green hover:text-brand-green"
+                    ? "border-neutral-900 bg-neutral-900 text-brand-green shadow-md"
+                    : "border-neutral-200 bg-white text-neutral-600 hover:border-lime-500 hover:text-lime-600"
                 }`}
               >
                 {variant.name}
@@ -124,8 +127,8 @@ export function ProductInfo({ product }: ProductInfoProps) {
 
       {/* Specs Table */}
       {product.specs.length > 0 && (
-        <div className="rounded-brand bg-neutral-50 p-6">
-          <h3 className="subheading mb-4 text-neutral-900">Spesifikasi</h3>
+        <div className="rounded-brand border border-neutral-200 bg-brand-light p-6">
+          <h3 className="kicker mb-5 text-lime-600">Spesifikasi</h3>
           <div className="flex flex-col gap-3">
             {product.specs.map((spec, i) => (
               <div
@@ -144,15 +147,37 @@ export function ProductInfo({ product }: ProductInfoProps) {
         </div>
       )}
 
-      <div className="mt-4">
+      <div className="mt-4 hidden lg:block">
         <Link href={whatsappLink} target="_blank">
           <Button
             size="lg"
             onClick={() => trackMetaEvent("Contact")}
             className="w-full bg-[#25D366] text-white shadow-xl transition-all hover:-translate-y-1 hover:bg-[#20ba5a] hover:shadow-2xl"
           >
+            <SiWhatsapp size={20} className="mr-3" />
             Pesan via WhatsApp
           </Button>
+        </Link>
+      </div>
+
+      {/* Mobile sticky order bar (hides the global WhatsApp FAB via CSS) */}
+      <div className="product-sticky-bar fixed inset-x-0 bottom-0 z-40 flex items-center gap-4 border-t border-neutral-200 bg-white/95 px-5 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] backdrop-blur-md lg:hidden">
+        <div className="flex min-w-0 flex-1 flex-col">
+          <span className="truncate text-xs font-bold text-neutral-500">
+            {product.name}
+          </span>
+          <span className="font-display text-lg tracking-wide text-neutral-900">
+            {product.showPrice ? formattedPrice : "Hubungi Kami"}
+          </span>
+        </div>
+        <Link
+          href={whatsappLink}
+          target="_blank"
+          onClick={() => trackMetaEvent("Contact")}
+          className="flex shrink-0 items-center gap-2 rounded-full bg-[#25D366] px-5 py-3 text-sm font-bold text-white shadow-lg transition-all hover:bg-[#20ba5a] active:scale-95"
+        >
+          <SiWhatsapp size={16} />
+          Pesan
         </Link>
       </div>
     </div>

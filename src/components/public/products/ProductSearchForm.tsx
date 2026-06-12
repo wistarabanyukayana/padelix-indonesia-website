@@ -25,7 +25,7 @@ export function ProductSearchForm({ defaultQuery }: ProductSearchFormProps) {
         name="q"
         placeholder="Nama produk..."
         defaultValue={defaultQuery}
-        className="flex-1 rounded-xl bg-neutral-100 p-3 text-sm transition-all outline-none focus:ring-2 focus:ring-brand-green"
+        className="min-w-0 flex-1 rounded-full bg-neutral-100 px-4 py-3 text-sm transition-all outline-none focus:ring-2 focus:ring-brand-green"
       />
       <Button type="submit" variant="dark" size="sm">
         Cari

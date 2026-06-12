@@ -23,8 +23,8 @@ export function ProductCategorySidebar({
     return (
       <Link
         href={`/products?category=${node.id}${brandId ? `&brand=${brandId}` : ""}${query ? `&q=${query}` : ""}`}
-        className={`block py-1 text-sm font-bold transition-all hover:text-brand-green ${
-          isSelected ? "text-brand-green" : "text-neutral-500"
+        className={`block py-1 text-sm font-bold transition-all hover:text-lime-600 ${
+          isSelected ? "text-lime-600" : "text-neutral-500"
         }`}
       >
         {node.label}

@@ -1,4 +1,5 @@
 import { EmptyState } from "@/components/general/EmptyState";
+import { CourtLines } from "@/components/public/CourtLines";
 import { ProductCard } from "@/components/public/products/ProductCard";
 import { ProductCategorySidebar } from "@/components/public/products/ProductCategorySidebar";
 import { ProductSearchForm } from "@/components/public/products/ProductSearchForm";
@@ -65,10 +66,13 @@ async function ProductsContent({ searchParams }: PageProps) {
 
   return (
     <main className="min-h-screen bg-brand-light">
-      <section className="section bg-brand-green pt-16 pb-16 text-neutral-900">
-        <div className="wrapper gap-4 text-center">
-          <h1 className="h1">Katalog Produk</h1>
-          <p className="mx-auto max-w-2xl text-xl font-medium opacity-80">
+      <section className="section relative overflow-hidden bg-court-950 py-16 text-white sm:py-20">
+        <div className="bg-mesh absolute inset-0" aria-hidden />
+        <CourtLines />
+        <div className="wrapper relative items-start gap-4">
+          <span className="kicker text-brand-green">Peralatan Padel</span>
+          <h1 className="display-1 text-white">Katalog Produk</h1>
+          <p className="max-w-2xl text-lg text-pretty text-white/70 sm:text-xl">
             Temukan perlengkapan padel terbaik dari brand ternama dunia.
           </p>
         </div>
@@ -94,9 +98,9 @@ async function ProductsContent({ searchParams }: PageProps) {
               <div className="flex flex-col gap-1">
                 <Link
                   href="/products"
-                  className={`inline-block border-b border-transparent py-2 text-sm font-bold transition-all hover:border-brand-green hover:text-brand-green ${
+                  className={`inline-block border-b border-transparent py-2 text-sm font-bold transition-all hover:border-brand-green hover:text-lime-600 ${
                     !categoryId
-                      ? "border-brand-green text-brand-green"
+                      ? "border-brand-green text-lime-600"
                       : "text-neutral-500"
                   }`}
                 >
@@ -116,10 +120,10 @@ async function ProductsContent({ searchParams }: PageProps) {
                   <Link
                     key={b.id}
                     href={`/products?brand=${b.id}${categoryId ? `&category=${categoryId}` : ""}${query ? `&q=${query}` : ""}`}
-                    className={`rounded-xl border px-4 py-2 text-sm font-bold transition-all ${
+                    className={`rounded-full border px-4 py-2 text-sm font-bold transition-all ${
                       brandId === b.id
-                        ? "border-brand-green bg-brand-green text-white shadow-md"
-                        : "border-transparent bg-white text-neutral-500 hover:text-brand-green"
+                        ? "border-neutral-900 bg-neutral-900 text-brand-green shadow-md"
+                        : "border-neutral-200 bg-white text-neutral-500 hover:border-lime-500 hover:text-lime-600"
                     }`}
                   >
                     {b.name}

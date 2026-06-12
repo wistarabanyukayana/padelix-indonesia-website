@@ -1,6 +1,6 @@
 # Padelix Indonesia Website v2.2.3
 
-A unified fullstack web application for Padelix Indonesia, built with Next.js 15+, Drizzle ORM, and MySQL. This version represents a complete architectural shift from the previous Next.js/Strapi decoupled setup to a more efficient, single-repo fullstack solution.
+A unified fullstack web application for Padelix Indonesia, built with Next.js 16, Drizzle ORM, and Neon PostgreSQL, deployed on Vercel. This version represents a complete architectural shift from the previous Next.js/Strapi decoupled setup to a more efficient, single-repo fullstack solution.
 
 > **Note:** This project was commissioned by Padelix Indonesia and was fully designed, developed, and deployed by Wistara Banyu Kayana. It is featured in my professional portfolio.
 
@@ -53,14 +53,31 @@ This project provides a comprehensive digital platform for Padelix Indonesia:
 
 ## Tech Stack
 
-- **Framework:** Next.js 16+ (App Router)
-- **Database:** MariaDB
+- **Framework:** Next.js 16+ (App Router, Cache Components / PPR)
+- **Database:** Neon PostgreSQL (serverless)
 - **ORM:** Drizzle ORM
 - **Authentication:** Custom JWT-based Auth (jose, bcryptjs)
 - **Styling:** Tailwind CSS 4+
+- **Typography:** Anton (display) + Archivo (body) via `next/font`
 - **Icons:** Lucide React, Simple Icons
-- **Media:** Mux (Video), Local File System (Images/Docs)
+- **Media:** Cloudinary (Images/Video/Documents)
+- **Email:** Resend (Contact form)
 - **Notifications:** Sonner (Toasts)
+- **Hosting:** Vercel
+
+---
+
+## Design System
+
+The public site follows a **"court-side athletic editorial"** direction:
+
+- Dark, green-cast court surfaces (`court-950/900/800` tokens) alternating with light catalog sections; lime (`brand-green`) as the sharp accent.
+- Poster-style display typography (Anton, `.display-1/2/3`) paired with Archivo body text; editorial `.kicker` section labels.
+- Padel-specific decor: court-line motifs (`CourtLines`), glass-wall mesh texture (`.bg-mesh`), and a lime marquee tape strip.
+- Scroll reveals via the `Reveal` component (IntersectionObserver, respects `prefers-reduced-motion`).
+- WhatsApp-first conversion: split hero CTAs (court construction vs. catalog), prefilled product inquiries, and a mobile sticky order bar on product pages.
+
+All tokens live in `src/app/globals.css` under `@theme`.
 
 ---
 
@@ -68,7 +85,7 @@ This project provides a comprehensive digital platform for Padelix Indonesia:
 
 - **Node.js v20+**
 - **pnpm** (Recommended package manager)
-- **MariaDB Database**
+- **Neon PostgreSQL Database** (or any PostgreSQL connection string)
 
 ---
 
@@ -89,29 +106,26 @@ pnpm install
 
 ### 3. Set Up Environment Variables
 
-Create a `.env` file in the root directory:
+Create a `.env` file in the root directory (see `.env.example`):
 
 ```env
-DATABASE_URL='mysql://user:password@localhost:3306/padelix_db'
-SESSION_SECRET='your-long-random-session-secret'
+DATABASE_URL="postgresql://<user>:<password>@<endpoint_hostname>.neon.tech:<port>/<dbname>?sslmode=require&channel_binding=require"
+SESSION_SECRET=your-long-random-session-secret
 
-# Mux Configuration
-MUX_TOKEN_ID='your-mux-token-id'
-MUX_TOKEN_SECRET='your-mux-token-secret'
-MUX_WEBHOOK_SECRET='your-mux-webhook-secret'
+# Cloudinary Image + Video + Documents
+CLOUDINARY_API_KEY=your-cloudinary-api-key
+CLOUDINARY_API_SECRET=your-cloudinary-api-secret
+CLOUDINARY_CLOUD_NAME=your-cloudinary-public-name
 
-# SMTP Configuration
-SMTP_HOST='your-smtp-host'
-SMTP_PORT='587'
-SMTP_USER='your-smtp-username'
-SMTP_PASS='your-smtp-password'
-SMTP_FROM='website@padelix.co.id'
-BUSINESS_EMAIL='business@padelix.co.id'
+# Resend Configuration (For Contact Form)
+RESEND_API_KEY=your-resend-api-key
+EMAIL_FROM=website@padelix.co.id
+BUSINESS_EMAIL=business@padelix.co.id
 
 # Site Configuration
-NEXT_DEV_SITE_URL='http://localhost:3000'
-NEXT_PUBLIC_SITE_URL='https://padelix.co.id'
-NEXT_PUBLIC_META_PIXEL_ID='your-meta-pixel-id'
+NEXT_DEV_SITE_URL=http://localhost:3000
+NEXT_PUBLIC_SITE_URL=https://padelix.co.id
+NEXT_PUBLIC_META_PIXEL_ID=your-meta-pixel-id
 ```
 
 ### 4. Initialize Database
@@ -143,62 +157,21 @@ pnpm dev
 
 ---
 
-## Media & Webhooks
+## Media
 
-### Mux Integration
-
-Videos are processed via Mux for optimal streaming performance.
-
-### Local Webhook Testing (Smee.io)
-
-To receive status updates from Mux (e.g., when a video is ready) during local development:
-
-1.  **Install Smee Client:**
-    ```bash
-    pnpm install --global smee-client
-    ```
-2.  **Start Smee Tunnel:**
-    ```bash
-    smee --url https://smee.io/YOUR_CUSTOM_ID --target http://localhost:3000/api/webhooks/mux
-    ```
-    or
-    ```bash
-    smee --target http://localhost:3000/api/webhooks/mux
-    ```
-3.  **Configure Mux Dashboard:**
-    Add your `https://smee.io/YOUR_CUSTOM_ID` URL as a webhook notification endpoint in the Mux Dashboard settings.
+All media (images, video, documents) is stored and delivered via **Cloudinary**. Uploads from the admin dashboard go straight to Cloudinary; images are optimized (WebP) and served from `res.cloudinary.com`.
 
 ---
 
-## Deployment (Simplified)
+## Deployment
 
-We have streamlined the deployment process into a single command that prepares a production-ready artifact.
+The site is deployed on **Vercel** (with Neon PostgreSQL, Cloudinary, and Resend; DNS via Cloudflare):
 
-### 1. Prepare Release (Local)
+1. Push to `main` — Vercel builds and deploys automatically.
+2. Preview deployments are created for branches/PRs.
+3. Environment variables are managed in the Vercel project settings (same keys as `.env.example`).
 
-Run the following command in your local development environment:
-
-```bash
-pnpm package
-```
-
-This will:
-
-1.  Run linting and build the Next.js application.
-2.  Create a `./release` folder containing:
-    - The Standalone Server (`server.js`).
-    - All required assets (`public`, `.next/static`).
-    - A `package.json` optimized for production install.
-    - **Database Scripts:** `database/` containing schema dumps and `seed_super_admin.sql`.
-    - **Environment:** Automatically copies `.env.prod` to `.env` (if it exists).
-
-### 2. Deploy to Server
-
-1.  **Upload:** Transfer the entire `release` folder to your server (e.g., `public_html` or `/var/www/padelix`).
-2.  **Install:** Run `npm install` inside the folder on the server (installs production dependencies only).
-3.  **Start:** Run `node server.js` (or configure PM2/cPanel to point to `server.js`).
-
-> **Note:** See the generated `DEPLOY_README.md` inside the `release` folder for specific details.
+> **Note:** See [docs/MIGRATION-RUNBOOK.md](./docs/MIGRATION-RUNBOOK.md) for the full infrastructure migration history (Rumahweb → Vercel/Neon/Cloudinary).
 
 ---
 
@@ -213,18 +186,14 @@ This project runs `lint`, `check`, and `build` in CI. The build step is **condit
 
 Without `DATABASE_URL`, CI will still run lint and type checks but skip the build step.
 
-### Production Note (cPanel/LiteSpeed)
+### Full-Reload Redirects After Server Actions (Legacy Workaround)
 
-On the shared cPanel + LiteSpeed environment, we observed intermittent client-side exceptions after auth or form submits (e.g., login/logout/create). The browser requested stale chunk IDs that no longer existed, and a hard refresh fixed it. The current workaround is to force a full page reload after these server actions:
+On the previous shared-hosting setup (cPanel + LiteSpeed) we observed intermittent client-side exceptions after auth or form submits caused by stale chunk IDs. The workaround is still in place:
 
 - Server actions return `{ redirectTo: "/admin/..." }` instead of `redirect(...)`.
 - Client forms detect `redirectTo` and call `window.location.assign(...)`.
 
-If you remove this behavior, the issue may return in that hosting setup.
-
-### File Persistence
-
-Ensure that `public/uploads` is **persisted** (not overwritten) during subsequent deployments, as it stores user-uploaded media.
+It is harmless on Vercel; remove it only if you are confident no deployment target needs it.
 
 ---
 
