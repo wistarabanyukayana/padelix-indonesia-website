@@ -132,11 +132,6 @@
     }
   }
 
-  /* Hide the floating WhatsApp FAB on mobile when a page renders its own sticky CTA bar */
-  body:has(.product-sticky-bar) .wa-fab {
-    @apply hidden lg:flex;
-  }
-
   /* Lightbox Fixes */
   .yarl__container,
   .yarl__full_screen_container,
@@ -215,4 +210,13 @@
     animation: image-loading-blink 1.2s ease-in-out infinite;
     will-change: opacity;
   }
+}
+
+/* Product pages carry their own WhatsApp CTAs (sticky bar on mobile, inline
+   button on desktop), so the floating FAB is redundant there and would overlap
+   them. Kept unlayered: inside @layer components it loses to the element's
+   own `flex` utility, since the utilities layer is declared later and layer
+   order beats selector specificity. */
+body:has(.product-sticky-bar) .wa-fab {
+  display: none;
 }
