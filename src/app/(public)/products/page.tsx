@@ -6,7 +6,13 @@ import { ProductCategorySidebar } from "@/components/public/products/ProductCate
 import { ProductSearchForm } from "@/components/public/products/ProductSearchForm";
 import { TreeNode } from "@/components/ui/CollapsibleTree";
 import { siteConfig } from "@/config/site";
-import { getAllProducts, getBrands, getCategories } from "@/data/public";
+import {
+  getAllProducts,
+  getBrands,
+  getCategories,
+  getCategoryProductCounts,
+} from "@/data/public";
+import { X } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
@@ -46,11 +52,30 @@ async function ProductsContent({ searchParams }: PageProps) {
     typeof category === "string" ? Number(category) : undefined;
   const brandId = typeof brand === "string" ? Number(brand) : undefined;
 
-  const [products, allCategories, brands] = await Promise.all([
+  const [products, allCategories, brands, categoryCounts] = await Promise.all([
     getAllProducts({ query, categoryId, brandId }),
     getCategories(),
     getBrands(),
+    getCategoryProductCounts({ query, brandId }),
   ]);
+
+  // Roll direct product counts up the category tree so parents reflect
+  // everything underneath them (matching the filter semantics)
+  const directCounts = new Map(
+    categoryCounts.map((c) => [c.categoryId, c.count]),
+  );
+  const rolledUpCounts = new Map<number, number>();
+  const rollUpCount = (id: number): number => {
+    const memo = rolledUpCounts.get(id);
+    if (memo !== undefined) return memo;
+    const childSum = allCategories
+      .filter((c) => c.parentId === id)
+      .reduce((sum, child) => sum + rollUpCount(child.id), 0);
+    const total = (directCounts.get(id) ?? 0) + childSum;
+    rolledUpCounts.set(id, total);
+    return total;
+  };
+  const totalCount = categoryCounts.reduce((sum, c) => sum + c.count, 0);
 
   // Build recursive tree for sidebar
   const buildTreeNodes = (parentId: number | null = null): TreeNode[] => {
@@ -60,10 +85,26 @@ async function ProductsContent({ searchParams }: PageProps) {
         id: c.id,
         label: c.name,
         children: buildTreeNodes(c.id),
+        data: { count: rollUpCount(c.id) },
       }));
   };
 
   const treeNodes = buildTreeNodes(null);
+
+  // URL for the current filters minus one of them
+  const filterHref = (omit: "q" | "category" | "brand") => {
+    const params = new URLSearchParams();
+    if (omit !== "q" && query) params.set("q", query);
+    if (omit !== "category" && categoryId)
+      params.set("category", String(categoryId));
+    if (omit !== "brand" && brandId) params.set("brand", String(brandId));
+    const qs = params.toString();
+    return qs ? `/products?${qs}` : "/products";
+  };
+
+  const activeCategory = allCategories.find((c) => c.id === categoryId);
+  const activeBrand = brands.find((b) => b.id === brandId);
+  const hasActiveFilters = Boolean(query || activeCategory || activeBrand);
 
   return (
     <main className="min-h-screen bg-brand-light">
@@ -97,14 +138,21 @@ async function ProductsContent({ searchParams }: PageProps) {
                 </h3>
                 <div className="flex flex-col gap-1">
                   <Link
-                    href="/products"
-                    className={`inline-block border-b border-transparent py-2 text-sm font-bold transition-all hover:border-brand-green hover:text-lime-600 ${
+                    href={filterHref("category")}
+                    className={`flex items-center justify-between gap-2 rounded-full px-3 py-1.5 text-sm font-bold transition-all ${
                       !categoryId
-                        ? "border-brand-green text-lime-600"
-                        : "text-neutral-500"
+                        ? "bg-neutral-900 text-brand-green shadow-md"
+                        : "text-neutral-500 hover:bg-lime-50 hover:text-lime-700"
                     }`}
                   >
-                    Semua Kategori
+                    <span>Semua Kategori</span>
+                    <span
+                      className={`text-[10px] font-black tabular-nums ${
+                        !categoryId ? "text-brand-green/70" : "text-neutral-400"
+                      }`}
+                    >
+                      {totalCount}
+                    </span>
                   </Link>
                   <ProductCategorySidebar treeNodes={treeNodes} />
                 </div>
@@ -131,7 +179,7 @@ async function ProductsContent({ searchParams }: PageProps) {
                   ))}
                   {brandId && (
                     <Link
-                      href="/products"
+                      href={filterHref("brand")}
                       className="mt-1 px-4 py-2 text-xs font-bold text-red-500 hover:underline"
                     >
                       Hapus Filter Brand
@@ -144,14 +192,43 @@ async function ProductsContent({ searchParams }: PageProps) {
 
           {/* Product Grid */}
           <div className="flex flex-1 flex-col gap-8">
-            <div className="flex items-center justify-between border-b border-neutral-100 pb-4">
-              <p className="text-sm font-medium text-neutral-400">
-                Menampilkan{" "}
-                <span className="font-bold text-neutral-900">
-                  {products.length}
-                </span>{" "}
-                produk
-              </p>
+            <div className="flex flex-col gap-3 border-b border-neutral-100 pb-4">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <p className="text-sm font-medium text-neutral-400">
+                  Menampilkan{" "}
+                  <span className="font-bold text-neutral-900">
+                    {products.length}
+                  </span>{" "}
+                  produk
+                </p>
+                {hasActiveFilters && (
+                  <Link
+                    href="/products"
+                    className="text-xs font-bold tracking-wider text-red-500 uppercase hover:underline"
+                  >
+                    Hapus Semua
+                  </Link>
+                )}
+              </div>
+              {hasActiveFilters && (
+                <div className="flex flex-wrap gap-2">
+                  {query && (
+                    <FilterChip label={`"${query}"`} href={filterHref("q")} />
+                  )}
+                  {activeCategory && (
+                    <FilterChip
+                      label={activeCategory.name}
+                      href={filterHref("category")}
+                    />
+                  )}
+                  {activeBrand && (
+                    <FilterChip
+                      label={activeBrand.name}
+                      href={filterHref("brand")}
+                    />
+                  )}
+                </div>
+              )}
             </div>
 
             {products.length > 0 ? (
@@ -175,6 +252,21 @@ async function ProductsContent({ searchParams }: PageProps) {
         </div>
       </section>
     </main>
+  );
+}
+
+function FilterChip({ label, href }: { label: string; href: string }) {
+  return (
+    <Link
+      href={href}
+      className="group flex items-center gap-1.5 rounded-full border border-neutral-200 bg-brand-light px-3 py-1.5 text-xs font-bold text-neutral-700 transition-colors hover:border-red-300 hover:text-red-500"
+    >
+      {label}
+      <X
+        size={12}
+        className="text-neutral-400 transition-colors group-hover:text-red-500"
+      />
+    </Link>
   );
 }
 

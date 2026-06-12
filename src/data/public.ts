@@ -249,6 +249,70 @@ export async function getAllProducts(options?: {
   );
 }
 
+/**
+ * Product counts per category (direct assignment only — roll-ups happen at
+ * the call site), faceted by the active search/brand filters.
+ */
+export async function getCategoryProductCounts(options?: {
+  query?: string;
+  brandId?: number;
+}): Promise<{ categoryId: number | null; count: number }[]> {
+  return getCategoryProductCountsCached(
+    options?.query ?? "",
+    options?.brandId ?? null,
+  );
+}
+
+async function getCategoryProductCountsCached(
+  query: string,
+  brandId: number | null,
+): Promise<{ categoryId: number | null; count: number }[]> {
+  "use cache";
+  cacheTag("public");
+  cacheTag("products");
+
+  try {
+    return await db
+      .select({ categoryId: products.categoryId, count: count() })
+      .from(products)
+      .where(
+        and(
+          eq(products.isActive, true),
+          query ? ilike(products.name, `%${query}%`) : undefined,
+          brandId ? eq(products.brandId, brandId) : undefined,
+        ),
+      )
+      .groupBy(products.categoryId);
+  } catch (error) {
+    logPublicError("getCategoryProductCounts", error);
+    return [];
+  }
+}
+
+/** A category filter matches the category itself plus all its descendants. */
+async function getDescendantCategoryIds(categoryId: number): Promise<number[]> {
+  const allCategories = await db
+    .select({ id: categories.id, parentId: categories.parentId })
+    .from(categories);
+
+  const childrenByParent = new Map<number, number[]>();
+  allCategories.forEach((c) => {
+    if (c.parentId === null) return;
+    const siblings = childrenByParent.get(c.parentId) ?? [];
+    siblings.push(c.id);
+    childrenByParent.set(c.parentId, siblings);
+  });
+
+  const ids: number[] = [];
+  const queue = [categoryId];
+  while (queue.length > 0) {
+    const id = queue.shift()!;
+    ids.push(id);
+    queue.push(...(childrenByParent.get(id) ?? []));
+  }
+  return ids;
+}
+
 async function getAllProductsCached(
   query: string,
   categoryId: number | null,
@@ -259,10 +323,14 @@ async function getAllProductsCached(
   cacheTag("products");
 
   try {
+    const categoryIds = categoryId
+      ? await getDescendantCategoryIds(categoryId)
+      : null;
+
     const whereClause = and(
       eq(products.isActive, true),
       query ? ilike(products.name, `%${query}%`) : undefined,
-      categoryId ? eq(products.categoryId, categoryId) : undefined,
+      categoryIds ? inArray(products.categoryId, categoryIds) : undefined,
       brandId ? eq(products.brandId, brandId) : undefined,
     );
 
