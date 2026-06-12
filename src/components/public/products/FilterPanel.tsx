@@ -43,7 +43,14 @@ export function FilterPanel({ activeFilterCount, children }: FilterPanelProps) {
         />
       </button>
 
-      <div className={cn("flex-col gap-8", open ? "flex" : "hidden lg:flex")}>
+      {/* Capped + scrollable on mobile because the panel opens inside the
+          sticky filter bar */}
+      <div
+        className={cn(
+          "max-h-[60vh] flex-col gap-8 overflow-y-auto overscroll-contain lg:max-h-none lg:overflow-visible",
+          open ? "flex" : "hidden lg:flex",
+        )}
+      >
         {children}
       </div>
     </div>
