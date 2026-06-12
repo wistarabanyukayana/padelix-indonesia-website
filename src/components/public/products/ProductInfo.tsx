@@ -47,6 +47,16 @@ export function ProductInfo({ product }: ProductInfoProps) {
     });
   }, [product.id, product.name]);
 
+  // Hide the global WhatsApp FAB while this page is visible. Done via effect
+  // rather than CSS :has(): Next keeps visited pages hidden in the DOM
+  // (Activity), so the sticky bar node would keep a :has() selector matched
+  // after navigating away. Activity unmounts effects when hiding the page,
+  // so the cleanup runs at the right time.
+  useEffect(() => {
+    document.body.classList.add("has-product-sticky-bar");
+    return () => document.body.classList.remove("has-product-sticky-bar");
+  }, []);
+
   return (
     <div className="flex flex-col gap-8 pb-24 lg:pb-0">
       <div className="flex flex-col gap-4">

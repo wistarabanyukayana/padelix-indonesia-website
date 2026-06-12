@@ -214,9 +214,11 @@
 
 /* Product pages carry their own WhatsApp CTAs (sticky bar on mobile, inline
    button on desktop), so the floating FAB is redundant there and would overlap
-   them. Kept unlayered: inside @layer components it loses to the element's
-   own `flex` utility, since the utilities layer is declared later and layer
-   order beats selector specificity. */
-body:has(.product-sticky-bar) .wa-fab {
+   them. The body class is toggled by an effect in ProductInfo — a :has()
+   selector would stay matched after navigating away, because Next keeps
+   visited pages hidden in the DOM (Activity). Kept unlayered: inside
+   @layer components it loses to the element's own `flex` utility, since the
+   utilities layer is declared later and layer order beats specificity. */
+body.has-product-sticky-bar .wa-fab {
   display: none;
 }
