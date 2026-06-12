@@ -1,5 +1,6 @@
 import { EmptyState } from "@/components/general/EmptyState";
 import { CourtLines } from "@/components/public/CourtLines";
+import { FilterPanel } from "@/components/public/products/FilterPanel";
 import { ProductCard } from "@/components/public/products/ProductCard";
 import { ProductCategorySidebar } from "@/components/public/products/ProductCategorySidebar";
 import { ProductSearchForm } from "@/components/public/products/ProductSearchForm";
@@ -81,64 +82,63 @@ async function ProductsContent({ searchParams }: PageProps) {
       <section className="section bg-white">
         <div className="wrapper gap-12 lg:flex-row lg:items-start">
           {/* Sidebar Filters */}
-          <aside className="flex w-full shrink-0 flex-col gap-8 lg:w-64">
+          <aside className="flex w-full shrink-0 flex-col gap-6 lg:w-64 lg:gap-8">
             {/* Search */}
-            <div className="flex flex-col gap-3">
-              <h3 className="text-sm font-black tracking-widest text-neutral-400 uppercase">
-                Cari
-              </h3>
-              <ProductSearchForm defaultQuery={query} />
-            </div>
+            <ProductSearchForm defaultQuery={query} />
 
-            {/* Categories Tree */}
-            <div className="flex flex-col gap-3">
-              <h3 className="text-sm font-black tracking-widest text-neutral-400 uppercase">
-                Kategori
-              </h3>
-              <div className="flex flex-col gap-1">
-                <Link
-                  href="/products"
-                  className={`inline-block border-b border-transparent py-2 text-sm font-bold transition-all hover:border-brand-green hover:text-lime-600 ${
-                    !categoryId
-                      ? "border-brand-green text-lime-600"
-                      : "text-neutral-500"
-                  }`}
-                >
-                  Semua Kategori
-                </Link>
-                <ProductCategorySidebar treeNodes={treeNodes} />
-              </div>
-            </div>
-
-            {/* Brands */}
-            <div className="flex flex-col gap-3">
-              <h3 className="text-sm font-black tracking-widest text-neutral-400 uppercase">
-                Brand
-              </h3>
-              <div className="flex flex-wrap gap-1 lg:flex-col">
-                {brands.map((b) => (
-                  <Link
-                    key={b.id}
-                    href={`/products?brand=${b.id}${categoryId ? `&category=${categoryId}` : ""}${query ? `&q=${query}` : ""}`}
-                    className={`rounded-full border px-4 py-2 text-sm font-bold transition-all ${
-                      brandId === b.id
-                        ? "border-neutral-900 bg-neutral-900 text-brand-green shadow-md"
-                        : "border-neutral-200 bg-white text-neutral-500 hover:border-lime-500 hover:text-lime-600"
-                    }`}
-                  >
-                    {b.name}
-                  </Link>
-                ))}
-                {brandId && (
+            <FilterPanel
+              activeFilterCount={(categoryId ? 1 : 0) + (brandId ? 1 : 0)}
+            >
+              {/* Categories Tree */}
+              <div className="flex flex-col gap-3">
+                <h3 className="text-sm font-black tracking-widest text-neutral-400 uppercase">
+                  Kategori
+                </h3>
+                <div className="flex flex-col gap-1">
                   <Link
                     href="/products"
-                    className="mt-1 px-4 py-2 text-xs font-bold text-red-500 hover:underline"
+                    className={`inline-block border-b border-transparent py-2 text-sm font-bold transition-all hover:border-brand-green hover:text-lime-600 ${
+                      !categoryId
+                        ? "border-brand-green text-lime-600"
+                        : "text-neutral-500"
+                    }`}
                   >
-                    Hapus Filter Brand
+                    Semua Kategori
                   </Link>
-                )}
+                  <ProductCategorySidebar treeNodes={treeNodes} />
+                </div>
               </div>
-            </div>
+
+              {/* Brands */}
+              <div className="flex flex-col gap-3">
+                <h3 className="text-sm font-black tracking-widest text-neutral-400 uppercase">
+                  Brand
+                </h3>
+                <div className="flex flex-wrap gap-1 lg:flex-col">
+                  {brands.map((b) => (
+                    <Link
+                      key={b.id}
+                      href={`/products?brand=${b.id}${categoryId ? `&category=${categoryId}` : ""}${query ? `&q=${query}` : ""}`}
+                      className={`rounded-full border px-4 py-2 text-sm font-bold transition-all ${
+                        brandId === b.id
+                          ? "border-neutral-900 bg-neutral-900 text-brand-green shadow-md"
+                          : "border-neutral-200 bg-white text-neutral-500 hover:border-lime-500 hover:text-lime-600"
+                      }`}
+                    >
+                      {b.name}
+                    </Link>
+                  ))}
+                  {brandId && (
+                    <Link
+                      href="/products"
+                      className="mt-1 px-4 py-2 text-xs font-bold text-red-500 hover:underline"
+                    >
+                      Hapus Filter Brand
+                    </Link>
+                  )}
+                </div>
+              </div>
+            </FilterPanel>
           </aside>
 
           {/* Product Grid */}
