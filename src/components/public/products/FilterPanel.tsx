@@ -2,7 +2,7 @@
 
 import { cn } from "@/lib/utils";
 import { ChevronDown, SlidersHorizontal } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 interface FilterPanelProps {
   activeFilterCount: number;
@@ -16,6 +16,19 @@ interface FilterPanelProps {
 export function FilterPanel({ activeFilterCount, children }: FilterPanelProps) {
   // Auto-expand on mobile when filters are already active
   const [open, setOpen] = useState(activeFilterCount > 0);
+
+  // Close the panel once the user scrolls the page away from where they
+  // opened it. The threshold absorbs the layout shift of opening (and any
+  // scroll-anchoring correction), which would otherwise close it instantly.
+  useEffect(() => {
+    if (!open) return;
+    const openedAtY = window.scrollY;
+    const handleScroll = () => {
+      if (Math.abs(window.scrollY - openedAtY) > 24) setOpen(false);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [open]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -44,10 +57,11 @@ export function FilterPanel({ activeFilterCount, children }: FilterPanelProps) {
       </button>
 
       {/* Capped + scrollable on mobile because the panel opens inside the
-          sticky filter bar; the card background separates it from the page */}
+          sticky filter bar; the card background separates it from the page.
+          No overscroll-contain: short panels must chain swipes to the page */}
       <div
         className={cn(
-          "max-h-[60vh] flex-col gap-8 overflow-y-auto overscroll-contain rounded-3xl bg-neutral-50 p-4 lg:max-h-none lg:overflow-visible lg:rounded-none lg:bg-transparent lg:p-0",
+          "max-h-[60vh] flex-col gap-8 overflow-y-auto rounded-3xl bg-neutral-50 p-4 lg:max-h-none lg:overflow-visible lg:rounded-none lg:bg-transparent lg:p-0",
           open ? "flex" : "hidden lg:flex",
         )}
       >
