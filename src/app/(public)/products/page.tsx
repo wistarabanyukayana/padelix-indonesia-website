@@ -130,7 +130,7 @@ async function ProductsContent({ searchParams }: PageProps) {
         <div className="wrapper gap-12 lg:flex-row lg:items-start">
           {/* Sidebar Filters: pinned under the header on mobile (full-bleed
               bar), sticky sidebar on desktop */}
-          <aside className="sticky top-[var(--app-header-height,4.5rem)] z-30 -mx-6 flex shrink-0 flex-col gap-4 border-b border-neutral-100 bg-white px-6 py-3 sm:-mx-12 sm:px-12 md:-mx-20 md:px-20 lg:top-[calc(var(--app-header-height,5rem)+1.5rem)] lg:z-auto lg:mx-0 lg:max-h-[calc(100vh-9rem)] lg:w-64 lg:gap-8 lg:self-start lg:overflow-y-auto lg:border-0 lg:px-0 lg:py-0">
+          <aside className="sticky top-[var(--app-header-height,4.5rem)] z-30 -mx-6 flex shrink-0 flex-col gap-4 border-b border-neutral-100 bg-white px-6 py-3 sm:-mx-12 sm:px-12 md:-mx-20 md:px-20 lg:top-[calc(var(--app-header-height,5rem)+1rem)] lg:z-auto lg:-m-2 lg:max-h-[calc(100vh-8rem)] lg:w-68 lg:gap-8 lg:self-start lg:overflow-y-auto lg:border-0 lg:p-2">
             {/* Search */}
             <ProductSearchForm defaultQuery={query} />
 
