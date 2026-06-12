@@ -178,6 +178,9 @@ export function Header() {
 
         {/* Mobile Toggle */}
         <button
+          type="button"
+          aria-label={isOpen ? "Tutup menu navigasi" : "Buka menu navigasi"}
+          aria-expanded={isOpen}
           className="p-2 text-neutral-900 md:hidden"
           onClick={() => setIsOpen(!isOpen)}
         >

@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/Button";
 import { ProductInfoProps } from "@/types";
+import { SiWhatsapp } from "@icons-pack/react-simple-icons";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -46,8 +47,18 @@ export function ProductInfo({ product }: ProductInfoProps) {
     });
   }, [product.id, product.name]);
 
+  // Hide the global WhatsApp FAB while this page is visible (it overlaps the
+  // page's own CTAs). Done via effect rather than CSS :has(): Next keeps
+  // visited pages hidden in the DOM (Activity), so the sticky bar node would
+  // keep a :has() selector matched after navigating away. Activity unmounts
+  // effects when hiding the page, so the cleanup runs at the right time.
+  useEffect(() => {
+    document.body.classList.add("has-product-sticky-bar");
+    return () => document.body.classList.remove("has-product-sticky-bar");
+  }, []);
+
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-8 pb-24 lg:pb-0">
       <div className="flex flex-col gap-4">
         {/* Badges */}
         <div className="flex flex-wrap items-center gap-2">
@@ -144,7 +155,7 @@ export function ProductInfo({ product }: ProductInfoProps) {
         </div>
       )}
 
-      <div className="mt-4">
+      <div className="mt-4 hidden lg:block">
         <Link href={whatsappLink} target="_blank">
           <Button
             size="lg"
@@ -153,6 +164,28 @@ export function ProductInfo({ product }: ProductInfoProps) {
           >
             Pesan via WhatsApp
           </Button>
+        </Link>
+      </div>
+
+      {/* Mobile sticky order bar (hides the global WhatsApp FAB via the
+          body class above) */}
+      <div className="product-sticky-bar fixed inset-x-0 bottom-0 z-40 flex items-center gap-4 border-t border-neutral-200 bg-white/95 px-5 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] backdrop-blur-md lg:hidden">
+        <div className="flex min-w-0 flex-1 flex-col">
+          <span className="truncate text-xs font-bold text-neutral-500">
+            {product.name}
+          </span>
+          <span className="text-lg font-black tracking-tight text-neutral-900">
+            {product.showPrice ? formattedPrice : "Hubungi Kami"}
+          </span>
+        </div>
+        <Link
+          href={whatsappLink}
+          target="_blank"
+          onClick={() => trackMetaEvent("Contact")}
+          className="flex shrink-0 items-center gap-2 rounded-full bg-[#25D366] px-5 py-3 text-sm font-bold text-white shadow-lg transition-all hover:bg-[#20ba5a] active:scale-95"
+        >
+          <SiWhatsapp size={16} />
+          Pesan
         </Link>
       </div>
     </div>
