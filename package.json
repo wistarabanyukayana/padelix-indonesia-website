@@ -19,8 +19,8 @@
   "dependencies": {
     "@icons-pack/react-simple-icons": "^13.8.0",
     "@neondatabase/serverless": "^1.1.0",
-    "@typescript-eslint/eslint-plugin": "^8.52.0",
-    "@typescript-eslint/parser": "^8.52.0",
+    "@typescript-eslint/eslint-plugin": "^8.61.0",
+    "@typescript-eslint/parser": "^8.61.0",
     "bcryptjs": "^3.0.3",
     "cloudinary": "^2.10.0",
     "clsx": "^2.1.1",
@@ -28,12 +28,12 @@
     "drizzle-orm": "1.0.0-beta.9-e89174b",
     "eslint-plugin-drizzle": "^0.2.3",
     "jose": "^6.1.3",
-    "lucide-react": "^0.562.0",
-    "next": "16.1.4",
-    "postcss": "^8.5.6",
-    "react": "19.2.3",
-    "react-dom": "19.2.3",
-    "resend": "^6.12.3",
+    "lucide-react": "^1.17.0",
+    "next": "16.2.9",
+    "postcss": "^8.5.15",
+    "react": "19.2.7",
+    "react-dom": "19.2.7",
+    "resend": "^6.12.4",
     "server-only": "^0.0.1",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.4.0",
@@ -42,27 +42,25 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.18",
-    "@types/node": "^20.19.27",
-    "@types/react": "19.2.9",
+    "@types/node": "^25.9.3",
+    "@types/react": "19.2.17",
     "@types/react-dom": "19.2.3",
     "drizzle-kit": "1.0.0-beta.9-e89174b",
-    "eslint": "^9.39.2",
-    "eslint-config-next": "16.1.4",
+    "eslint": "^10.4.1",
+    "eslint-config-next": "16.2.9",
     "eslint-config-prettier": "^10.1.8",
-    "prettier": "^3.8.1",
+    "prettier": "^3.8.4",
     "prettier-plugin-organize-imports": "^4.3.0",
-    "prettier-plugin-tailwindcss": "^0.7.2",
-    "stylelint": "^17.0.0",
+    "prettier-plugin-tailwindcss": "^0.8.0",
+    "stylelint": "^17.13.0",
     "stylelint-config-standard": "^40.0.0",
     "stylelint-config-tailwindcss": "^1.0.1",
     "tailwindcss": "^4.1.18",
-    "tsx": "^4.21.0",
-    "typescript": "^5.9.3"
+    "tsx": "^4.22.4",
+    "typescript": "^6.0.3"
   },
-  "pnpm": {
-    "overrides": {
-      "esbuild": ">=0.25.0"
-    }
+  "resolutions": {
+    "esbuild": ">=0.25.0"
   },
   "overrides": {
     "@types/react": "19.2.9",
