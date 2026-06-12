@@ -289,6 +289,49 @@ async function getCategoryProductCountsCached(
   }
 }
 
+/**
+ * Product counts per brand, faceted by the active search/category filters.
+ */
+export async function getBrandProductCounts(options?: {
+  query?: string;
+  categoryId?: number;
+}): Promise<{ brandId: number | null; count: number }[]> {
+  return getBrandProductCountsCached(
+    options?.query ?? "",
+    options?.categoryId ?? null,
+  );
+}
+
+async function getBrandProductCountsCached(
+  query: string,
+  categoryId: number | null,
+): Promise<{ brandId: number | null; count: number }[]> {
+  "use cache";
+  cacheTag("public");
+  cacheTag("products");
+
+  try {
+    const categoryIds = categoryId
+      ? await getDescendantCategoryIds(categoryId)
+      : null;
+
+    return await db
+      .select({ brandId: products.brandId, count: count() })
+      .from(products)
+      .where(
+        and(
+          eq(products.isActive, true),
+          query ? ilike(products.name, `%${query}%`) : undefined,
+          categoryIds ? inArray(products.categoryId, categoryIds) : undefined,
+        ),
+      )
+      .groupBy(products.brandId);
+  } catch (error) {
+    logPublicError("getBrandProductCounts", error);
+    return [];
+  }
+}
+
 /** A category filter matches the category itself plus all its descendants. */
 async function getDescendantCategoryIds(categoryId: number): Promise<number[]> {
   const allCategories = await db
