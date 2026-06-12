@@ -1,6 +1,5 @@
 "use client";
 
-import { Button } from "@/components/ui/Button";
 import { trackMetaEvent } from "@/lib/metaPixel";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, useEffect, useRef, useState, useTransition } from "react";
@@ -68,7 +67,7 @@ export function ProductSearchForm({ defaultQuery }: ProductSearchFormProps) {
   };
 
   return (
-    <form role="search" className="flex gap-2" onSubmit={handleSubmit}>
+    <form role="search" className="relative" onSubmit={handleSubmit}>
       <input
         ref={inputRef}
         type="search"
@@ -78,17 +77,16 @@ export function ProductSearchForm({ defaultQuery }: ProductSearchFormProps) {
         onChange={(event) => handleChange(event.target.value)}
         enterKeyHint="search"
         aria-label="Cari produk"
-        className="min-w-0 flex-1 rounded-xl bg-neutral-100 p-3 text-sm transition-all outline-none focus:ring-2 focus:ring-brand-green"
+        className="w-full rounded-xl bg-neutral-100 p-3 pr-16 text-sm transition-all outline-none focus:ring-2 focus:ring-brand-green"
       />
-      <Button
+      <button
         type="submit"
-        variant="dark"
-        size="sm"
         disabled={isPending}
         aria-busy={isPending}
+        className="absolute top-1/2 right-1.5 -translate-y-1/2 rounded-lg bg-brand-dark px-3 py-1.5 text-xs font-bold text-white transition-colors hover:bg-black active:scale-95 disabled:opacity-50"
       >
         Cari
-      </Button>
+      </button>
     </form>
   );
 }
