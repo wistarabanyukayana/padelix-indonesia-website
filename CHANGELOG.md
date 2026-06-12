@@ -6,6 +6,15 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
 
 ## [3.0.0] - 2026-06-12
 
+### Infrastructure (Breaking)
+
+- **Hosting migrated to Vercel** (from Rumahweb shared hosting): automatic deployments from `main`, preview deployments per branch; the `pnpm package` release-artifact flow is no longer the deployment path.
+- **Database migrated to Neon PostgreSQL** (from MariaDB/MySQL) via the `@neondatabase/serverless` driver.
+- **Media migrated to Cloudinary** (from local `public/uploads` + Mux video): images, video, and documents are now stored and delivered through Cloudinary.
+- **Transactional email migrated to Resend** (from SMTP) for the contact form.
+- **Environment variables changed:** `DATABASE_URL` is now a PostgreSQL connection string; Cloudinary and Resend keys replace the Mux and SMTP configuration — see `.env.example`.
+- Full migration procedure documented in [docs/MIGRATION-RUNBOOK.md](./docs/MIGRATION-RUNBOOK.md).
+
 ### Added
 
 - **"Court-side athletic editorial" design language:** dark court-green surfaces (`court-950/900/800` tokens), lime accents, Anton display + Archivo body typography, padel court-line motifs (`CourtLines`), glass-mesh texture, and a lime marquee tape strip.
