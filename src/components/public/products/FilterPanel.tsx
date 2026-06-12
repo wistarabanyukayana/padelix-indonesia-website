@@ -44,10 +44,10 @@ export function FilterPanel({ activeFilterCount, children }: FilterPanelProps) {
       </button>
 
       {/* Capped + scrollable on mobile because the panel opens inside the
-          sticky filter bar */}
+          sticky filter bar; the card background separates it from the page */}
       <div
         className={cn(
-          "max-h-[60vh] flex-col gap-8 overflow-y-auto overscroll-contain lg:max-h-none lg:overflow-visible",
+          "max-h-[60vh] flex-col gap-8 overflow-y-auto overscroll-contain rounded-3xl bg-neutral-50 p-4 lg:max-h-none lg:overflow-visible lg:rounded-none lg:bg-transparent lg:p-0",
           open ? "flex" : "hidden lg:flex",
         )}
       >

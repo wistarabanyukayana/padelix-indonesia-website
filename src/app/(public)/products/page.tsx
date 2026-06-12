@@ -8,10 +8,12 @@ import { TreeNode } from "@/components/ui/CollapsibleTree";
 import { siteConfig } from "@/config/site";
 import {
   getAllProducts,
+  getBrandProductCounts,
   getBrands,
   getCategories,
   getCategoryProductCounts,
 } from "@/data/public";
+import { cn } from "@/lib/utils";
 import { X } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -52,12 +54,16 @@ async function ProductsContent({ searchParams }: PageProps) {
     typeof category === "string" ? Number(category) : undefined;
   const brandId = typeof brand === "string" ? Number(brand) : undefined;
 
-  const [products, allCategories, brands, categoryCounts] = await Promise.all([
-    getAllProducts({ query, categoryId, brandId }),
-    getCategories(),
-    getBrands(),
-    getCategoryProductCounts({ query, brandId }),
-  ]);
+  const [products, allCategories, brands, categoryCounts, brandCounts] =
+    await Promise.all([
+      getAllProducts({ query, categoryId, brandId }),
+      getCategories(),
+      getBrands(),
+      getCategoryProductCounts({ query, brandId }),
+      getBrandProductCounts({ query, categoryId }),
+    ]);
+
+  const brandCountMap = new Map(brandCounts.map((c) => [c.brandId, c.count]));
 
   // Roll direct product counts up the category tree so parents reflect
   // everything underneath them (matching the filter semantics)
@@ -163,28 +169,42 @@ async function ProductsContent({ searchParams }: PageProps) {
                 <h3 className="text-sm font-black tracking-widest text-neutral-400 uppercase">
                   Brand
                 </h3>
-                <div className="flex flex-wrap gap-1 lg:flex-col">
-                  {brands.map((b) => (
-                    <Link
-                      key={b.id}
-                      href={`/products?brand=${b.id}${categoryId ? `&category=${categoryId}` : ""}${query ? `&q=${query}` : ""}`}
-                      className={`rounded-full border px-4 py-2 text-sm font-bold transition-all ${
-                        brandId === b.id
-                          ? "border-neutral-900 bg-neutral-900 text-brand-green shadow-md"
-                          : "border-neutral-200 bg-white text-neutral-500 hover:border-lime-500 hover:text-lime-600"
-                      }`}
-                    >
-                      {b.name}
-                    </Link>
-                  ))}
-                  {brandId && (
-                    <Link
-                      href={filterHref("brand")}
-                      className="mt-1 px-4 py-2 text-xs font-bold text-red-500 hover:underline"
-                    >
-                      Hapus Filter Brand
-                    </Link>
-                  )}
+                {/* Chips on mobile, quiet rows (like the category tree) on desktop */}
+                <div className="flex flex-wrap gap-1.5 lg:flex-col lg:gap-0.5">
+                  {brands.map((b) => {
+                    const isSelected = brandId === b.id;
+                    const brandCount = brandCountMap.get(b.id) ?? 0;
+                    const isEmpty = brandCount === 0;
+                    return (
+                      <Link
+                        key={b.id}
+                        href={`/products?brand=${b.id}${categoryId ? `&category=${categoryId}` : ""}${query ? `&q=${query}` : ""}`}
+                        aria-current={isSelected ? "true" : undefined}
+                        className={cn(
+                          "flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-bold transition-all lg:justify-between lg:border-0 lg:px-3 lg:py-1.5",
+                          isSelected
+                            ? "border-neutral-900 bg-neutral-900 text-brand-green shadow-md"
+                            : isEmpty
+                              ? "border-neutral-200 bg-white text-neutral-300 hover:text-neutral-400 lg:hover:bg-neutral-50"
+                              : "border-neutral-200 bg-white text-neutral-500 hover:border-lime-500 hover:text-lime-600 lg:hover:bg-lime-50 lg:hover:text-lime-700",
+                        )}
+                      >
+                        <span className="truncate">{b.name}</span>
+                        <span
+                          className={cn(
+                            "text-[10px] font-black tabular-nums",
+                            isSelected
+                              ? "text-brand-green/70"
+                              : isEmpty
+                                ? "text-neutral-300"
+                                : "text-neutral-400",
+                          )}
+                        >
+                          {brandCount}
+                        </span>
+                      </Link>
+                    );
+                  })}
                 </div>
               </div>
             </FilterPanel>
@@ -213,16 +233,22 @@ async function ProductsContent({ searchParams }: PageProps) {
               {hasActiveFilters && (
                 <div className="flex flex-wrap gap-2">
                   {query && (
-                    <FilterChip label={`"${query}"`} href={filterHref("q")} />
+                    <FilterChip
+                      prefix="Cari"
+                      label={`"${query}"`}
+                      href={filterHref("q")}
+                    />
                   )}
                   {activeCategory && (
                     <FilterChip
+                      prefix="Kategori"
                       label={activeCategory.name}
                       href={filterHref("category")}
                     />
                   )}
                   {activeBrand && (
                     <FilterChip
+                      prefix="Brand"
                       label={activeBrand.name}
                       href={filterHref("brand")}
                     />
@@ -255,12 +281,23 @@ async function ProductsContent({ searchParams }: PageProps) {
   );
 }
 
-function FilterChip({ label, href }: { label: string; href: string }) {
+function FilterChip({
+  prefix,
+  label,
+  href,
+}: {
+  prefix: string;
+  label: string;
+  href: string;
+}) {
   return (
     <Link
       href={href}
       className="group flex items-center gap-1.5 rounded-full border border-neutral-200 bg-brand-light px-3 py-1.5 text-xs font-bold text-neutral-700 transition-colors hover:border-red-300 hover:text-red-500"
     >
+      <span className="font-medium text-neutral-400 transition-colors group-hover:text-red-400">
+        {prefix}:
+      </span>
       {label}
       <X
         size={12}
