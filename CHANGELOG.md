@@ -4,6 +4,38 @@ All notable changes to this project will be documented in this file.
 
 The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/)**, and this project adheres to **[Semantic Versioning](https://semver.org/spec/v2.0.0.html)**.
 
+## [3.0.0] - 2026-06-12
+
+### Added
+
+- **"Court-side athletic editorial" design language:** dark court-green surfaces (`court-950/900/800` tokens), lime accents, Anton display + Archivo body typography, padel court-line motifs (`CourtLines`), glass-mesh texture, and a lime marquee tape strip.
+- **Hero revamp:** left-aligned editorial layout, split CTAs (court construction via WhatsApp vs. catalog), and a stats strip driven by real database counts (`getPublicStats`).
+- **About process steps:** Perencanaan → Konstruksi → Instalasi cards.
+- **Portfolio spotlight grid:** asymmetric editorial layout featuring the first project.
+- **Faceted catalog filters:** per-category (rolled up the tree) and per-brand product counts that respect the active search/filters; zero-count entries dimmed; active filters shown as removable chips with a "Hapus Semua" reset.
+- **Live product search:** debounced client-side navigation updates results as you type, preserving active filters; no full page reloads.
+- **Mobile catalog UX:** search + filters pinned under the header, collapsible filter panel with active-filter badge, auto-close on scroll, swipe-through scrolling.
+- **Product page conversion:** variant-aware mobile sticky WhatsApp order bar; global WhatsApp FAB hidden on product pages to avoid CTA overlap.
+- **Skeleton loading states:** catalog and product detail stream in over layout-matching skeletons instead of a blank page.
+- **Scroll reveals:** IntersectionObserver-based `Reveal` component (respects `prefers-reduced-motion`).
+
+### Changed
+
+- **Category filtering matches descendants:** selecting a parent category now includes products from its subcategories (was exact-match).
+- **Typography:** Lato/Inter replaced by Anton (display) + Archivo (body).
+- **Header:** active nav states, WhatsApp CTA, blur backdrop, legible logo sizing, aria labels on the menu toggle.
+- **Footer:** three-column layout with social links, navigation, contact, and dynamic year.
+- **Certifications:** light card grid with red accent (replaces the full-red section).
+- **Contact:** dark section with WhatsApp-first info column and the form on a white card.
+- **404 page:** restyled to the new dark court identity.
+- **README:** stack documentation refreshed (Neon PostgreSQL, Cloudinary, Resend, Vercel) and the design system documented.
+
+### Fixed
+
+- Searching no longer clears active category/brand filters; "Semua Kategori" and filter-removal links remove only their own filter.
+- Desktop filter sidebar no longer clips the search box edges (scroll-container padding).
+- WhatsApp FAB no longer overlaps product page CTAs and reappears correctly after client-side navigation.
+
 ## [2.2.3] - 2026-01-26
 
 ### Added
