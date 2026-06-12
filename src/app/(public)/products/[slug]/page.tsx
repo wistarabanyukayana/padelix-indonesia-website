@@ -117,7 +117,7 @@ async function ProductDetailContent({ params }: PageProps) {
   };
 
   return (
-    <main className="min-h-screen bg-white">
+    <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -127,18 +127,6 @@ async function ProductDetailContent({ params }: PageProps) {
           ),
         }}
       />
-      {/* Breadcrumb / Back */}
-      <div className="border-b border-neutral-200 bg-brand-light px-6 py-4">
-        <div className="mx-auto max-w-7xl">
-          <Link
-            href="/products"
-            className="flex items-center gap-2 text-sm font-bold tracking-widest text-neutral-500 uppercase hover:text-brand-green"
-          >
-            ← Kembali ke Katalog
-          </Link>
-        </div>
-      </div>
-
       <div className="mx-auto flex max-w-7xl flex-col gap-12 px-6 py-12 lg:flex-row lg:gap-20 lg:py-20">
         {/* Images */}
         <div className="w-full lg:w-1/2">
@@ -153,14 +141,60 @@ async function ProductDetailContent({ params }: PageProps) {
           <ProductInfo product={product} />
         </div>
       </div>
-    </main>
+    </>
+  );
+}
+
+/* Mirrors the product layout while the data streams in */
+function ProductDetailSkeleton() {
+  return (
+    <div className="mx-auto flex max-w-7xl flex-col gap-12 px-6 py-12 lg:flex-row lg:gap-20 lg:py-20">
+      <div className="w-full lg:w-1/2">
+        <div className="aspect-square w-full animate-pulse rounded-brand bg-neutral-100" />
+        <div className="mt-4 grid grid-cols-4 gap-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div
+              key={i}
+              className="aspect-square animate-pulse rounded-xl bg-neutral-100"
+            />
+          ))}
+        </div>
+      </div>
+      <div className="flex w-full flex-col gap-6 lg:w-1/2">
+        <div className="flex gap-2">
+          <div className="h-6 w-28 animate-pulse rounded-full bg-neutral-100" />
+          <div className="h-6 w-20 animate-pulse rounded-full bg-neutral-100" />
+        </div>
+        <div className="h-10 w-4/5 animate-pulse rounded-lg bg-neutral-100" />
+        <div className="h-8 w-2/5 animate-pulse rounded-lg bg-neutral-100" />
+        <div className="mt-2 flex flex-col gap-3">
+          <div className="h-4 w-full animate-pulse rounded bg-neutral-100" />
+          <div className="h-4 w-full animate-pulse rounded bg-neutral-100" />
+          <div className="h-4 w-2/3 animate-pulse rounded bg-neutral-100" />
+        </div>
+        <div className="mt-4 hidden h-14 w-full animate-pulse rounded-brand bg-neutral-100 lg:block" />
+      </div>
+    </div>
   );
 }
 
 export default function ProductDetailPage({ params }: PageProps) {
   return (
-    <Suspense fallback={<main className="min-h-screen bg-white" />}>
-      <ProductDetailContent params={params} />
-    </Suspense>
+    <main className="min-h-screen bg-white">
+      {/* Breadcrumb renders instantly — only the product data streams */}
+      <div className="border-b border-neutral-200 bg-brand-light px-6 py-4">
+        <div className="mx-auto max-w-7xl">
+          <Link
+            href="/products"
+            className="flex items-center gap-2 text-sm font-bold tracking-widest text-neutral-500 uppercase hover:text-brand-green"
+          >
+            ← Kembali ke Katalog
+          </Link>
+        </div>
+      </div>
+      <Suspense fallback={<ProductDetailSkeleton />}>
+        <ProductDetailContent params={params} />
+      </Suspense>
+    </main>
   );
 }
