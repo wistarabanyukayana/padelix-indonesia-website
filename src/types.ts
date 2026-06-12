@@ -255,8 +255,15 @@ export interface CertificationsProps {
   certificates: Certificate[];
 }
 
+export interface HeroStat {
+  value: string;
+  label: string;
+}
+
 export interface HeroProps {
+  kicker: string;
   heading: string;
+  headingAccent?: string;
   subHeading: string;
   backgroundImage: string;
   primaryCta?: {
@@ -267,6 +274,12 @@ export interface HeroProps {
     text: string;
     href: string;
   };
+  stats?: HeroStat[];
+}
+
+export interface ProcessStep {
+  title: string;
+  description: string;
 }
 
 export interface AboutProps {
@@ -274,6 +287,7 @@ export interface AboutProps {
   heading: string;
   description: string[];
   image: string;
+  steps?: ProcessStep[];
 }
 
 // ==========================================

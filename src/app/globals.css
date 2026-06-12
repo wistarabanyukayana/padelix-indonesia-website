@@ -1,15 +1,20 @@
 @import "tailwindcss";
 
 @theme inline {
-  --font-lato: var(--font-lato);
-  --font-inter: var(--font-inter);
+  --font-sans: var(--font-archivo), sans-serif;
+  --font-display: var(--font-anton), sans-serif;
 
-  --radius-brand: 1.875rem;
+  --radius-brand: 1.25rem;
 
   --color-brand-green: #a3e635; /* bg-lime-400 */
   --color-brand-red: #ef4444; /* bg-red-500 */
   --color-brand-dark: #171717; /* bg-neutral-900 */
   --color-brand-light: #f8fafc; /* bg-slate-50 */
+
+  /* Dark "court-side" surfaces: near-black with a faint green cast */
+  --color-court-950: #0a0d08;
+  --color-court-900: #10140c;
+  --color-court-800: #1a2114;
 }
 
 @layer base {
@@ -19,7 +24,7 @@
 
   body {
     @apply overflow-x-hidden bg-white text-neutral-900;
-    font-family: var(--font-lato), sans-serif;
+    font-family: var(--font-archivo), sans-serif;
     padding-top: env(safe-area-inset-top);
     padding-bottom: env(safe-area-inset-bottom);
     padding-left: env(safe-area-inset-left);
@@ -37,7 +42,7 @@
 
 @layer components {
   .section {
-    @apply flex w-full scroll-mt-20 flex-col items-center justify-center px-6 py-12 sm:px-12 sm:py-20 md:px-20 lg:px-32;
+    @apply flex w-full scroll-mt-20 flex-col items-center justify-center px-6 py-16 sm:px-12 sm:py-24 md:px-20 lg:px-32;
   }
 
   .wrapper {
@@ -52,21 +57,79 @@
     @apply text-2xl leading-snug font-bold tracking-tight text-balance sm:text-3xl lg:text-4xl;
   }
 
+  /* Poster-style display headings (Anton) for the public site */
+  .display-1 {
+    @apply font-display text-5xl leading-[0.95] tracking-tight text-balance uppercase sm:text-6xl lg:text-7xl;
+  }
+
+  .display-2 {
+    @apply font-display text-3xl leading-none tracking-tight text-balance uppercase sm:text-4xl lg:text-5xl;
+  }
+
+  .display-3 {
+    @apply font-display text-2xl leading-none tracking-tight uppercase sm:text-3xl;
+  }
+
   .subheading {
     @apply text-sm font-bold tracking-widest text-neutral-500 uppercase;
   }
 
-  .nav-link {
-    @apply relative font-inter text-lg font-bold transition-colors hover:text-lime-500;
+  /* Editorial section label: lime dash + spaced caps */
+  .kicker {
+    @apply flex items-center gap-3 text-xs font-bold tracking-[0.3em] uppercase;
   }
 
-  .nav-link::after {
+  .kicker::before {
     content: "";
-    @apply absolute -bottom-1 left-0 h-0.5 w-0 bg-brand-green transition-all duration-300;
+    @apply h-px w-8 bg-current;
   }
 
-  .nav-link:hover::after {
-    @apply w-full;
+  /* Subtle glass-wall mesh texture for dark sections */
+  .bg-mesh {
+    background-image:
+      linear-gradient(to right, rgb(255 255 255 / 0.035) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(255 255 255 / 0.035) 1px, transparent 1px);
+    background-size: 56px 56px;
+  }
+
+  /* Scroll-reveal (activated by the <Reveal> component) */
+  .reveal {
+    opacity: 0;
+    transform: translateY(28px);
+    transition:
+      opacity 0.7s ease-out,
+      transform 0.7s ease-out;
+    transition-delay: var(--reveal-delay, 0s);
+  }
+
+  .reveal.is-visible {
+    opacity: 1;
+    transform: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .reveal {
+      transition: none;
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* Marquee tape strip */
+  @keyframes marquee {
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  .animate-marquee {
+    animation: marquee 24s linear infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .animate-marquee {
+      animation: none;
+    }
   }
 
   /* Lightbox Fixes */

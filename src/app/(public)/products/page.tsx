@@ -1,4 +1,5 @@
 import { EmptyState } from "@/components/general/EmptyState";
+import { CourtLines } from "@/components/public/CourtLines";
 import { FilterPanel } from "@/components/public/products/FilterPanel";
 import { ProductCard } from "@/components/public/products/ProductCard";
 import { ProductCategorySidebar } from "@/components/public/products/ProductCategorySidebar";
@@ -116,7 +117,7 @@ async function ProductsContent({ searchParams }: PageProps) {
       <div className="wrapper gap-12 lg:flex-row lg:items-start">
         {/* Sidebar Filters: pinned under the header on mobile (full-bleed
               bar), sticky sidebar on desktop */}
-        <aside className="sticky top-[var(--app-header-height,5rem)] z-30 -mx-6 flex shrink-0 flex-col gap-4 border-b border-neutral-100 bg-white px-6 py-3 sm:-mx-12 sm:px-12 md:-mx-20 md:px-20 lg:top-[calc(var(--app-header-height,5rem)+1rem)] lg:z-auto lg:-m-2 lg:max-h-[calc(100vh-8rem)] lg:w-68 lg:gap-8 lg:self-start lg:overflow-y-auto lg:border-0 lg:p-2">
+        <aside className="sticky top-[var(--app-header-height,4.5rem)] z-30 -mx-6 flex shrink-0 flex-col gap-4 border-b border-neutral-100 bg-white px-6 py-3 sm:-mx-12 sm:px-12 md:-mx-20 md:px-20 lg:top-[calc(var(--app-header-height,5rem)+1rem)] lg:z-auto lg:-m-2 lg:max-h-[calc(100vh-8rem)] lg:w-68 lg:gap-8 lg:self-start lg:overflow-y-auto lg:border-0 lg:p-2">
           {/* Search */}
           <ProductSearchForm defaultQuery={query} />
 
@@ -131,14 +132,18 @@ async function ProductsContent({ searchParams }: PageProps) {
               <div className="flex flex-col gap-1">
                 <Link
                   href={filterHref("category")}
-                  className={`flex items-center justify-between gap-2 border-b border-transparent py-2 text-sm font-bold transition-all hover:border-brand-green hover:text-brand-green ${
+                  className={`flex items-center justify-between gap-2 rounded-full px-3 py-1.5 text-sm font-bold transition-all ${
                     !categoryId
-                      ? "border-brand-green text-brand-green"
-                      : "text-neutral-500"
+                      ? "bg-neutral-900 text-brand-green shadow-md"
+                      : "text-neutral-500 hover:bg-lime-50 hover:text-lime-700"
                   }`}
                 >
                   <span>Semua Kategori</span>
-                  <span className="text-[10px] font-bold text-neutral-400 tabular-nums">
+                  <span
+                    className={`text-[10px] font-black tabular-nums ${
+                      !categoryId ? "text-brand-green/70" : "text-neutral-400"
+                    }`}
+                  >
                     {totalCount}
                   </span>
                 </Link>
@@ -151,7 +156,8 @@ async function ProductsContent({ searchParams }: PageProps) {
               <h3 className="text-sm font-black tracking-widest text-neutral-400 uppercase">
                 Brand
               </h3>
-              <div className="flex flex-wrap gap-1 lg:flex-col">
+              {/* Chips on mobile, quiet rows (like the category tree) on desktop */}
+              <div className="flex flex-wrap gap-1.5 lg:flex-col lg:gap-0.5">
                 {brands.map((b) => {
                   const isSelected = brandId === b.id;
                   const brandCount = brandCountMap.get(b.id) ?? 0;
@@ -162,20 +168,20 @@ async function ProductsContent({ searchParams }: PageProps) {
                       href={`/products?brand=${b.id}${categoryId ? `&category=${categoryId}` : ""}${query ? `&q=${query}` : ""}`}
                       aria-current={isSelected ? "true" : undefined}
                       className={cn(
-                        "flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-bold transition-all lg:justify-between",
+                        "flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-bold transition-all lg:justify-between lg:border-0 lg:px-3 lg:py-1.5",
                         isSelected
-                          ? "border-brand-green bg-brand-green text-white shadow-md"
+                          ? "border-neutral-900 bg-neutral-900 text-brand-green shadow-md"
                           : isEmpty
-                            ? "border-transparent bg-white text-neutral-300 hover:text-neutral-400"
-                            : "border-transparent bg-white text-neutral-500 hover:text-brand-green",
+                            ? "border-neutral-200 bg-white text-neutral-300 hover:text-neutral-400 lg:hover:bg-neutral-50"
+                            : "border-neutral-200 bg-white text-neutral-500 hover:border-lime-500 hover:text-lime-600 lg:hover:bg-lime-50 lg:hover:text-lime-700",
                       )}
                     >
                       <span className="truncate">{b.name}</span>
                       <span
                         className={cn(
-                          "text-[10px] font-bold tabular-nums",
+                          "text-[10px] font-black tabular-nums",
                           isSelected
-                            ? "text-white/70"
+                            ? "text-brand-green/70"
                             : isEmpty
                               ? "text-neutral-300"
                               : "text-neutral-400",
@@ -186,14 +192,6 @@ async function ProductsContent({ searchParams }: PageProps) {
                     </Link>
                   );
                 })}
-                {brandId && (
-                  <Link
-                    href={filterHref("brand")}
-                    className="mt-1 px-4 py-2 text-xs font-bold text-red-500 hover:underline"
-                  >
-                    Hapus Filter Brand
-                  </Link>
-                )}
               </div>
             </div>
           </FilterPanel>
@@ -301,8 +299,8 @@ function CatalogSkeleton() {
     <section className="section bg-white">
       <div className="wrapper gap-12 lg:flex-row lg:items-start">
         <aside className="flex w-full shrink-0 flex-col gap-4 lg:w-64 lg:gap-8">
-          <div className="h-11 animate-pulse rounded-xl bg-neutral-100" />
-          <div className="h-12 animate-pulse rounded-xl bg-neutral-100 lg:hidden" />
+          <div className="h-11 animate-pulse rounded-full bg-neutral-100" />
+          <div className="h-12 animate-pulse rounded-full bg-neutral-100 lg:hidden" />
           <div className="hidden flex-col gap-4 lg:flex">
             {Array.from({ length: 7 }).map((_, i) => (
               <div
@@ -321,9 +319,9 @@ function CatalogSkeleton() {
             {Array.from({ length: 6 }).map((_, i) => (
               <div
                 key={i}
-                className="flex flex-col gap-4 rounded-brand border border-neutral-100 bg-white p-5 shadow-md"
+                className="flex flex-col gap-4 rounded-brand border border-neutral-200 bg-white p-4"
               >
-                <div className="aspect-square w-full animate-pulse rounded-2xl bg-neutral-100" />
+                <div className="aspect-square w-full animate-pulse rounded-[calc(var(--radius-brand)-0.5rem)] bg-neutral-100" />
                 <div className="h-5 w-3/4 animate-pulse rounded bg-neutral-100" />
                 <div className="h-4 w-full animate-pulse rounded bg-neutral-100" />
                 <div className="mt-2 h-6 w-1/2 animate-pulse rounded bg-neutral-100" />
@@ -340,10 +338,13 @@ export default function ProductsPage({ searchParams }: PageProps) {
   return (
     <main className="min-h-screen bg-brand-light">
       {/* Static hero renders instantly — only the catalog data streams */}
-      <section className="section bg-brand-green pt-16 pb-16 text-neutral-900">
-        <div className="wrapper gap-4 text-center">
-          <h1 className="h1">Katalog Produk</h1>
-          <p className="mx-auto max-w-2xl text-xl font-medium opacity-80">
+      <section className="section relative overflow-hidden bg-court-950 py-16 text-white sm:py-20">
+        <div className="bg-mesh absolute inset-0" aria-hidden />
+        <CourtLines />
+        <div className="wrapper relative items-start gap-4">
+          <span className="kicker text-brand-green">Peralatan Padel</span>
+          <h1 className="display-1 text-white">Katalog Produk</h1>
+          <p className="max-w-2xl text-lg text-pretty text-white/70 sm:text-xl">
             Temukan perlengkapan padel terbaik dari brand ternama dunia.
           </p>
         </div>

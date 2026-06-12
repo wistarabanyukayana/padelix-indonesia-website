@@ -7,9 +7,10 @@ import Zoom from "yet-another-react-lightbox/plugins/zoom";
 import "yet-another-react-lightbox/styles.css";
 
 import { AppImage } from "@/components/general/AppImage";
-import { getDisplayUrl } from "@/lib/utils";
+import { Reveal } from "@/components/general/Reveal";
+import { cn, getDisplayUrl } from "@/lib/utils";
 import { PortfolioProps } from "@/types";
-import { Play } from "lucide-react";
+import { Images, Play, ZoomIn } from "lucide-react";
 
 export function Portfolio({ items }: PortfolioProps) {
   const [open, setOpen] = useState(false);
@@ -42,71 +43,92 @@ export function Portfolio({ items }: PortfolioProps) {
   });
 
   return (
-    <section id="activities" className="section bg-brand-dark text-white">
-      <div className="wrapper gap-12">
-        <div className="flex flex-col gap-2 text-center">
-          <span className="subheading text-brand-green">Portofolio</span>
-          <h2 className="h2 text-white">Aktivitas & Proyek</h2>
-        </div>
+    <section
+      id="activities"
+      className="section relative overflow-hidden bg-court-950 text-white"
+    >
+      <div className="bg-mesh absolute inset-0" aria-hidden />
 
-        <div className="grid w-full grid-cols-1 gap-8 md:grid-cols-2">
+      <div className="wrapper relative gap-12">
+        <Reveal>
+          <div className="flex flex-col items-start gap-3">
+            <span className="kicker text-brand-green">Portofolio</span>
+            <h2 className="display-2 text-white">Proyek & Aktivitas</h2>
+          </div>
+        </Reveal>
+
+        {/* Asymmetric editorial grid: first project gets the spotlight */}
+        <div className="grid w-full grid-cols-1 gap-5 md:grid-cols-3">
           {items.map((item, idx) => {
             const hasVideo = item.medias.some((m) => m.type === "video");
+            const isFeature = idx === 0;
             return (
-              <div
+              <Reveal
                 key={item.id}
-                className="group relative aspect-video cursor-pointer overflow-hidden rounded-brand bg-neutral-800 shadow-2xl transition-all duration-300 hover:-translate-y-1 hover:ring-2 hover:ring-brand-green/50"
-                onClick={() => {
-                  setActivePortfolioIndex(idx);
-                  setImageIndex(0);
-                  setOpen(true);
-                }}
+                delay={idx * 100}
+                className={cn(isFeature && "md:col-span-2 md:row-span-2")}
               >
-                <AppImage
-                  src={item.image}
-                  alt={item.title}
-                  fill
-                  sizes="(max-width: 768px) 92vw, 520px"
-                  className="opacity-70 transition-transform duration-700 group-hover:scale-105 group-hover:opacity-100"
-                />
-                <div className="absolute inset-0 flex flex-col justify-end bg-linear-to-t from-black/90 via-black/20 to-transparent p-8">
-                  <span className="text-sm font-bold tracking-wider text-brand-green uppercase">
-                    {item.location}
-                  </span>
-                  <div className="flex items-center gap-3">
-                    <h3 className="text-2xl font-bold">{item.title}</h3>
-                    {hasVideo && (
-                      <Play
-                        size={20}
-                        className="fill-brand-green text-brand-green"
-                      />
+                <button
+                  type="button"
+                  aria-label={`Lihat galeri ${item.title}`}
+                  className={cn(
+                    "group relative block w-full cursor-pointer overflow-hidden rounded-brand bg-court-800 text-left shadow-2xl transition-all duration-300 hover:-translate-y-1 hover:ring-2 hover:ring-brand-green/60",
+                    isFeature
+                      ? "aspect-video md:aspect-auto md:h-full md:min-h-130"
+                      : "aspect-video",
+                  )}
+                  onClick={() => {
+                    setActivePortfolioIndex(idx);
+                    setImageIndex(0);
+                    setOpen(true);
+                  }}
+                >
+                  <AppImage
+                    src={item.image}
+                    alt={item.title}
+                    fill
+                    sizes={
+                      isFeature
+                        ? "(max-width: 768px) 92vw, 800px"
+                        : "(max-width: 768px) 92vw, 400px"
+                    }
+                    className="object-cover opacity-80 transition-all duration-700 group-hover:scale-105 group-hover:opacity-100"
+                  />
+                  <div className="absolute inset-0 flex flex-col justify-end bg-linear-to-t from-court-950/95 via-court-950/20 to-transparent p-6 sm:p-8">
+                    {item.location && (
+                      <span className="text-xs font-bold tracking-[0.2em] text-brand-green uppercase">
+                        {item.location}
+                      </span>
+                    )}
+                    <div className="mt-1 flex items-center gap-3">
+                      <h3
+                        className={cn(
+                          "font-display tracking-wide uppercase",
+                          isFeature ? "text-2xl sm:text-4xl" : "text-xl",
+                        )}
+                      >
+                        {item.title}
+                      </h3>
+                      {hasVideo && (
+                        <Play
+                          size={20}
+                          className="shrink-0 fill-brand-green text-brand-green"
+                        />
+                      )}
+                    </div>
+                    {item.medias.length > 1 && (
+                      <span className="mt-2 flex items-center gap-1.5 text-xs text-neutral-400">
+                        <Images size={13} /> {item.medias.length} Media
+                      </span>
                     )}
                   </div>
-                  {item.medias.length > 1 && (
-                    <span className="mt-1 flex items-center gap-1 text-xs text-neutral-400">
-                      <ImageIcon size={12} /> {item.medias.length} Media
-                    </span>
-                  )}
-                </div>
 
-                {/* Zoom Icon Indicator */}
-                <div className="absolute top-4 right-4 rounded-full bg-white/10 p-2 opacity-0 backdrop-blur-sm transition-opacity group-hover:opacity-100">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={2}
-                    stroke="currentColor"
-                    className="h-5 w-5 text-white"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM10.5 7.5v6m3-3h-6"
-                    />
-                  </svg>
-                </div>
-              </div>
+                  {/* Zoom indicator */}
+                  <div className="absolute top-4 right-4 rounded-full bg-white/10 p-2.5 opacity-0 backdrop-blur-sm transition-opacity group-hover:opacity-100">
+                    <ZoomIn size={18} className="text-white" />
+                  </div>
+                </button>
+              </Reveal>
             );
           })}
         </div>
@@ -127,25 +149,5 @@ export function Portfolio({ items }: PortfolioProps) {
         }}
       />
     </section>
-  );
-}
-
-function ImageIcon({ size }: { size: number }) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
-      <circle cx="9" cy="9" r="2" />
-      <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
-    </svg>
   );
 }
