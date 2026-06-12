@@ -107,6 +107,39 @@ export async function getFeaturedProducts(): Promise<FeaturedProduct[]> {
   }
 }
 
+export interface PublicStats {
+  projects: number;
+  products: number;
+  brands: number;
+}
+
+export async function getPublicStats(): Promise<PublicStats> {
+  "use cache";
+  cacheTag("public");
+  cacheTag("portfolios");
+  cacheTag("products");
+
+  try {
+    const [[projectRow], [productRow], [brandRow]] = await Promise.all([
+      db.select({ value: count() }).from(portfolios),
+      db
+        .select({ value: count() })
+        .from(products)
+        .where(eq(products.isActive, true)),
+      db.select({ value: count() }).from(brands),
+    ]);
+
+    return {
+      projects: projectRow?.value ?? 0,
+      products: productRow?.value ?? 0,
+      brands: brandRow?.value ?? 0,
+    };
+  } catch (error) {
+    logPublicError("getPublicStats", error);
+    return { projects: 0, products: 0, brands: 0 };
+  }
+}
+
 export async function getFeaturedPortfolios(): Promise<FeaturedPortfolio[]> {
   "use cache";
   cacheTag("public");

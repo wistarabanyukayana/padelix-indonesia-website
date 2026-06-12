@@ -1,26 +1,37 @@
 "use client";
 
 import { AppImage } from "@/components/general/AppImage";
+import { siteConfig } from "@/config/site";
 import { cn } from "@/lib/utils";
+import { SiWhatsapp } from "@icons-pack/react-simple-icons";
+import { Menu, X } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 const NAV_LINKS = [
   { id: 1, text: "Beranda", href: "/" },
   { id: 2, text: "Produk", href: "/products" },
-  { id: 4, text: "Aktivitas", href: "/#activities" },
-  { id: 5, text: "Sertifikat", href: "/#certifications" },
-  { id: 6, text: "Kontak", href: "/#contact" },
+  { id: 3, text: "Proyek", href: "/#activities" },
+  { id: 4, text: "Sertifikasi", href: "/#certifications" },
+  { id: 5, text: "Kontak", href: "/#contact" },
 ];
 
 export function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const [showAdmin, setShowAdmin] = useState(false);
+  const pathname = usePathname();
   const headerRef = useRef<HTMLElement>(null);
   const mobileNavRef = useRef<HTMLDivElement>(null);
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const longPressTriggered = useRef(false);
+
+  const isActive = (href: string) => {
+    if (href === "/") return pathname === "/";
+    if (href.startsWith("/#")) return false;
+    return pathname.startsWith(href);
+  };
 
   useEffect(() => {
     window.dispatchEvent(
@@ -117,7 +128,7 @@ export function Header() {
   return (
     <header
       ref={headerRef}
-      className="sticky top-0 z-50 w-full border-b border-neutral-200 bg-white pt-[env(safe-area-inset-top)]"
+      className="sticky top-0 z-50 w-full border-b border-neutral-200 bg-white/90 pt-[env(safe-area-inset-top)] backdrop-blur-md"
     >
       {isOpen && (
         <button
@@ -128,12 +139,13 @@ export function Header() {
           style={{ top: "var(--app-header-height)" }}
         />
       )}
-      <div className="relative mx-auto flex h-20 max-w-7xl items-center justify-between px-6">
-        {/* Logo Container - 1.5x larger visual size with vertical overflow */}
+      <div className="relative mx-auto flex h-18 max-w-7xl items-center justify-between px-6 md:h-20">
+        {/* Logo */}
         <div className="shrink-0">
           <Link
             href="/"
             className="inline-flex items-center"
+            aria-label="Padelix Indonesia — Beranda"
             onClick={(event) => {
               if (longPressTriggered.current) {
                 event.preventDefault();
@@ -150,30 +162,48 @@ export function Header() {
               width={144}
               height={36}
               disableLoadingAnimation
-              className="h-3 w-12 object-contain object-left sm:h-6 sm:w-24 md:h-9 md:w-36"
+              className="h-7 w-28 object-contain object-left md:h-9 md:w-36"
             />
           </Link>
         </div>
         {showAdmin && (
           <Link
             href="/admin/login"
-            className="text-[10px] font-semibold tracking-[0.2em] text-neutral-400 uppercase hover:text-brand-green"
+            className="text-[10px] font-semibold tracking-[0.2em] text-neutral-400 uppercase hover:text-lime-600"
           >
             Admin
           </Link>
         )}
 
         {/* Desktop Nav */}
-        <nav className="hidden items-center gap-12 md:flex">
+        <nav className="hidden items-center gap-10 md:flex">
           {NAV_LINKS.map((link) => (
             <Link
               key={link.id}
               href={link.href}
-              className="nav-link text-sm tracking-widest uppercase"
+              aria-current={isActive(link.href) ? "page" : undefined}
+              className={cn(
+                "group relative text-sm font-bold tracking-widest uppercase transition-colors hover:text-lime-600",
+                isActive(link.href) ? "text-neutral-900" : "text-neutral-500",
+              )}
             >
               {link.text}
+              <span
+                className={cn(
+                  "absolute -bottom-1.5 left-0 h-0.5 bg-brand-green transition-all duration-300 group-hover:w-full",
+                  isActive(link.href) ? "w-full" : "w-0",
+                )}
+              />
             </Link>
           ))}
+          <Link
+            href={siteConfig.links.whatsapp}
+            target="_blank"
+            className="flex items-center gap-2 rounded-full bg-neutral-900 px-5 py-2.5 text-xs font-bold tracking-widest text-white uppercase transition-all duration-300 hover:bg-brand-green hover:text-neutral-900"
+          >
+            <SiWhatsapp size={14} />
+            Konsultasi
+          </Link>
         </nav>
 
         {/* Mobile Toggle */}
@@ -184,20 +214,7 @@ export function Header() {
           className="p-2 text-neutral-900 md:hidden"
           onClick={() => setIsOpen(!isOpen)}
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={2}
-            stroke="currentColor"
-            className="h-8 w-8"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d={isOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"}
-            />
-          </svg>
+          {isOpen ? <X size={30} /> : <Menu size={30} />}
         </button>
       </div>
 
@@ -205,9 +222,9 @@ export function Header() {
       <div
         ref={mobileNavRef}
         className={cn(
-          "absolute top-full left-0 z-50 flex w-full origin-top flex-col items-center overflow-hidden bg-white shadow-xl transition-all duration-300 ease-in-out md:hidden",
+          "absolute top-full left-0 z-50 flex w-full origin-top flex-col overflow-hidden bg-white shadow-xl transition-all duration-300 ease-in-out md:hidden",
           isOpen
-            ? "max-h-75 border-b border-neutral-200 py-4 opacity-100"
+            ? "max-h-120 border-b border-neutral-200 py-4 opacity-100"
             : "max-h-0 py-0 opacity-0",
         )}
       >
@@ -215,12 +232,27 @@ export function Header() {
           <Link
             key={link.id}
             href={link.href}
-            className="py-2 text-lg font-bold text-neutral-900 transition-colors hover:text-brand-green"
+            aria-current={isActive(link.href) ? "page" : undefined}
+            className={cn(
+              "px-8 py-3 text-lg font-bold tracking-wide uppercase transition-colors hover:text-lime-600",
+              isActive(link.href) ? "text-lime-600" : "text-neutral-900",
+            )}
             onClick={() => setIsOpen(false)}
           >
             {link.text}
           </Link>
         ))}
+        <div className="px-8 pt-4 pb-2">
+          <Link
+            href={siteConfig.links.whatsapp}
+            target="_blank"
+            onClick={() => setIsOpen(false)}
+            className="flex items-center justify-center gap-2 rounded-full bg-neutral-900 px-5 py-3.5 text-sm font-bold tracking-widest text-white uppercase transition-colors hover:bg-brand-green hover:text-neutral-900"
+          >
+            <SiWhatsapp size={16} />
+            Konsultasi via WhatsApp
+          </Link>
+        </div>
       </div>
     </header>
   );

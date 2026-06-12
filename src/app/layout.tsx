@@ -1,17 +1,17 @@
 import { siteConfig } from "@/config/site";
 import type { Metadata, Viewport } from "next";
-import { Inter, Lato } from "next/font/google";
+import { Anton, Archivo } from "next/font/google";
 import "./globals.css";
 
-const inter = Inter({
-  variable: "--font-inter",
+const archivo = Archivo({
+  variable: "--font-archivo",
   subsets: ["latin"],
 });
 
-const lato = Lato({
-  variable: "--font-lato",
+const anton = Anton({
+  variable: "--font-anton",
   subsets: ["latin"],
-  weight: ["400", "700", "900"],
+  weight: "400",
 });
 
 import { MetaPixel } from "@/components/analytics/MetaPixel";
@@ -81,7 +81,7 @@ export default function RootLayout({
   return (
     <html lang="id">
       <body
-        className={`${lato.variable} ${inter.variable} antialiased selection:bg-brand-green selection:text-neutral-900`}
+        className={`${archivo.variable} ${anton.variable} antialiased selection:bg-brand-green selection:text-neutral-900`}
       >
         {children}
         <Toaster />

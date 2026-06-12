@@ -186,7 +186,7 @@ export default function ProductDetailPage({ params }: PageProps) {
         <div className="mx-auto max-w-7xl">
           <Link
             href="/products"
-            className="flex items-center gap-2 text-sm font-bold tracking-widest text-neutral-500 uppercase hover:text-brand-green"
+            className="flex items-center gap-2 text-sm font-bold tracking-widest text-neutral-500 uppercase transition-colors hover:text-lime-600"
           >
             ← Kembali ke Katalog
           </Link>

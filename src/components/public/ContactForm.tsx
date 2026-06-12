@@ -22,7 +22,7 @@ export function ContactForm() {
   }, [state]);
 
   return (
-    <form action={action} className="flex max-w-lg flex-col gap-4">
+    <form action={action} className="flex flex-col gap-4">
       {/* Honeypot field - Hidden from users */}
       <input
         type="text"
@@ -79,9 +79,9 @@ export function ContactForm() {
 
       <Button
         type="submit"
-        variant="secondary"
+        variant="dark"
         disabled={isPending}
-        className="h-auto py-4 font-bold shadow-lg shadow-red-500/20 hover:shadow-xl hover:shadow-red-500/25"
+        className="h-auto py-4 font-bold shadow-lg hover:shadow-xl"
       >
         {isPending ? "Mengirim..." : "Kirim Pesan"}
       </Button>

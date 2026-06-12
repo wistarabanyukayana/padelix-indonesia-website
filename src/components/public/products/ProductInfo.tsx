@@ -47,11 +47,11 @@ export function ProductInfo({ product }: ProductInfoProps) {
     });
   }, [product.id, product.name]);
 
-  // Hide the global WhatsApp FAB while this page is visible (it overlaps the
-  // page's own CTAs). Done via effect rather than CSS :has(): Next keeps
-  // visited pages hidden in the DOM (Activity), so the sticky bar node would
-  // keep a :has() selector matched after navigating away. Activity unmounts
-  // effects when hiding the page, so the cleanup runs at the right time.
+  // Hide the global WhatsApp FAB while this page is visible. Done via effect
+  // rather than CSS :has(): Next keeps visited pages hidden in the DOM
+  // (Activity), so the sticky bar node would keep a :has() selector matched
+  // after navigating away. Activity unmounts effects when hiding the page,
+  // so the cleanup runs at the right time.
   useEffect(() => {
     document.body.classList.add("has-product-sticky-bar");
     return () => document.body.classList.remove("has-product-sticky-bar");
@@ -63,7 +63,7 @@ export function ProductInfo({ product }: ProductInfoProps) {
         {/* Badges */}
         <div className="flex flex-wrap items-center gap-2">
           {product.categoryName && (
-            <span className="rounded-full border border-brand-green/20 bg-brand-light px-3 py-1 text-xs font-black tracking-widest text-brand-green uppercase">
+            <span className="rounded-full border border-lime-500/30 bg-lime-50 px-3 py-1 text-xs font-black tracking-widest text-lime-700 uppercase">
               {product.parentCategoryName
                 ? `${product.parentCategoryName} > ${product.categoryName}`
                 : product.categoryName}
@@ -76,11 +76,13 @@ export function ProductInfo({ product }: ProductInfoProps) {
           )}
         </div>
 
-        <div className="flex flex-col gap-2">
-          <h1 className="h1 leading-tight text-neutral-900">{product.name}</h1>
+        <div className="flex flex-col gap-3">
+          <h1 className="text-3xl leading-tight font-black tracking-tight text-balance text-neutral-900 sm:text-4xl lg:text-5xl">
+            {product.name}
+          </h1>
           {product.showPrice ? (
             <div className="flex flex-col gap-1">
-              <p className="text-3xl font-black tracking-tight text-brand-green">
+              <p className="font-display text-4xl tracking-wide text-lime-600">
                 {formattedPrice}
               </p>
               {selectedVariant &&
@@ -97,7 +99,7 @@ export function ProductInfo({ product }: ProductInfoProps) {
                 )}
             </div>
           ) : (
-            <p className="text-3xl font-black tracking-tight text-brand-green">
+            <p className="font-display text-4xl tracking-wide text-lime-600">
               Hubungi Kami
             </p>
           )}
@@ -115,10 +117,10 @@ export function ProductInfo({ product }: ProductInfoProps) {
               <button
                 key={variant.id}
                 onClick={() => setSelectedVariantId(variant.id ?? null)}
-                className={`rounded-lg border px-4 py-2 text-sm font-medium transition-all ${
+                className={`rounded-full border px-4 py-2 text-sm font-bold transition-all ${
                   selectedVariantId === variant.id
-                    ? "border-brand-green bg-brand-green text-white shadow-md"
-                    : "border-neutral-200 bg-white text-neutral-600 hover:border-brand-green hover:text-brand-green"
+                    ? "border-neutral-900 bg-neutral-900 text-brand-green shadow-md"
+                    : "border-neutral-200 bg-white text-neutral-600 hover:border-lime-500 hover:text-lime-600"
                 }`}
               >
                 {variant.name}
@@ -135,8 +137,8 @@ export function ProductInfo({ product }: ProductInfoProps) {
 
       {/* Specs Table */}
       {product.specs.length > 0 && (
-        <div className="rounded-brand bg-neutral-50 p-6">
-          <h3 className="subheading mb-4 text-neutral-900">Spesifikasi</h3>
+        <div className="rounded-brand border border-neutral-200 bg-brand-light p-6">
+          <h3 className="kicker mb-5 text-lime-600">Spesifikasi</h3>
           <div className="flex flex-col gap-3">
             {product.specs.map((spec, i) => (
               <div
@@ -162,19 +164,19 @@ export function ProductInfo({ product }: ProductInfoProps) {
             onClick={() => trackMetaEvent("Contact")}
             className="w-full bg-[#25D366] text-white shadow-xl transition-all hover:-translate-y-1 hover:bg-[#20ba5a] hover:shadow-2xl"
           >
+            <SiWhatsapp size={20} className="mr-3" />
             Pesan via WhatsApp
           </Button>
         </Link>
       </div>
 
-      {/* Mobile sticky order bar (hides the global WhatsApp FAB via the
-          body class above) */}
+      {/* Mobile sticky order bar (hides the global WhatsApp FAB via CSS) */}
       <div className="product-sticky-bar fixed inset-x-0 bottom-0 z-40 flex items-center gap-4 border-t border-neutral-200 bg-white/95 px-5 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] backdrop-blur-md lg:hidden">
         <div className="flex min-w-0 flex-1 flex-col">
           <span className="truncate text-xs font-bold text-neutral-500">
             {product.name}
           </span>
-          <span className="text-lg font-black tracking-tight text-neutral-900">
+          <span className="font-display text-lg tracking-wide text-neutral-900">
             {product.showPrice ? formattedPrice : "Hubungi Kami"}
           </span>
         </div>

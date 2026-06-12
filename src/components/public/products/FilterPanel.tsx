@@ -36,13 +36,13 @@ export function FilterPanel({ activeFilterCount, children }: FilterPanelProps) {
         type="button"
         aria-expanded={open}
         onClick={() => setOpen(!open)}
-        className="flex items-center justify-between rounded-xl border border-neutral-200 bg-white px-4 py-3 text-sm font-bold tracking-wider text-neutral-900 uppercase transition-colors hover:border-brand-green lg:hidden"
+        className="flex items-center justify-between rounded-full border border-neutral-200 bg-white px-5 py-3 text-sm font-bold tracking-wider text-neutral-900 uppercase transition-colors hover:border-lime-500 lg:hidden"
       >
         <span className="flex items-center gap-2">
           <SlidersHorizontal size={16} />
           Filter & Kategori
           {activeFilterCount > 0 && (
-            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-brand-green text-[10px] font-black text-white">
+            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-brand-green text-[10px] font-black text-neutral-900">
               {activeFilterCount}
             </span>
           )}
@@ -61,7 +61,7 @@ export function FilterPanel({ activeFilterCount, children }: FilterPanelProps) {
           No overscroll-contain: short panels must chain swipes to the page */}
       <div
         className={cn(
-          "max-h-[60vh] flex-col gap-8 overflow-y-auto rounded-xl bg-neutral-50 p-4 lg:max-h-none lg:overflow-visible lg:rounded-none lg:bg-transparent lg:p-0",
+          "max-h-[60vh] flex-col gap-8 overflow-y-auto rounded-3xl bg-neutral-50 p-4 lg:max-h-none lg:overflow-visible lg:rounded-none lg:bg-transparent lg:p-0",
           open ? "flex" : "hidden lg:flex",
         )}
       >

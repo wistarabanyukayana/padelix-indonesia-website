@@ -1,7 +1,7 @@
 "use client";
 
-import { Button } from "@/components/ui/Button";
 import { trackMetaEvent } from "@/lib/metaPixel";
+import { Loader2, Search } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, useEffect, useRef, useState, useTransition } from "react";
 
@@ -19,8 +19,8 @@ export function ProductSearchForm({ defaultQuery }: ProductSearchFormProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Sync the input when the query changes from outside (e.g. a filter link
-  // clears all params) — but never while the user is typing
+  // Sync the input when the query changes from outside (e.g. "Semua
+  // Kategori" clears all params) — but never while the user is typing
   useEffect(() => {
     if (document.activeElement === inputRef.current) return;
     setValue(searchParams.get("q") ?? "");
@@ -68,27 +68,35 @@ export function ProductSearchForm({ defaultQuery }: ProductSearchFormProps) {
   };
 
   return (
-    <form role="search" className="flex gap-2" onSubmit={handleSubmit}>
+    <form role="search" className="relative" onSubmit={handleSubmit}>
+      {isPending ? (
+        <Loader2
+          size={18}
+          className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 animate-spin text-lime-600"
+        />
+      ) : (
+        <Search
+          size={18}
+          className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-neutral-400"
+        />
+      )}
       <input
         ref={inputRef}
         type="search"
         name="q"
-        placeholder="Nama produk..."
+        placeholder="Cari produk..."
         value={value}
         onChange={(event) => handleChange(event.target.value)}
         enterKeyHint="search"
         aria-label="Cari produk"
-        className="min-w-0 flex-1 rounded-xl bg-neutral-100 p-3 text-sm transition-all outline-none focus:ring-2 focus:ring-brand-green"
+        className="w-full rounded-full bg-neutral-100 py-3.5 pr-20 pl-11 text-sm transition-all outline-none focus:ring-2 focus:ring-brand-green"
       />
-      <Button
+      <button
         type="submit"
-        variant="dark"
-        size="sm"
-        disabled={isPending}
-        aria-busy={isPending}
+        className="absolute top-1/2 right-1.5 -translate-y-1/2 rounded-full bg-neutral-900 px-4 py-2 text-xs font-bold tracking-wider text-white uppercase transition-colors hover:bg-brand-green hover:text-neutral-900"
       >
         Cari
-      </Button>
+      </button>
     </form>
   );
 }
