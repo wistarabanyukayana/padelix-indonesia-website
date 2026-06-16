@@ -165,17 +165,34 @@ export function MediaLibrary({
     return chain;
   }, [currentFolderId, foldersById]);
 
-  // Total bytes per folder (recursive, includes subfolders) — for size sort and
-  // the item summary on each folder tile.
-  const folderTotalBytes = useMemo(() => {
-    const direct = new Map<number, number>();
+  // Per-folder aggregates (recursive, includes subfolders): total bytes for the
+  // size sort + tile summary, and the most-recent created/updated timestamps of
+  // the folder's CONTENTS for date sorts. Like Drive/Dropbox, a folder's date
+  // reflects its content's activity; an empty folder falls back to its own row.
+  const folderAgg = useMemo(() => {
+    const norm = (value: Date | string | null) => {
+      if (!value) return 0;
+      const raw = value instanceof Date ? value.toISOString() : value;
+      const normalized = /Z$|[+-]\d{2}:\d{2}$/.test(raw) ? raw : `${raw}Z`;
+      return new Date(normalized).getTime();
+    };
+    const directBytes = new Map<number, number>();
+    const directCreated = new Map<number, number>();
+    const directUpdated = new Map<number, number>();
     for (const m of medias) {
-      if (m.folderId != null) {
-        direct.set(
-          m.folderId,
-          (direct.get(m.folderId) ?? 0) + (m.fileSize ?? 0),
-        );
-      }
+      if (m.folderId == null) continue;
+      directBytes.set(
+        m.folderId,
+        (directBytes.get(m.folderId) ?? 0) + (m.fileSize ?? 0),
+      );
+      directCreated.set(
+        m.folderId,
+        Math.max(directCreated.get(m.folderId) ?? 0, norm(m.createdAt)),
+      );
+      directUpdated.set(
+        m.folderId,
+        Math.max(directUpdated.get(m.folderId) ?? 0, norm(m.updatedAt)),
+      );
     }
     const childrenMap = new Map<number | null, DBMediaFolder[]>();
     for (const f of folders) {
@@ -183,16 +200,29 @@ export function MediaLibrary({
       arr.push(f);
       childrenMap.set(f.parentId, arr);
     }
-    const total = new Map<number, number>();
-    const compute = (f: DBMediaFolder): number => {
-      if (total.has(f.id)) return total.get(f.id)!;
-      let sum = direct.get(f.id) ?? 0;
-      for (const c of childrenMap.get(f.id) ?? []) sum += compute(c);
-      total.set(f.id, sum);
-      return sum;
+    type Agg = { bytes: number; created: number; updated: number };
+    const agg = new Map<number, Agg>();
+    const compute = (f: DBMediaFolder): Agg => {
+      const cached = agg.get(f.id);
+      if (cached) return cached;
+      let bytes = directBytes.get(f.id) ?? 0;
+      let created = directCreated.get(f.id) ?? 0;
+      let updated = directUpdated.get(f.id) ?? 0;
+      for (const c of childrenMap.get(f.id) ?? []) {
+        const ca = compute(c);
+        bytes += ca.bytes;
+        created = Math.max(created, ca.created);
+        updated = Math.max(updated, ca.updated);
+      }
+      // Empty folder (no content): fall back to the folder row's own timestamps.
+      if (created === 0) created = norm(f.createdAt);
+      if (updated === 0) updated = norm(f.updatedAt);
+      const res = { bytes, created, updated };
+      agg.set(f.id, res);
+      return res;
     };
     folders.forEach(compute);
-    return total;
+    return agg;
   }, [medias, folders]);
 
   // Direct item count per folder (subfolders + media) for the tile summary.
@@ -242,10 +272,14 @@ export function MediaLibrary({
       it.kind === "folder" ? it.folder.name : it.media.name;
     const sizeOf = (it: GridItem) =>
       it.kind === "folder"
-        ? (folderTotalBytes.get(it.folder.id) ?? 0)
+        ? (folderAgg.get(it.folder.id)?.bytes ?? 0)
         : (it.media.fileSize ?? 0);
-    const dateOf = (it: GridItem, field: "createdAt" | "updatedAt") =>
-      normalizeDate(it.kind === "folder" ? it.folder[field] : it.media[field]);
+    const dateOf = (it: GridItem, field: "created" | "updated") =>
+      it.kind === "folder"
+        ? (folderAgg.get(it.folder.id)?.[field] ?? 0)
+        : normalizeDate(
+            field === "created" ? it.media.createdAt : it.media.updatedAt,
+          );
     // Folders share one rank for the type sort (they have no media type), so
     // they group together and still move as a block with the direction toggle.
     const typeRankOf = (it: GridItem) =>
@@ -256,9 +290,9 @@ export function MediaLibrary({
         case "size":
           return (sizeOf(a) - sizeOf(b)) * dirMul;
         case "created":
-          return (dateOf(a, "createdAt") - dateOf(b, "createdAt")) * dirMul;
+          return (dateOf(a, "created") - dateOf(b, "created")) * dirMul;
         case "updated":
-          return (dateOf(a, "updatedAt") - dateOf(b, "updatedAt")) * dirMul;
+          return (dateOf(a, "updated") - dateOf(b, "updated")) * dirMul;
         case "type":
           return (
             (typeRankOf(a) - typeRankOf(b)) * dirMul ||
@@ -270,7 +304,7 @@ export function MediaLibrary({
       }
     };
     return items.sort(cmp);
-  }, [visibleFolders, filteredMedias, sortKey, dirMul, folderTotalBytes]);
+  }, [visibleFolders, filteredMedias, sortKey, dirMul, folderAgg]);
 
   const handleDelete = (id: number) => {
     setConfirm({
@@ -708,7 +742,7 @@ export function MediaLibrary({
                     </span>
                     <span className="text-[10px] text-neutral-400">
                       {count} item ·{" "}
-                      {formatBytes(folderTotalBytes.get(f.id) ?? 0)}
+                      {formatBytes(folderAgg.get(f.id)?.bytes ?? 0)}
                     </span>
                   </div>
                 </div>
