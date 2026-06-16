@@ -1,7 +1,12 @@
+import { neon } from "@neondatabase/serverless";
 import "dotenv/config";
 import { eq } from "drizzle-orm";
+import { drizzle } from "drizzle-orm/neon-http";
 import { mediaFolders, medias } from "../src/db/schema";
-import { db } from "../src/lib/db";
+
+// Connect directly here rather than importing src/lib/db: that module pulls in
+// "server-only", which throws when run outside Next's server runtime (plain tsx).
+const db = drizzle({ client: neon(process.env.DATABASE_URL!) });
 
 // One-time migration of the legacy metadata.folder path strings into the new
 // first-class media_folders table, setting medias.folder_id. Idempotent: it
