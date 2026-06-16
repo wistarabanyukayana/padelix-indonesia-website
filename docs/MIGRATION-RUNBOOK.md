@@ -97,8 +97,8 @@ lost.
 ### C1. Export from Rumahweb
 
 cPanel → **phpMyAdmin** → select the site database → **Export** →
-Method: *Custom* → Format: **SQL** → check *complete inserts* →
-uncheck *structure* (data only) → Export. Keep this file as the
+Method: _Custom_ → Format: **SQL** → check _complete inserts_ →
+uncheck _structure_ (data only) → Export. Keep this file as the
 authoritative backup (`backup-final-YYYY-MM-DD.sql`).
 
 Additionally export **each table as CSV** (phpMyAdmin → table → Export →
@@ -109,23 +109,23 @@ the SQL dump is the safety net.
 
 FK constraints dictate the order. Import parents before children:
 
-| # | Table | Notes |
-|---|---|---|
-| 1 | `users` | |
-| 2 | `roles` | |
-| 3 | `permissions` | |
-| 4 | `roles_permissions` | join table |
-| 5 | `users_roles` | join table |
-| 6 | `brands` | |
-| 7 | `categories` | self-FK: import rows with `parent_id = NULL` first if it errors |
-| 8 | `medias` | URLs fixed in Phase D |
-| 9 | `products` | |
-| 10 | `product_medias` | |
-| 11 | `product_specifications` | |
-| 12 | `product_variants` | |
-| 13 | `portfolios` | |
-| 14 | `portfolio_medias` | |
-| 15 | `audit_logs` | optional — history only |
+| #   | Table                    | Notes                                                           |
+| --- | ------------------------ | --------------------------------------------------------------- |
+| 1   | `users`                  |                                                                 |
+| 2   | `roles`                  |                                                                 |
+| 3   | `permissions`            |                                                                 |
+| 4   | `roles_permissions`      | join table                                                      |
+| 5   | `users_roles`            | join table                                                      |
+| 6   | `brands`                 |                                                                 |
+| 7   | `categories`             | self-FK: import rows with `parent_id = NULL` first if it errors |
+| 8   | `medias`                 | URLs fixed in Phase D                                           |
+| 9   | `products`               |                                                                 |
+| 10  | `product_medias`         |                                                                 |
+| 11  | `product_specifications` |                                                                 |
+| 12  | `product_variants`       |                                                                 |
+| 13  | `portfolios`             |                                                                 |
+| 14  | `portfolio_medias`       |                                                                 |
+| 15  | `audit_logs`             | optional — history only                                         |
 
 For each CSV, from a machine with `psql` installed
 (`sudo dnf install postgresql` on Fedora):
@@ -187,7 +187,7 @@ folder → **Compress** → download the zip → extract locally so you have
 Mux does not store your original files in downloadable form by default:
 
 1. Mux dashboard → **Assets** → for each video asset → enable
-   **Static renditions** (or *Master access* if available on the plan)
+   **Static renditions** (or _Master access_ if available on the plan)
    → wait for it to process → download the highest-quality MP4.
 2. Name each file after the original video title and place it in the
    `./uploads/...` tree (e.g. `./uploads/videos/court-installation.mp4`).
@@ -278,16 +278,16 @@ re-insert media rows.
    Framework preset: Next.js (auto). Build command/output: defaults.
 3. **Environment Variables** (Production + Preview):
 
-   | Name | Value |
-   |---|---|
-   | `DATABASE_URL` | Neon pooled connection string |
-   | `SESSION_SECRET` | ≥32 random chars — generate fresh: `openssl rand -base64 48` |
-   | `CLOUDINARY_CLOUD_NAME` / `CLOUDINARY_API_KEY` / `CLOUDINARY_API_SECRET` | from A2 |
-   | `RESEND_API_KEY` | from A3 |
-   | `EMAIL_FROM` | `website@padelix.co.id` |
-   | `BUSINESS_EMAIL` | `business@padelix.co.id` |
-   | `NEXT_PUBLIC_SITE_URL` | `https://padelix.co.id` |
-   | `NEXT_PUBLIC_META_PIXEL_ID` | existing pixel id |
+   | Name                                                                     | Value                                                        |
+   | ------------------------------------------------------------------------ | ------------------------------------------------------------ |
+   | `DATABASE_URL`                                                           | Neon pooled connection string                                |
+   | `SESSION_SECRET`                                                         | ≥32 random chars — generate fresh: `openssl rand -base64 48` |
+   | `CLOUDINARY_CLOUD_NAME` / `CLOUDINARY_API_KEY` / `CLOUDINARY_API_SECRET` | from A2                                                      |
+   | `RESEND_API_KEY`                                                         | from A3                                                      |
+   | `EMAIL_FROM`                                                             | `website@padelix.co.id`                                      |
+   | `BUSINESS_EMAIL`                                                         | `business@padelix.co.id`                                     |
+   | `NEXT_PUBLIC_SITE_URL`                                                   | `https://padelix.co.id`                                      |
+   | `NEXT_PUBLIC_META_PIXEL_ID`                                              | existing pixel id                                            |
 
 4. Deploy. On the `*.vercel.app` preview URL, test the full pass:
    - homepage sections render with live data

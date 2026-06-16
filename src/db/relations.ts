@@ -26,8 +26,23 @@ export const relations = defineRelations(schema, (r) => ({
     products: r.many.products(),
   },
   medias: {
+    folder: r.one.mediaFolders({
+      from: r.medias.folderId,
+      to: r.mediaFolders.id,
+    }),
     productMedias: r.many.productMedias(),
     portfolioMedias: r.many.portfolioMedias(),
+  },
+  mediaFolders: {
+    parent: r.one.mediaFolders({
+      from: r.mediaFolders.parentId,
+      to: r.mediaFolders.id,
+      alias: "media_folders_parentId_media_folders_id",
+    }),
+    children: r.many.mediaFolders({
+      alias: "media_folders_parentId_media_folders_id",
+    }),
+    medias: r.many.medias(),
   },
   portfolios: {
     user: r.one.users({

@@ -1,8 +1,8 @@
 {
-  "id": "4b8cef90-99fc-4dda-b554-e67ee41d8a9c",
-  "prevIds": ["530e68ee-8bcd-47d7-8092-c5be68b9627f"],
   "version": "8",
   "dialect": "postgres",
+  "id": "983b7c8e-1f8e-4c07-99c6-9472c39a29db",
+  "prevIds": ["4b8cef90-99fc-4dda-b554-e67ee41d8a9c"],
   "ddl": [
     {
       "values": ["image", "video", "document", "audio", "other"],
@@ -25,6 +25,12 @@
     {
       "isRlsEnabled": false,
       "name": "categories",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "media_folders",
       "entityType": "tables",
       "schema": "public"
     },
@@ -421,6 +427,97 @@
       "generated": null,
       "identity": null,
       "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "media_folders"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "parent_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "media_folders"
+    },
+    {
+      "type": "varchar(255)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "name",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "media_folders"
+    },
+    {
+      "type": "varchar(1024)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "path",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "media_folders"
+    },
+    {
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "media_folders"
+    },
+    {
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "media_folders"
+    },
+    {
+      "type": "serial",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "medias"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "folder_id",
       "entityType": "columns",
       "schema": "public",
       "table": "medias"
@@ -1696,6 +1793,27 @@
       "nameExplicit": true,
       "columns": [
         {
+          "value": "path",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": true,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "media_folders_uq_path",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "media_folders"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
           "value": "file_key",
           "isExpression": false,
           "asc": true,
@@ -1930,6 +2048,32 @@
     },
     {
       "nameExplicit": true,
+      "columns": ["parent_id"],
+      "schemaTo": "public",
+      "tableTo": "media_folders",
+      "columnsTo": ["id"],
+      "onUpdate": "CASCADE",
+      "onDelete": "CASCADE",
+      "name": "media_folders_parent",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "media_folders"
+    },
+    {
+      "nameExplicit": true,
+      "columns": ["folder_id"],
+      "schemaTo": "public",
+      "tableTo": "media_folders",
+      "columnsTo": ["id"],
+      "onUpdate": "CASCADE",
+      "onDelete": "SET NULL",
+      "name": "medias_media_folders",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "medias"
+    },
+    {
+      "nameExplicit": true,
       "columns": ["portfolio_id"],
       "schemaTo": "public",
       "tableTo": "portfolios",
@@ -2148,6 +2292,14 @@
       "name": "categories_pkey",
       "schema": "public",
       "table": "categories",
+      "entityType": "pks"
+    },
+    {
+      "columns": ["id"],
+      "nameExplicit": false,
+      "name": "media_folders_pkey",
+      "schema": "public",
+      "table": "media_folders",
       "entityType": "pks"
     },
     {

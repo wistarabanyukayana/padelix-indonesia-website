@@ -91,10 +91,39 @@ export const categories = pgTable(
   ],
 );
 
+// First-class folders for the media library: the single source of truth for
+// folder structure (the old code derived folders from Cloudinary asset-folders
+// and media paths, which drifted). Folders exist independently of their
+// contents — empty folders persist until explicitly deleted.
+export const mediaFolders = pgTable(
+  "media_folders",
+  {
+    id: serial("id").primaryKey(),
+    parentId: integer("parent_id"),
+    name: varchar("name", { length: 255 }).notNull(),
+    // Denormalized full path (e.g. "courts/padelix-wpt-standard") for fast
+    // lookups and a stable unique key. Kept in sync on create/rename/move.
+    path: varchar("path", { length: 1024 }).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex("media_folders_uq_path").on(table.path),
+    foreignKey({
+      columns: [table.parentId],
+      foreignColumns: [table.id],
+      name: "media_folders_parent",
+    })
+      .onUpdate("cascade")
+      .onDelete("cascade"),
+  ],
+);
+
 export const medias = pgTable(
   "medias",
   {
     id: serial("id").primaryKey(),
+    folderId: integer("folder_id"),
     name: varchar("name", { length: 255 }).notNull(),
     fileKey: varchar("file_key", { length: 255 }).notNull(),
     type: mediaType("type").notNull(),
@@ -107,7 +136,16 @@ export const medias = pgTable(
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },
 
-  (table) => [uniqueIndex("medias_uq_file_key").on(table.fileKey)],
+  (table) => [
+    uniqueIndex("medias_uq_file_key").on(table.fileKey),
+    foreignKey({
+      columns: [table.folderId],
+      foreignColumns: [mediaFolders.id],
+      name: "medias_media_folders",
+    })
+      .onUpdate("cascade")
+      .onDelete("set null"),
+  ],
 );
 
 export const permissions = pgTable(

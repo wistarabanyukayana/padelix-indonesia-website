@@ -1,5 +1,6 @@
 import { registerUploadedMedia, signMediaUpload } from "@/actions/media";
-import { MAX_IMAGE_BYTES, MAX_VIDEO_BYTES } from "@/config/media";
+import { MEDIA_CAPS, resolveMediaKind } from "@/config/media";
+import imageCompression from "browser-image-compression";
 
 interface CloudinaryUploadResponse {
   public_id: string;
@@ -24,26 +25,47 @@ export interface UploadedMedia {
 export async function uploadFileToCloudinary(
   file: File,
   options: {
-    folder?: string | null;
+    folderId?: number | null;
     xhrRef?: { current: XMLHttpRequest | null };
     onProgress?: (percent: number) => void;
   } = {},
 ): Promise<UploadedMedia> {
-  const { folder, xhrRef, onProgress } = options;
+  const { folderId, xhrRef, onProgress } = options;
 
-  const isVideo = file.type.startsWith("video/");
-  const maxBytes = isVideo ? MAX_VIDEO_BYTES : MAX_IMAGE_BYTES;
-  if (file.size > maxBytes) {
+  const kind = resolveMediaKind(file.name, file.type);
+
+  // Compress images in the browser before the size gate so large photos still
+  // succeed and upload fast. Skip gif/svg (animation/vector) and fall back to
+  // the original on any failure, so uploads never break.
+  let toUpload = file;
+  if (kind === "image" && isCompressibleImage(file)) {
+    try {
+      const compressed = await imageCompression(file, {
+        maxWidthOrHeight: 2000,
+        maxSizeMB: 1.5,
+        useWebWorker: true,
+        initialQuality: 0.8,
+      });
+      if (compressed.size < file.size) toUpload = compressed;
+    } catch {
+      toUpload = file;
+    }
+  }
+
+  const cap = MEDIA_CAPS[kind];
+  if (toUpload.size > cap.maxBytes) {
     throw new Error(
-      `Ukuran file maksimal ${isVideo ? "100MB untuk video" : "20MB untuk gambar"}`,
+      kind === "video"
+        ? `Video melebihi ${cap.sizeLabel}. Coba unggah versi lebih pendek atau resolusi 1080p.`
+        : `Ukuran file maksimal ${cap.sizeLabel} untuk ${cap.noun}.`,
     );
   }
 
-  const signed = await signMediaUpload(folder);
+  const signed = await signMediaUpload();
   if ("error" in signed) throw new Error(signed.error);
 
   const formData = new FormData();
-  formData.append("file", file);
+  formData.append("file", toUpload);
   formData.append("api_key", signed.apiKey);
   formData.append("timestamp", String(signed.timestamp));
   formData.append("signature", signed.signature);
@@ -79,6 +101,7 @@ export async function uploadFileToCloudinary(
     uploaded.public_id,
     file.name,
     uploaded.resource_type,
+    folderId ?? null,
   );
   if (result.error || result.url === undefined || result.id === undefined) {
     throw new Error(result.error || "Gagal menyimpan media");
@@ -89,4 +112,20 @@ export async function uploadFileToCloudinary(
     url: result.url,
     resourceType: uploaded.resource_type,
   };
+}
+
+const COMPRESSIBLE_IMAGE_MIME = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+]);
+
+// Only the raster formats browser-image-compression handles well. Empty MIME
+// falls back to the file extension. GIF (animation) and SVG (vector) are
+// excluded so they aren't flattened/rasterized.
+function isCompressibleImage(file: File): boolean {
+  const mime = file.type.toLowerCase();
+  if (mime) return COMPRESSIBLE_IMAGE_MIME.has(mime);
+  const ext = file.name.toLowerCase().split(".").pop() ?? "";
+  return ["jpg", "jpeg", "png", "webp"].includes(ext);
 }
