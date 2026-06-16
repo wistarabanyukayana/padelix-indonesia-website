@@ -8,9 +8,9 @@ import { useRef, useState } from "react";
 import { toast } from "sonner";
 
 export function MediaUploadButton({
-  currentFolder,
+  currentFolderId,
 }: {
-  currentFolder?: string | null;
+  currentFolderId?: number | null;
 }) {
   const [isUploading, setIsUploading] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -42,7 +42,7 @@ export function MediaUploadButton({
     try {
       const isVideo = file.type.startsWith("video/");
       await uploadFileToCloudinary(file, {
-        folder: currentFolder,
+        folderId: currentFolderId,
         xhrRef,
         onProgress: setProgress,
       });
@@ -84,6 +84,7 @@ export function MediaUploadButton({
         type="file"
         id="media-upload"
         className="hidden"
+        accept="image/*,video/*,audio/*,application/pdf"
         multiple
         onChange={(e) => {
           if (e.target.files?.length) {

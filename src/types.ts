@@ -2,6 +2,7 @@ import {
   auditLogs,
   brands,
   categories,
+  mediaFolders,
   medias,
   permissions,
   portfolioMedias,
@@ -27,6 +28,7 @@ export type DBUser = InferSelectModel<typeof users>;
 export type DBRole = InferSelectModel<typeof roles>;
 export type DBPermission = InferSelectModel<typeof permissions>;
 export type DBMedia = InferSelectModel<typeof medias>;
+export type DBMediaFolder = InferSelectModel<typeof mediaFolders>;
 export type DBProductMedia = InferSelectModel<typeof productMedias>;
 export type DBPortfolioMedia = InferSelectModel<typeof portfolioMedias>;
 export type DBProductSpec = InferSelectModel<typeof productSpecifications>;
@@ -208,7 +210,6 @@ export interface PortfolioFormProps {
   action: FormAction;
   initialData?: DetailedPortfolio;
   allMedias: DBMedia[];
-  currentFolder?: string | null;
 }
 
 export interface DetailedPortfolio extends DBPortfolio {
@@ -225,7 +226,6 @@ export interface ProductFormProps {
   categories: DBCategory[];
   brands: DBBrand[];
   allMedias: DBMedia[];
-  currentFolder?: string | null;
 }
 
 export interface ContactLink {

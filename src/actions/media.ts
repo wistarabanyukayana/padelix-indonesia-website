@@ -1,32 +1,23 @@
 "use server";
 
-import { MAX_IMAGE_BYTES, MAX_VIDEO_BYTES } from "@/config/media";
+import { MEDIA_CAPS, kindFromMediaType } from "@/config/media";
 import { PERMISSIONS } from "@/config/permissions";
-import { medias } from "@/db/schema";
+import { mediaFolders, medias } from "@/db/schema";
 import { createAuditLog } from "@/lib/audit";
 import { checkPermission, getSession } from "@/lib/auth";
 import { cloudinary } from "@/lib/cloudinary";
 import { db } from "@/lib/db";
-import { parseMetadata } from "@/lib/utils";
-import { ActionState, UploadResult } from "@/types";
-import { desc, eq, or, sql } from "drizzle-orm";
+import { ActionState, DBMediaFolder, UploadResult } from "@/types";
+import { asc, desc, eq, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
-// All admin uploads live under this Cloudinary folder, mirroring the old
-// public/uploads directory. The DB metadata->>'folder' keeps the relative
-// folder path (without this prefix) — that is what the media library filters
-// on. Folders themselves are Cloudinary folders, not DB records.
+// Cloudinary stays a pure blob store: every upload lands in this one Cloudinary
+// folder for tidiness. The library's folder STRUCTURE lives in the media_folders
+// table (the single source of truth) — not in Cloudinary's asset-folders.
 const ROOT_FOLDER = "uploads";
 
 // Vercel functions cap request bodies at ~4.5MB, so files go directly from
 // the browser to Cloudinary with a signature from signMediaUpload().
-
-const toRelativeFolder = (publicId: string): string | null => {
-  const segments = publicId.split("/");
-  segments.pop(); // drop the filename
-  if (segments[0] === ROOT_FOLDER) segments.shift();
-  return segments.length ? segments.join("/") : null;
-};
 
 const toMimeType = (
   type: "image" | "video" | "document" | "audio" | "other",
@@ -42,59 +33,114 @@ const toMimeType = (
   return "application/octet-stream";
 };
 
-export async function getPhysicalFolders(): Promise<string[]> {
+const AUDIO_FORMATS = new Set([
+  "mp3",
+  "m4a",
+  "aac",
+  "ogg",
+  "oga",
+  "wav",
+  "flac",
+  "wma",
+  "opus",
+]);
+
+// Classify a Cloudinary resource into our media_type enum. Audio is checked
+// first because Cloudinary serves audio through its video pipeline
+// (resource_type === "video"), so it must be distinguished by format.
+function classifyMediaType(
+  resourceType: string,
+  format: string | undefined,
+): "image" | "video" | "document" | "audio" | "other" {
+  const fmt = (format ?? "").toLowerCase();
+  if (AUDIO_FORMATS.has(fmt)) return "audio";
+  if (resourceType === "image") return "image";
+  if (resourceType === "video") return "video";
+  if (fmt === "pdf") return "document";
+  return "other";
+}
+
+const cloudinaryResourceType = (
+  type: "image" | "video" | "document" | "audio" | "other",
+): "image" | "video" | "raw" =>
+  type === "video" || type === "audio"
+    ? "video"
+    : type === "image"
+      ? "image"
+      : "raw";
+
+// ==========================================
+// Folders (first-class records in media_folders)
+// ==========================================
+
+function isValidFolderName(name: string): boolean {
+  return (
+    name.length > 0 &&
+    name.length <= 255 &&
+    !name.includes("/") &&
+    !name.includes("..")
+  );
+}
+
+export async function getFolders(): Promise<DBMediaFolder[]> {
   const session = await getSession();
   if (!session) return [];
 
   try {
     await checkPermission(PERMISSIONS.MANAGE_MEDIA);
-
-    const folders: string[] = [];
-
-    const scan = async (path: string, relativeBase: string) => {
-      const result = (await cloudinary.api.sub_folders(path)) as {
-        folders?: { name: string; path: string }[];
-      };
-      for (const folder of result.folders ?? []) {
-        const relativePath = relativeBase
-          ? `${relativeBase}/${folder.name}`
-          : folder.name;
-        folders.push(relativePath);
-        await scan(folder.path, relativePath);
-      }
-    };
-
-    await scan(ROOT_FOLDER, "");
-    return folders;
+    return await db.select().from(mediaFolders).orderBy(asc(mediaFolders.path));
   } catch (error) {
     console.error("Get folders error:", error);
     return [];
   }
 }
 
-export async function createPhysicalFolder(
-  folderPath: string,
-): Promise<ActionState> {
+export async function createFolder(
+  name: string,
+  parentId: number | null,
+): Promise<ActionState & { id?: number }> {
   const session = await getSession();
   if (!session) return { message: "Sesi berakhir, silakan login kembali" };
 
   try {
     await checkPermission(PERMISSIONS.MANAGE_MEDIA);
 
-    // Validate path (basic security to prevent path tricks)
-    if (folderPath.includes("..") || folderPath.startsWith("/")) {
+    const cleanName = name.trim();
+    if (!isValidFolderName(cleanName)) {
       return { message: "Nama folder tidak valid" };
     }
 
-    await cloudinary.api.create_folder(`${ROOT_FOLDER}/${folderPath}`);
+    let path = cleanName;
+    if (parentId != null) {
+      const [parent] = await db
+        .select()
+        .from(mediaFolders)
+        .where(eq(mediaFolders.id, parentId))
+        .limit(1);
+      if (!parent) return { message: "Folder induk tidak ditemukan" };
+      path = `${parent.path}/${cleanName}`;
+    }
+
+    const [existing] = await db
+      .select({ id: mediaFolders.id })
+      .from(mediaFolders)
+      .where(eq(mediaFolders.path, path))
+      .limit(1);
+    if (existing)
+      return { message: "Folder dengan nama itu sudah ada di sini" };
+
+    const [created] = await db
+      .insert(mediaFolders)
+      .values({ name: cleanName, parentId, path })
+      .returning({ id: mediaFolders.id });
+
     await createAuditLog(
       "MEDIA_FOLDER_CREATE",
-      undefined,
-      `Created folder: ${folderPath}`,
+      created.id,
+      `Created folder: ${path}`,
     );
-
     revalidatePath("/admin");
-    return { success: true, message: "Folder berhasil dibuat" };
+    return { success: true, message: "Folder berhasil dibuat", id: created.id };
   } catch (error: unknown) {
     const message =
       error instanceof Error ? error.message : "Terjadi kesalahan";
@@ -102,8 +148,9 @@ export async function createPhysicalFolder(
   }
 }
 
-export async function deletePhysicalFolder(
-  folderPath: string,
+export async function renameFolder(
+  id: number,
+  name: string,
 ): Promise<ActionState> {
   const session = await getSession();
   if (!session) return { message: "Sesi berakhir, silakan login kembali" };
@@ -111,36 +158,108 @@ export async function deletePhysicalFolder(
   try {
     await checkPermission(PERMISSIONS.MANAGE_MEDIA);
 
-    // Validate path
-    if (folderPath.includes("..") || folderPath.startsWith("/")) {
+    const cleanName = name.trim();
+    if (!isValidFolderName(cleanName)) {
       return { message: "Nama folder tidak valid" };
     }
 
-    // Refuse if any media row still lives in this folder (or a subfolder)
-    const occupied = await db
-      .select({ id: medias.id })
-      .from(medias)
-      .where(
-        or(
-          sql`${medias.metadata}->>'folder' = ${folderPath}`,
-          sql`${medias.metadata}->>'folder' LIKE ${folderPath + "/%"}`,
-        ),
-      )
+    const [folder] = await db
+      .select()
+      .from(mediaFolders)
+      .where(eq(mediaFolders.id, id))
       .limit(1);
-    if (occupied.length > 0) {
+    if (!folder) return { message: "Folder tidak ditemukan" };
+
+    const oldPath = folder.path;
+    const parentPath =
+      folder.parentId != null ? oldPath.slice(0, oldPath.lastIndexOf("/")) : "";
+    const newPath = parentPath ? `${parentPath}/${cleanName}` : cleanName;
+
+    if (newPath === oldPath) {
+      return { success: true, message: "Tidak ada perubahan" };
+    }
+
+    const [dupe] = await db
+      .select({ id: mediaFolders.id })
+      .from(mediaFolders)
+      .where(eq(mediaFolders.path, newPath))
+      .limit(1);
+    if (dupe) return { message: "Folder dengan nama itu sudah ada di sini" };
+
+    // Rename the folder itself.
+    await db
+      .update(mediaFolders)
+      .set({ name: cleanName, path: newPath, updatedAt: new Date() })
+      .where(eq(mediaFolders.id, id));
+
+    // Re-path every descendant: swap the old path prefix for the new one.
+    await db
+      .update(mediaFolders)
+      .set({
+        path: sql`${newPath} || substring(${mediaFolders.path} from ${oldPath.length + 1})`,
+        updatedAt: new Date(),
+      })
+      .where(sql`${mediaFolders.path} LIKE ${oldPath + "/%"}`);
+
+    await createAuditLog(
+      "MEDIA_FOLDER_RENAME",
+      id,
+      `Renamed folder: ${oldPath} → ${newPath}`,
+    );
+    revalidatePath("/admin");
+    return { success: true, message: "Folder berhasil diganti namanya" };
+  } catch (error: unknown) {
+    const message =
+      error instanceof Error ? error.message : "Terjadi kesalahan";
+    return { message: "Gagal mengganti nama folder: " + message };
+  }
+}
+
+export async function deleteFolder(id: number): Promise<ActionState> {
+  const session = await getSession();
+  if (!session) return { message: "Sesi berakhir, silakan login kembali" };
+
+  try {
+    await checkPermission(PERMISSIONS.MANAGE_MEDIA);
+
+    const [folder] = await db
+      .select()
+      .from(mediaFolders)
+      .where(eq(mediaFolders.id, id))
+      .limit(1);
+    if (!folder) return { message: "Folder tidak ditemukan" };
+
+    // Block when non-empty: refuse if it has subfolders or media.
+    const [child] = await db
+      .select({ id: mediaFolders.id })
+      .from(mediaFolders)
+      .where(eq(mediaFolders.parentId, id))
+      .limit(1);
+    if (child) {
       return {
         message:
-          "Folder tidak kosong. Harap hapus atau pindahkan isinya terlebih dahulu.",
+          "Folder tidak kosong (berisi subfolder). Hapus atau pindahkan isinya dulu.",
       };
     }
 
-    await cloudinary.api.delete_folder(`${ROOT_FOLDER}/${folderPath}`);
+    const [media] = await db
+      .select({ id: medias.id })
+      .from(medias)
+      .where(eq(medias.folderId, id))
+      .limit(1);
+    if (media) {
+      return {
+        message:
+          "Folder tidak kosong (berisi media). Hapus atau pindahkan isinya dulu.",
+      };
+    }
+
+    await db.delete(mediaFolders).where(eq(mediaFolders.id, id));
     await createAuditLog(
       "MEDIA_FOLDER_DELETE",
-      undefined,
-      `Deleted folder: ${folderPath}`,
+      id,
+      `Deleted folder: ${folder.path}`,
     );
-
     revalidatePath("/admin");
     return { success: true, message: "Folder berhasil dihapus" };
   } catch (error: unknown) {
@@ -149,6 +268,10 @@ export async function deletePhysicalFolder(
     return { message: "Gagal menghapus folder: " + message };
   }
 }
+
+// ==========================================
+// Uploads
+// ==========================================
 
 export interface SignedUploadParams {
   cloudName: string;
@@ -159,23 +282,22 @@ export interface SignedUploadParams {
 }
 
 /**
- * Issues signed parameters for a direct browser → Cloudinary upload.
- * The signature only authorizes uploading into the requested folder at the
- * issued timestamp (valid for 1 hour, enforced by Cloudinary).
+ * Issues signed parameters for a direct browser → Cloudinary upload. Everything
+ * lands in the single ROOT_FOLDER on Cloudinary; the library's folder is tracked
+ * separately in the DB via registerUploadedMedia(folderId).
  */
-export async function signMediaUpload(
-  folder?: string | null,
-): Promise<SignedUploadParams | { error: string }> {
+export async function signMediaUpload(): Promise<
+  SignedUploadParams | { error: string }
+> {
   const session = await getSession();
   if (!session) return { error: "Sesi berakhir, silakan login kembali" };
 
   try {
     await checkPermission(PERMISSIONS.MANAGE_MEDIA);
 
-    const targetFolder = folder ? `${ROOT_FOLDER}/${folder}` : ROOT_FOLDER;
     const timestamp = Math.round(Date.now() / 1000);
     const signature = cloudinary.utils.api_sign_request(
-      { folder: targetFolder, timestamp },
+      { folder: ROOT_FOLDER, timestamp },
       process.env.CLOUDINARY_API_SECRET!,
     );
 
@@ -184,7 +306,7 @@ export async function signMediaUpload(
       apiKey: process.env.CLOUDINARY_API_KEY!,
       timestamp,
       signature,
-      folder: targetFolder,
+      folder: ROOT_FOLDER,
     };
   } catch (error: unknown) {
     console.error("Sign upload error:", error);
@@ -197,12 +319,14 @@ export async function signMediaUpload(
 /**
  * Records a finished direct upload in the medias table. The public_id is
  * verified against Cloudinary's Admin API — the DB row is built from the
- * canonical resource, not from client-supplied values.
+ * canonical resource, not from client-supplied values. The library folder is
+ * the DB folderId passed in (validated), not anything parsed from Cloudinary.
  */
 export async function registerUploadedMedia(
   publicId: string,
   originalFilename: string,
   resourceType: "image" | "video" | "raw",
+  folderId: number | null,
 ): Promise<UploadResult> {
   const session = await getSession();
   if (!session) return { error: "Sesi berakhir, silakan login kembali" };
@@ -223,21 +347,28 @@ export async function registerUploadedMedia(
       duration?: number;
     };
 
-    let type: "image" | "video" | "document" | "audio" | "other" = "other";
-    if (resource.resource_type === "image") type = "image";
-    else if (resource.resource_type === "video") type = "video";
-    else if (resource.format === "pdf") type = "document";
+    const type = classifyMediaType(resource.resource_type, resource.format);
 
-    const maxBytes = type === "video" ? MAX_VIDEO_BYTES : MAX_IMAGE_BYTES;
-    if (resource.bytes > maxBytes) {
+    const cap = MEDIA_CAPS[kindFromMediaType(type)];
+    if (resource.bytes > cap.maxBytes) {
       // Enforce the size cap server-side: drop the oversized asset again.
       await cloudinary.uploader.destroy(publicId, {
         resource_type: resourceType,
       });
-      const maxLabel = type === "video" ? "100MB" : "20MB";
       return {
-        error: `Ukuran file melebihi batas ${maxLabel}, upload dibatalkan`,
+        error: `Ukuran file melebihi batas ${cap.sizeLabel} untuk ${cap.noun}, upload dibatalkan`,
       };
+    }
+
+    // Only trust a folderId that actually exists; otherwise fall back to Root.
+    let resolvedFolderId: number | null = null;
+    if (folderId != null) {
+      const [folder] = await db
+        .select({ id: mediaFolders.id })
+        .from(mediaFolders)
+        .where(eq(mediaFolders.id, folderId))
+        .limit(1);
+      resolvedFolderId = folder ? folder.id : null;
     }
 
     const name =
@@ -248,6 +379,7 @@ export async function registerUploadedMedia(
     const [result] = await db
       .insert(medias)
       .values({
+        folderId: resolvedFolderId,
         name,
         fileKey: resource.public_id,
         type,
@@ -256,7 +388,6 @@ export async function registerUploadedMedia(
         fileSize: resource.bytes,
         url: resource.secure_url,
         metadata: {
-          folder: toRelativeFolder(resource.public_id),
           width: resource.width,
           height: resource.height,
           duration: resource.duration,
@@ -282,6 +413,10 @@ export async function registerUploadedMedia(
   }
 }
 
+// ==========================================
+// Media
+// ==========================================
+
 export async function deleteMedia(id: number): Promise<ActionState> {
   const session = await getSession();
   if (!session) return { message: "Sesi berakhir, silakan login kembali" };
@@ -298,18 +433,23 @@ export async function deleteMedia(id: number): Promise<ActionState> {
     if (!media) return { message: "Media tidak ditemukan" };
 
     if (media.provider === "cloudinary") {
-      const resourceType =
-        media.type === "video" || media.type === "audio"
-          ? "video"
-          : media.type === "image"
-            ? "image"
-            : "raw";
+      const resourceType = cloudinaryResourceType(media.type);
+      // Verify the asset is actually gone before deleting the DB row — a silent
+      // failure would orphan the Cloudinary asset and waste free-tier storage.
       try {
-        await cloudinary.uploader.destroy(media.fileKey, {
+        const res = (await cloudinary.uploader.destroy(media.fileKey, {
           resource_type: resourceType,
-        });
+        })) as { result?: string };
+        if (res.result !== "ok" && res.result !== "not found") {
+          return {
+            message: `Gagal menghapus aset di Cloudinary (${res.result ?? "unknown"}). Coba lagi.`,
+          };
+        }
       } catch (err) {
         console.error("Failed to delete Cloudinary asset:", err);
+        return {
+          message: "Gagal menghapus aset di Cloudinary. Coba lagi nanti.",
+        };
       }
     }
 
@@ -342,141 +482,42 @@ export async function getMedias() {
 
 export async function updateMediaFolder(
   id: number,
-  folder: string | null,
+  folderId: number | null,
 ): Promise<ActionState> {
   const session = await getSession();
   if (!session) return { message: "Sesi berakhir, silakan login kembali" };
 
   try {
     await checkPermission(PERMISSIONS.MANAGE_MEDIA);
-    const mediaResult = await db
+
+    const [media] = await db
       .select()
       .from(medias)
       .where(eq(medias.id, id))
       .limit(1);
-    const media = mediaResult[0];
-
     if (!media) return { message: "Media tidak ditemukan" };
 
-    const currentMeta = parseMetadata(media.metadata);
+    if (folderId != null) {
+      const [folder] = await db
+        .select({ id: mediaFolders.id })
+        .from(mediaFolders)
+        .where(eq(mediaFolders.id, folderId))
+        .limit(1);
+      if (!folder) return { message: "Folder tujuan tidak ditemukan" };
+    }
 
-    // Cloudinary asset stays where it is — the URL keeps serving. Only the
-    // library's logical folder (DB metadata) changes.
+    // The Cloudinary asset stays put — only the library's logical folder moves.
     await db
       .update(medias)
-      .set({
-        metadata: {
-          ...currentMeta,
-          folder: folder || null,
-        },
-      })
+      .set({ folderId, updatedAt: new Date() })
       .where(eq(medias.id, id));
 
-    await createAuditLog(
-      "MEDIA_MOVE",
-      id,
-      `Moved media ${media.name} to folder: ${folder || "Root"}`,
-    );
-
+    await createAuditLog("MEDIA_MOVE", id, `Moved media ${media.name}`);
     revalidatePath("/admin");
     return { success: true, message: "Media berhasil dipindahkan" };
   } catch (error: unknown) {
     const message =
       error instanceof Error ? error.message : "Terjadi kesalahan";
     return { message: "Gagal memindahkan media: " + message };
-  }
-}
-
-/**
- * Reconciles the medias table with what actually exists in Cloudinary under
- * the uploads folder — the replacement for the old filesystem sync.
- */
-export async function syncCloudinaryMedias(): Promise<
-  ActionState & { addedCount?: number }
-> {
-  const session = await getSession();
-  if (!session) return { message: "Sesi berakhir, silakan login kembali" };
-
-  try {
-    await checkPermission(PERMISSIONS.MANAGE_MEDIA);
-
-    const existing = await db
-      .select({ fileKey: medias.fileKey })
-      .from(medias);
-    const existingKeys = new Set(existing.map((m) => m.fileKey));
-
-    let addedCount = 0;
-
-    type CloudinaryResource = {
-      public_id: string;
-      secure_url: string;
-      resource_type: string;
-      format?: string;
-      bytes: number;
-      width?: number;
-      height?: number;
-      duration?: number;
-    };
-
-    for (const resourceType of ["image", "video", "raw"] as const) {
-      let nextCursor: string | undefined;
-      do {
-        const page = (await cloudinary.api.resources({
-          type: "upload",
-          resource_type: resourceType,
-          prefix: `${ROOT_FOLDER}/`,
-          max_results: 500,
-          next_cursor: nextCursor,
-        })) as { resources: CloudinaryResource[]; next_cursor?: string };
-
-        for (const resource of page.resources) {
-          if (existingKeys.has(resource.public_id)) continue;
-
-          let type: "image" | "video" | "document" | "audio" | "other" =
-            "other";
-          if (resource.resource_type === "image") type = "image";
-          else if (resource.resource_type === "video") type = "video";
-          else if (resource.format === "pdf") type = "document";
-
-          await db.insert(medias).values({
-            name: resource.public_id.split("/").pop() || resource.public_id,
-            fileKey: resource.public_id,
-            type,
-            provider: "cloudinary",
-            mimeType: toMimeType(type, resource.format),
-            fileSize: resource.bytes,
-            url: resource.secure_url,
-            metadata: {
-              folder: toRelativeFolder(resource.public_id),
-              width: resource.width,
-              height: resource.height,
-              duration: resource.duration,
-            },
-          });
-          existingKeys.add(resource.public_id);
-          addedCount++;
-        }
-
-        nextCursor = page.next_cursor;
-      } while (nextCursor);
-    }
-
-    await createAuditLog(
-      "MEDIA_SYNC",
-      undefined,
-      `Synchronized Cloudinary. Added ${addedCount} files.`,
-    );
-
-    revalidatePath("/admin");
-    return {
-      success: true,
-      message: `Sinkronisasi selesai. ${addedCount} file baru ditambahkan.`,
-      addedCount,
-    };
-  } catch (error: unknown) {
-    console.error("Sync error:", error);
-    const message =
-      error instanceof Error ? error.message : "Terjadi kesalahan";
-    return { message: "Gagal sinkronisasi: " + message };
   }
 }

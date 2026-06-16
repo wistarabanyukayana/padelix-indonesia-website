@@ -51,6 +51,7 @@ export function Footer() {
   const longPressTriggered = useRef(false);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Client-only year update after static prerender fallback.
     setYear(new Date().getFullYear());
   }, []);
 
@@ -195,7 +196,10 @@ export function Footer() {
 
         <div className="flex w-full flex-col items-center justify-between gap-4 text-[10px] tracking-[0.2em] text-neutral-500 uppercase md:flex-row">
           <div className="flex items-center gap-4">
-            <Link href="/privacy" className="transition-colors hover:text-white">
+            <Link
+              href="/privacy"
+              className="transition-colors hover:text-white"
+            >
               Privacy Policy
             </Link>
             <Link href="/terms" className="transition-colors hover:text-white">

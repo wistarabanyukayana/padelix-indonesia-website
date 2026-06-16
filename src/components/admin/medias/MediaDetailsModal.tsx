@@ -24,6 +24,7 @@ interface MediaDetailsModalProps {
   isOpen: boolean;
   onClose: () => void;
   media: DBMedia | null;
+  folderPath?: string | null;
   onMove?: (media: DBMedia) => void;
   onDelete?: (id: number) => void;
 }
@@ -32,6 +33,7 @@ export function MediaDetailsModal({
   isOpen,
   onClose,
   media,
+  folderPath,
   onMove,
   onDelete,
 }: MediaDetailsModalProps) {
@@ -58,11 +60,9 @@ export function MediaDetailsModal({
 
   const meta = parseMetadata(media.metadata);
 
-  const folder =
-    meta.folder ||
-    (media.url.split("/").length > 3
-      ? media.url.split("/").slice(2, -1).join("/")
-      : "Root");
+  // Folder comes from the media_folders table (folderPath); fall back to the
+  // legacy metadata.folder for rows not yet migrated, else Root.
+  const folder = folderPath || meta.folder || "Root";
   const isVideo = media.type === "video";
 
   return (

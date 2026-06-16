@@ -23,6 +23,7 @@ import { useFormDirty } from "@/components/admin/general/useFormDirty";
 import { useNewItemToast } from "@/components/admin/general/useNewItemToast";
 import { MediaDetailsModal } from "@/components/admin/medias/MediaDetailsModal";
 import { MediaSelector } from "@/components/admin/medias/MediaSelector";
+import { resolveMediaKind } from "@/config/media";
 import { uploadFileToCloudinary } from "@/lib/upload";
 import { getDisplayUrl, handleUploadError, parseMetadata } from "@/lib/utils";
 import { useRef } from "react";
@@ -32,7 +33,6 @@ export function PortfolioForm({
   action,
   initialData,
   allMedias,
-  currentFolder,
 }: PortfolioFormProps) {
   const isNew = !initialData?.id;
   const [state, formAction, isPending] = useActionState(
@@ -109,6 +109,7 @@ export function PortfolioForm({
 
   useEffect(() => {
     if (initialData?.medias) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Reset editable media rows when loading a different portfolio.
       setMedias(normalizeMedias(initialData.medias));
     }
   }, [initialData?.medias]);
@@ -125,11 +126,7 @@ export function PortfolioForm({
     const placeholders: MediaUI[] = list.map((file, idx) => ({
       id: 0,
       url: "",
-      type: file.type.startsWith("video/")
-        ? "video"
-        : file.type.startsWith("audio/")
-          ? "audio"
-          : "image",
+      type: resolveMediaKind(file.name, file.type),
       isPrimary: baseIndex === 0 && idx === 0,
       sortOrder: baseIndex + idx + 1,
       altText: null,
@@ -237,8 +234,8 @@ export function PortfolioForm({
     setUploadProgress(0);
 
     try {
+      const kind = resolveMediaKind(file.name, file.type);
       const uploaded = await uploadFileToCloudinary(file, {
-        folder: currentFolder,
         xhrRef,
         onProgress: setUploadProgress,
       });
@@ -251,11 +248,7 @@ export function PortfolioForm({
           url: uploaded.url,
           id: uploaded.id,
           metadata: null,
-          type: file.type.startsWith("video/")
-            ? "video"
-            : file.type.startsWith("image/")
-              ? "image"
-              : "document",
+          type: kind,
         };
         return next;
       });

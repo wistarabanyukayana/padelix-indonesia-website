@@ -48,7 +48,7 @@ export function FolderDialog({
             />
           </div>
           <p className="text-xs text-neutral-500">
-            Folder hanya akan tersimpan jika berisi file.
+            Folder kosong tetap tersimpan sampai Anda menghapusnya.
           </p>
         </div>
         <div className="mt-4 flex justify-end gap-2">
