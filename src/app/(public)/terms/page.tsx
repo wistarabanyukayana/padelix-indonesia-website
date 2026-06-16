@@ -1,8 +1,8 @@
 import { Reveal } from "@/components/general/Reveal";
 import { CourtLines } from "@/components/public/CourtLines";
 import { siteConfig } from "@/config/site";
-import Link from "next/link";
 import type { Metadata } from "next";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Syarat & Ketentuan",
@@ -82,7 +82,7 @@ export default function TermsPage() {
                         href={`#${section.id}`}
                         className="group flex items-center gap-3 text-sm text-neutral-600 transition-colors hover:text-brand-dark"
                       >
-                        <span className="w-4 text-[10px] font-black tabular-nums text-neutral-300 transition-colors group-hover:text-brand-green">
+                        <span className="w-4 text-[10px] font-black text-neutral-300 tabular-nums transition-colors group-hover:text-brand-green">
                           {String(i + 1).padStart(2, "0")}
                         </span>
                         {section.title}
@@ -98,7 +98,7 @@ export default function TermsPage() {
               <Reveal>
                 <section
                   id="penerimaan"
-                  className="flex flex-col gap-4 scroll-mt-24"
+                  className="flex scroll-mt-24 flex-col gap-4"
                 >
                   <h2 className="subheading text-neutral-900">
                     01 — Penerimaan Syarat
@@ -107,12 +107,12 @@ export default function TermsPage() {
                     Dengan mengakses atau menggunakan situs web padelix.co.id
                     yang dioperasikan oleh Padelix Indonesia, Anda menyatakan
                     telah membaca, memahami, dan menyetujui syarat dan ketentuan
-                    ini. Jika Anda tidak menyetujui salah satu ketentuan di sini,
-                    mohon hentikan penggunaan situs ini.
+                    ini. Jika Anda tidak menyetujui salah satu ketentuan di
+                    sini, mohon hentikan penggunaan situs ini.
                   </p>
                   <p className="leading-relaxed text-neutral-600">
-                    Syarat dan ketentuan ini berlaku efektif sejak {LAST_UPDATED}{" "}
-                    dan sewaktu-waktu dapat diperbarui.
+                    Syarat dan ketentuan ini berlaku efektif sejak{" "}
+                    {LAST_UPDATED} dan sewaktu-waktu dapat diperbarui.
                   </p>
                 </section>
               </Reveal>
@@ -123,7 +123,7 @@ export default function TermsPage() {
               <Reveal>
                 <section
                   id="layanan-kami"
-                  className="flex flex-col gap-4 scroll-mt-24"
+                  className="flex scroll-mt-24 flex-col gap-4"
                 >
                   <h2 className="subheading text-neutral-900">
                     02 — Tentang Layanan Kami
@@ -167,7 +167,7 @@ export default function TermsPage() {
               <Reveal>
                 <section
                   id="penggunaan-diizinkan"
-                  className="flex flex-col gap-4 scroll-mt-24"
+                  className="flex scroll-mt-24 flex-col gap-4"
                 >
                   <h2 className="subheading text-neutral-900">
                     03 — Penggunaan yang Diizinkan
@@ -204,7 +204,7 @@ export default function TermsPage() {
               <Reveal>
                 <section
                   id="kekayaan-intelektual"
-                  className="flex flex-col gap-4 scroll-mt-24"
+                  className="flex scroll-mt-24 flex-col gap-4"
                 >
                   <h2 className="subheading text-neutral-900">
                     04 — Kekayaan Intelektual
@@ -217,12 +217,14 @@ export default function TermsPage() {
                   </p>
                   <p className="leading-relaxed text-neutral-600">
                     Logo dan nama merek mitra (brand partner) ditampilkan dengan
-                    izin dan tetap menjadi hak milik masing-masing pemegang merek.
+                    izin dan tetap menjadi hak milik masing-masing pemegang
+                    merek.
                   </p>
                   <p className="leading-relaxed text-neutral-600">
-                    Anda tidak diperkenankan menyalin, mereproduksi, mendistribusikan,
-                    atau menggunakan konten dari situs ini untuk tujuan komersial
-                    tanpa izin tertulis dari Padelix Indonesia.
+                    Anda tidak diperkenankan menyalin, mereproduksi,
+                    mendistribusikan, atau menggunakan konten dari situs ini
+                    untuk tujuan komersial tanpa izin tertulis dari Padelix
+                    Indonesia.
                   </p>
                 </section>
               </Reveal>
@@ -233,15 +235,15 @@ export default function TermsPage() {
               <Reveal>
                 <section
                   id="ketersediaan-harga"
-                  className="flex flex-col gap-4 scroll-mt-24"
+                  className="flex scroll-mt-24 flex-col gap-4"
                 >
                   <h2 className="subheading text-neutral-900">
                     05 — Ketersediaan &amp; Harga Produk
                   </h2>
                   <p className="leading-relaxed text-neutral-600">
                     Informasi produk yang ditampilkan di katalog kami bersifat
-                    indikatif dan dapat berubah sewaktu-waktu tanpa pemberitahuan
-                    sebelumnya. Hal ini mencakup:
+                    indikatif dan dapat berubah sewaktu-waktu tanpa
+                    pemberitahuan sebelumnya. Hal ini mencakup:
                   </p>
                   <ul className="flex flex-col gap-3 pl-2">
                     {[
@@ -273,17 +275,17 @@ export default function TermsPage() {
               <Reveal>
                 <section
                   id="penafian"
-                  className="flex flex-col gap-4 scroll-mt-24"
+                  className="flex scroll-mt-24 flex-col gap-4"
                 >
                   <h2 className="subheading text-neutral-900">
                     06 — Penafian &amp; Batasan Tanggung Jawab
                   </h2>
                   <p className="leading-relaxed text-neutral-600">
-                    Situs ini disediakan "sebagaimana adanya" (<em>as-is</em>)
-                    tanpa jaminan dalam bentuk apapun, baik tersurat maupun
-                    tersirat. Kami berupaya menjaga keakuratan informasi, namun
-                    tidak menjamin bahwa seluruh konten bebas dari kesalahan atau
-                    selalu terbarukan.
+                    Situs ini disediakan &quot;sebagaimana adanya&quot; (
+                    <em>as-is</em>) tanpa jaminan dalam bentuk apapun, baik
+                    tersurat maupun tersirat. Kami berupaya menjaga keakuratan
+                    informasi, namun tidak menjamin bahwa seluruh konten bebas
+                    dari kesalahan atau selalu terbarukan.
                   </p>
                   <p className="leading-relaxed text-neutral-600">
                     Padelix Indonesia tidak bertanggung jawab atas:
@@ -314,7 +316,7 @@ export default function TermsPage() {
               <Reveal>
                 <section
                   id="perubahan-layanan"
-                  className="flex flex-col gap-4 scroll-mt-24"
+                  className="flex scroll-mt-24 flex-col gap-4"
                 >
                   <h2 className="subheading text-neutral-900">
                     07 — Perubahan Layanan
@@ -335,7 +337,7 @@ export default function TermsPage() {
               <Reveal>
                 <section
                   id="hukum-berlaku"
-                  className="flex flex-col gap-4 scroll-mt-24"
+                  className="flex scroll-mt-24 flex-col gap-4"
                 >
                   <h2 className="subheading text-neutral-900">
                     08 — Hukum yang Berlaku
@@ -357,7 +359,7 @@ export default function TermsPage() {
               <Reveal>
                 <section
                   id="kontak"
-                  className="flex flex-col gap-4 scroll-mt-24"
+                  className="flex scroll-mt-24 flex-col gap-4"
                 >
                   <h2 className="subheading text-neutral-900">09 — Kontak</h2>
                   <p className="leading-relaxed text-neutral-600">

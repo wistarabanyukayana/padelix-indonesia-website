@@ -1,8 +1,8 @@
 import { Reveal } from "@/components/general/Reveal";
 import { CourtLines } from "@/components/public/CourtLines";
 import { siteConfig } from "@/config/site";
-import Link from "next/link";
 import type { Metadata } from "next";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Kebijakan Privasi",
@@ -81,7 +81,7 @@ export default function PrivacyPage() {
                         href={`#${section.id}`}
                         className="group flex items-center gap-3 text-sm text-neutral-600 transition-colors hover:text-brand-dark"
                       >
-                        <span className="w-4 text-[10px] font-black tabular-nums text-neutral-300 transition-colors group-hover:text-brand-green">
+                        <span className="w-4 text-[10px] font-black text-neutral-300 tabular-nums transition-colors group-hover:text-brand-green">
                           {String(i + 1).padStart(2, "0")}
                         </span>
                         {section.title}
@@ -95,7 +95,10 @@ export default function PrivacyPage() {
             <div className="flex flex-col gap-12">
               {/* 1. Pendahuluan */}
               <Reveal>
-                <section id="pendahuluan" className="flex flex-col gap-4 scroll-mt-24">
+                <section
+                  id="pendahuluan"
+                  className="flex scroll-mt-24 flex-col gap-4"
+                >
                   <h2 className="subheading text-neutral-900">
                     01 — Pendahuluan
                   </h2>
@@ -128,7 +131,7 @@ export default function PrivacyPage() {
               <Reveal>
                 <section
                   id="data-yang-kami-kumpulkan"
-                  className="flex flex-col gap-4 scroll-mt-24"
+                  className="flex scroll-mt-24 flex-col gap-4"
                 >
                   <h2 className="subheading text-neutral-900">
                     02 — Data yang Kami Kumpulkan
@@ -165,10 +168,11 @@ export default function PrivacyPage() {
                           Data teknis (otomatis)
                         </p>
                         <p className="text-sm leading-relaxed text-neutral-600">
-                          Seperti kebanyakan situs web, kami menerima data teknis
-                          secara otomatis: alamat IP, jenis peramban (browser),
-                          halaman yang dikunjungi, dan waktu kunjungan. Data ini
-                          dikumpulkan melalui Meta Pixel dan log server kami.
+                          Seperti kebanyakan situs web, kami menerima data
+                          teknis secara otomatis: alamat IP, jenis peramban
+                          (browser), halaman yang dikunjungi, dan waktu
+                          kunjungan. Data ini dikumpulkan melalui Meta Pixel dan
+                          log server kami.
                         </p>
                       </div>
                     </li>
@@ -183,17 +187,20 @@ export default function PrivacyPage() {
                         </p>
                         <p className="text-sm leading-relaxed text-neutral-600">
                           Akun administrator internal menyimpan alamat email dan
-                          kata sandi terenkripsi (bcrypt). Data ini tidak terkait
-                          dengan pengguna publik dan tidak pernah dibagikan.
+                          kata sandi terenkripsi (bcrypt). Data ini tidak
+                          terkait dengan pengguna publik dan tidak pernah
+                          dibagikan.
                         </p>
                       </div>
                     </li>
                   </ul>
                   <p className="rounded-brand border border-neutral-100 bg-brand-light px-4 py-3 text-sm leading-relaxed text-neutral-600">
-                    <span className="font-semibold text-neutral-800">Catatan:</span>{" "}
-                    Situs ini tidak memiliki sistem akun publik, keranjang belanja,
-                    atau pemrosesan pembayaran. Pembelian dan konsultasi dilakukan
-                    melalui WhatsApp.
+                    <span className="font-semibold text-neutral-800">
+                      Catatan:
+                    </span>{" "}
+                    Situs ini tidak memiliki sistem akun publik, keranjang
+                    belanja, atau pemrosesan pembayaran. Pembelian dan
+                    konsultasi dilakukan melalui WhatsApp.
                   </p>
                 </section>
               </Reveal>
@@ -204,7 +211,7 @@ export default function PrivacyPage() {
               <Reveal>
                 <section
                   id="penggunaan-data"
-                  className="flex flex-col gap-4 scroll-mt-24"
+                  className="flex scroll-mt-24 flex-col gap-4"
                 >
                   <h2 className="subheading text-neutral-900">
                     03 — Cara Kami Menggunakan Data
@@ -244,7 +251,7 @@ export default function PrivacyPage() {
               <Reveal>
                 <section
                   id="pihak-ketiga"
-                  className="flex flex-col gap-4 scroll-mt-24"
+                  className="flex scroll-mt-24 flex-col gap-4"
                 >
                   <h2 className="subheading text-neutral-900">
                     04 — Layanan Pihak Ketiga
@@ -312,7 +319,7 @@ export default function PrivacyPage() {
               <Reveal>
                 <section
                   id="penyimpanan-keamanan"
-                  className="flex flex-col gap-4 scroll-mt-24"
+                  className="flex scroll-mt-24 flex-col gap-4"
                 >
                   <h2 className="subheading text-neutral-900">
                     05 — Penyimpanan & Keamanan
@@ -326,11 +333,12 @@ export default function PrivacyPage() {
                   </p>
                   <p className="leading-relaxed text-neutral-600">
                     Kami menerapkan langkah-langkah keamanan yang wajar:
-                    transmisi data dienkripsi menggunakan HTTPS, kata sandi admin
-                    di-hash menggunakan bcrypt, dan akses ke sistem internal
-                    dibatasi berdasarkan peran. Meski demikian, tidak ada sistem
-                    online yang sepenuhnya aman — kami mendorong Anda untuk
-                    berhati-hati dalam berbagi informasi sensitif secara daring.
+                    transmisi data dienkripsi menggunakan HTTPS, kata sandi
+                    admin di-hash menggunakan bcrypt, dan akses ke sistem
+                    internal dibatasi berdasarkan peran. Meski demikian, tidak
+                    ada sistem online yang sepenuhnya aman — kami mendorong Anda
+                    untuk berhati-hati dalam berbagi informasi sensitif secara
+                    daring.
                   </p>
                 </section>
               </Reveal>
@@ -341,7 +349,7 @@ export default function PrivacyPage() {
               <Reveal>
                 <section
                   id="hak-anda"
-                  className="flex flex-col gap-4 scroll-mt-24"
+                  className="flex scroll-mt-24 flex-col gap-4"
                 >
                   <h2 className="subheading text-neutral-900">06 — Hak Anda</h2>
                   <p className="leading-relaxed text-neutral-600">
@@ -367,9 +375,9 @@ export default function PrivacyPage() {
                     ))}
                   </ul>
                   <p className="leading-relaxed text-neutral-600">
-                    Untuk mengajukan permintaan terkait hak-hak tersebut, silakan
-                    hubungi kami melalui email atau WhatsApp yang tercantum di
-                    bawah.
+                    Untuk mengajukan permintaan terkait hak-hak tersebut,
+                    silakan hubungi kami melalui email atau WhatsApp yang
+                    tercantum di bawah.
                   </p>
                 </section>
               </Reveal>
@@ -380,7 +388,7 @@ export default function PrivacyPage() {
               <Reveal>
                 <section
                   id="perubahan"
-                  className="flex flex-col gap-4 scroll-mt-24"
+                  className="flex scroll-mt-24 flex-col gap-4"
                 >
                   <h2 className="subheading text-neutral-900">
                     07 — Perubahan Kebijakan
@@ -388,9 +396,9 @@ export default function PrivacyPage() {
                   <p className="leading-relaxed text-neutral-600">
                     Kami dapat memperbarui kebijakan ini sewaktu-waktu untuk
                     mencerminkan perubahan pada layanan atau peraturan yang
-                    berlaku. Tanggal "Terakhir diperbarui" di bagian atas halaman
-                    ini akan diubah setiap kali ada pembaruan. Kami menganjurkan
-                    Anda untuk meninjau halaman ini secara berkala.
+                    berlaku. Tanggal &quot;Terakhir diperbarui&quot; di bagian
+                    atas halaman ini akan diubah setiap kali ada pembaruan. Kami
+                    menganjurkan Anda untuk meninjau halaman ini secara berkala.
                   </p>
                 </section>
               </Reveal>
@@ -401,7 +409,7 @@ export default function PrivacyPage() {
               <Reveal>
                 <section
                   id="kontak"
-                  className="flex flex-col gap-4 scroll-mt-24"
+                  className="flex scroll-mt-24 flex-col gap-4"
                 >
                   <h2 className="subheading text-neutral-900">08 — Kontak</h2>
                   <p className="leading-relaxed text-neutral-600">

@@ -1,11 +1,11 @@
 "use client";
 
 import {
-  createPhysicalFolder,
+  createFolder,
+  deleteFolder,
   deleteMedia,
-  deletePhysicalFolder,
-  getPhysicalFolders,
-  syncCloudinaryMedias,
+  getFolders,
+  renameFolder,
   updateMediaFolder,
 } from "@/actions/media";
 import { FolderDialog } from "@/components/admin/medias/FolderDialog";
@@ -14,8 +14,11 @@ import { MediaUploadButton } from "@/components/admin/medias/MediaUploadButton";
 import { MoveMediaDialog } from "@/components/admin/medias/MoveMediaDialog";
 import { AppImage } from "@/components/general/AppImage";
 import { Button } from "@/components/ui/Button";
-import { DBMedia, MediaMetadata } from "@/types";
+import { Modal } from "@/components/ui/Modal";
+import { DBMedia, DBMediaFolder } from "@/types";
 import {
+  ArrowDown,
+  ArrowUp,
   Check,
   ChevronRight,
   FileText,
@@ -23,13 +26,13 @@ import {
   Folder,
   FolderPlus,
   Music,
+  Pencil,
   Play,
-  RefreshCcw,
   Search,
   Trash2,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { getDisplayUrl } from "@/lib/utils";
 import { toast } from "sonner";
@@ -42,37 +45,28 @@ interface MediaLibraryProps {
   stickyOffset?: string;
 }
 
-// Helper to ensure we have a clean object and handle any legacy stringified or corrupted data
-const parseMetadata = (val: unknown): MediaMetadata => {
-  if (!val) return {};
-  if (typeof val === "string") {
-    try {
-      return JSON.parse(val);
-    } catch {
-      return {};
-    }
-  }
-  // Handle "spread-string" corruption (object with keys "0", "1"...)
-  if (typeof val === "object" && val !== null && "0" in val && "1" in val) {
-    try {
-      const parts: string[] = [];
-      const obj = val as Record<string, string>;
-      Object.keys(obj).forEach((k) => {
-        if (!isNaN(Number(k))) parts[parts.length] = obj[k];
-      });
-      const recovered = parts.join("");
-      const parsed = JSON.parse(recovered);
+const TYPE_ORDER: Record<string, number> = {
+  image: 0,
+  video: 1,
+  audio: 2,
+  document: 3,
+  other: 4,
+};
 
-      const final = { ...parsed };
-      Object.keys(obj).forEach((k) => {
-        if (isNaN(Number(k))) final[k] = obj[k];
-      });
-      return final;
-    } catch {
-      return val as MediaMetadata;
-    }
+type GridItem =
+  | { kind: "folder"; folder: DBMediaFolder }
+  | { kind: "media"; media: DBMedia };
+
+const formatBytes = (bytes: number) => {
+  if (!bytes) return "0 B";
+  const units = ["B", "KB", "MB", "GB", "TB"];
+  let size = bytes;
+  let i = 0;
+  while (size >= 1024 && i < units.length - 1) {
+    size /= 1024;
+    i += 1;
   }
-  return val as MediaMetadata;
+  return `${size.toFixed(size >= 10 || i === 0 ? 0 : 1)} ${units[i]}`;
 };
 
 export function MediaLibrary({
@@ -83,18 +77,16 @@ export function MediaLibrary({
   stickyOffset,
 }: MediaLibraryProps) {
   const [medias, setMedias] = useState<DBMedia[]>(initialMedias);
-  const [physicalFolders, setPhysicalFolders] = useState<string[]>([]);
+  const [folders, setFolders] = useState<DBMediaFolder[]>([]);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [sortKey, setSortKey] = useState("name");
-  const [sortDir, setSortDir] = useState("asc");
-  const [currentFolder, setCurrentFolder] = useState<string | null>(null);
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+  const [currentFolderId, setCurrentFolderId] = useState<number | null>(null);
   const router = useRouter();
-  const breadcrumbRef = useRef<HTMLDivElement>(null);
 
   // Selection State (Admin Mode)
-  const [selectedFolders, setSelectedFolders] = useState<Set<string>>(
+  const [selectedFolders, setSelectedFolders] = useState<Set<number>>(
     new Set(),
   );
   const [selectedMedias, setSelectedMedias] = useState<Set<number>>(new Set());
@@ -103,15 +95,22 @@ export function MediaLibrary({
   const [isFolderDialogOpen, setIsFolderDialogOpen] = useState(false);
   const [mediaToMove, setMediaToMove] = useState<DBMedia | null>(null);
   const [detailMedia, setDetailMedia] = useState<DBMedia | null>(null);
+  const [folderToRename, setFolderToRename] = useState<DBMediaFolder | null>(
+    null,
+  );
+  const [renameValue, setRenameValue] = useState("");
+  const [confirm, setConfirm] = useState<{
+    message: string;
+    onConfirm: () => void;
+  } | null>(null);
 
   useEffect(() => {
-    // Only update if data actually changed to avoid cascading renders
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Sync optimistic local state after router.refresh() supplies fresh server props.
     setMedias((prev) => {
       if (JSON.stringify(prev) === JSON.stringify(initialMedias)) return prev;
       return initialMedias;
     });
 
-    // Sync detail modal if open
     if (detailMedia) {
       setDetailMedia((prev) => {
         if (!prev) return null;
@@ -121,243 +120,275 @@ export function MediaLibrary({
         return updated;
       });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialMedias]);
+  }, [initialMedias, detailMedia]);
 
-  useEffect(() => {
-    const container = breadcrumbRef.current;
-    if (!container) return;
-    const raf = requestAnimationFrame(() => {
-      container.scrollTo({ left: container.scrollWidth, behavior: "smooth" });
-    });
-    return () => cancelAnimationFrame(raf);
-  }, [currentFolder]);
-
-  // Clear selection on folder change
-  useEffect(() => {
-    setSelectedFolders((prev) => (prev.size === 0 ? prev : new Set()));
-    setSelectedMedias((prev) => (prev.size === 0 ? prev : new Set()));
-  }, [currentFolder]);
-
-  // Load physical folders on mount
-  useEffect(() => {
-    const loadFolders = async () => {
-      const folders = await getPhysicalFolders();
-      setPhysicalFolders(folders);
-    };
-    loadFolders();
-  }, []);
-
-  // Helper to get folder for a media based on its physical URL OR metadata override
-  const getMediaFolder = (m: DBMedia): string | null => {
-    const meta = parseMetadata(m.metadata);
-    if (meta?.folder) return meta.folder;
-
-    const url = m.url;
-    let relativePath = "";
-
-    if (url.startsWith("/uploads/")) {
-      relativePath = url.replace("/uploads/", "");
-    } else {
-      return null;
-    }
-
-    const parts = relativePath.split("/").filter(Boolean);
-    if (parts.length > 1) {
-      return parts.slice(0, -1).join("/");
-    }
-
-    return null; // Root
+  const reloadFolders = async () => {
+    const next = await getFolders();
+    setFolders(next);
+    return next;
   };
 
-  // Derived: All unique folders (DB + Physical)
-  const allFolders = useMemo(() => {
-    const folders = new Set<string>();
+  // Load folders on mount.
+  useEffect(() => {
+    let isMounted = true;
 
-    // Add DB folders
-    medias.forEach((m) => {
-      const f = getMediaFolder(m);
-      if (f) {
-        // Add all parent paths as well
-        const parts = f.split("/");
-        for (let i = 1; i <= parts.length; i++) {
-          folders.add(parts.slice(0, i).join("/"));
-        }
-      }
+    getFolders().then((next) => {
+      if (isMounted) setFolders(next);
     });
 
-    // Add Physical folders
-    physicalFolders.forEach((f) => {
-      // Ensure standard format (no leading slash, forward slashes)
-      const normalized = f.replace(/\\/g, "/");
-      const parts = normalized.split("/");
-      for (let i = 1; i <= parts.length; i++) {
-        folders.add(parts.slice(0, i).join("/"));
-      }
-    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
-    return Array.from(folders).sort();
-  }, [medias, physicalFolders]);
+  const goToFolder = (folderId: number | null) => {
+    setCurrentFolderId(folderId);
+    setSelectedFolders((prev) => (prev.size === 0 ? prev : new Set()));
+    setSelectedMedias((prev) => (prev.size === 0 ? prev : new Set()));
+  };
 
-  // Derived: Folders to show in current view
-  const visibleFolders = useMemo(() => {
-    if (search) return [];
-    return allFolders.filter((f) => {
-      if (!currentFolder) return !f.includes("/");
-      return (
-        f.startsWith(currentFolder + "/") &&
-        f.split("/").length === currentFolder.split("/").length + 1
+  const foldersById = useMemo(() => {
+    const map = new Map<number, DBMediaFolder>();
+    folders.forEach((f) => map.set(f.id, f));
+    return map;
+  }, [folders]);
+
+  // Breadcrumb chain: Root → … → current.
+  const ancestors = useMemo(() => {
+    const chain: DBMediaFolder[] = [];
+    let cur =
+      currentFolderId != null ? foldersById.get(currentFolderId) : undefined;
+    while (cur) {
+      chain.unshift(cur);
+      cur = cur.parentId != null ? foldersById.get(cur.parentId) : undefined;
+    }
+    return chain;
+  }, [currentFolderId, foldersById]);
+
+  // Per-folder aggregates (recursive, includes subfolders): total bytes for the
+  // size sort + tile summary, and the most-recent created/updated timestamps of
+  // the folder's CONTENTS for date sorts. Like Drive/Dropbox, a folder's date
+  // reflects its content's activity; an empty folder falls back to its own row.
+  const folderAgg = useMemo(() => {
+    const norm = (value: Date | string | null) => {
+      if (!value) return 0;
+      const raw = value instanceof Date ? value.toISOString() : value;
+      const normalized = /Z$|[+-]\d{2}:\d{2}$/.test(raw) ? raw : `${raw}Z`;
+      return new Date(normalized).getTime();
+    };
+    const directBytes = new Map<number, number>();
+    const directCreated = new Map<number, number>();
+    const directUpdated = new Map<number, number>();
+    for (const m of medias) {
+      if (m.folderId == null) continue;
+      directBytes.set(
+        m.folderId,
+        (directBytes.get(m.folderId) ?? 0) + (m.fileSize ?? 0),
       );
-    });
-  }, [allFolders, currentFolder, search]);
+      directCreated.set(
+        m.folderId,
+        Math.max(directCreated.get(m.folderId) ?? 0, norm(m.createdAt)),
+      );
+      directUpdated.set(
+        m.folderId,
+        Math.max(directUpdated.get(m.folderId) ?? 0, norm(m.updatedAt)),
+      );
+    }
+    const childrenMap = new Map<number | null, DBMediaFolder[]>();
+    for (const f of folders) {
+      const arr = childrenMap.get(f.parentId) ?? [];
+      arr.push(f);
+      childrenMap.set(f.parentId, arr);
+    }
+    type Agg = { bytes: number; created: number; updated: number };
+    const agg = new Map<number, Agg>();
+    const compute = (f: DBMediaFolder): Agg => {
+      const cached = agg.get(f.id);
+      if (cached) return cached;
+      let bytes = directBytes.get(f.id) ?? 0;
+      let created = directCreated.get(f.id) ?? 0;
+      let updated = directUpdated.get(f.id) ?? 0;
+      for (const c of childrenMap.get(f.id) ?? []) {
+        const ca = compute(c);
+        bytes += ca.bytes;
+        created = Math.max(created, ca.created);
+        updated = Math.max(updated, ca.updated);
+      }
+      // Empty folder (no content): fall back to the folder row's own timestamps.
+      if (created === 0) created = norm(f.createdAt);
+      if (updated === 0) updated = norm(f.updatedAt);
+      const res = { bytes, created, updated };
+      agg.set(f.id, res);
+      return res;
+    };
+    folders.forEach(compute);
+    return agg;
+  }, [medias, folders]);
+
+  // Direct item count per folder (subfolders + media) for the tile summary.
+  const folderItemCount = useMemo(() => {
+    const count = new Map<number, number>();
+    for (const f of folders) {
+      if (f.parentId != null)
+        count.set(f.parentId, (count.get(f.parentId) ?? 0) + 1);
+    }
+    for (const m of medias) {
+      if (m.folderId != null)
+        count.set(m.folderId, (count.get(m.folderId) ?? 0) + 1);
+    }
+    return count;
+  }, [folders, medias]);
+
+  const dirMul = sortDir === "asc" ? 1 : -1;
+
+  const visibleFolders = useMemo(
+    () => (search ? [] : folders.filter((f) => f.parentId === currentFolderId)),
+    [folders, currentFolderId, search],
+  );
 
   const filteredMedias = medias.filter((m) => {
-    const folder = getMediaFolder(m);
-    const inCurrentFolder = search ? true : folder === currentFolder;
+    const inCurrentFolder = search
+      ? true
+      : (m.folderId ?? null) === currentFolderId;
     const matchesSearch = m.name.toLowerCase().includes(search.toLowerCase());
     const matchesType = typeFilter === "all" || m.type === typeFilter;
     return inCurrentFolder && matchesSearch && matchesType;
   });
-  const sortedMedias = [...filteredMedias].sort((a, b) => {
+
+  // Folders and media are sorted together in ONE stream — folders follow the
+  // active sort like any item, not pinned to the top.
+  const gridItems = useMemo(() => {
     const normalizeDate = (value: Date | string | null) => {
       if (!value) return 0;
       const raw = value instanceof Date ? value.toISOString() : value;
       const normalized = /Z$|[+-]\d{2}:\d{2}$/.test(raw) ? raw : `${raw}Z`;
       return new Date(normalized).getTime();
     };
-    let valueA: string | number = 0;
-    let valueB: string | number = 0;
-    switch (sortKey) {
-      case "created":
-        valueA = normalizeDate(a.createdAt);
-        valueB = normalizeDate(b.createdAt);
-        break;
-      case "updated":
-        valueA = normalizeDate(a.updatedAt);
-        valueB = normalizeDate(b.updatedAt);
-        break;
-      case "name":
-      default:
-        valueA = a.name.toLowerCase();
-        valueB = b.name.toLowerCase();
-        break;
-    }
-    if (valueA < valueB) return sortDir === "asc" ? -1 : 1;
-    if (valueA > valueB) return sortDir === "asc" ? 1 : -1;
-    return 0;
-  });
+    const items: GridItem[] = [
+      ...visibleFolders.map((folder) => ({ kind: "folder" as const, folder })),
+      ...filteredMedias.map((media) => ({ kind: "media" as const, media })),
+    ];
+    const nameOf = (it: GridItem) =>
+      it.kind === "folder" ? it.folder.name : it.media.name;
+    const sizeOf = (it: GridItem) =>
+      it.kind === "folder"
+        ? (folderAgg.get(it.folder.id)?.bytes ?? 0)
+        : (it.media.fileSize ?? 0);
+    const dateOf = (it: GridItem, field: "created" | "updated") =>
+      it.kind === "folder"
+        ? (folderAgg.get(it.folder.id)?.[field] ?? 0)
+        : normalizeDate(
+            field === "created" ? it.media.createdAt : it.media.updatedAt,
+          );
+    // Folders share one rank for the type sort (they have no media type), so
+    // they group together and still move as a block with the direction toggle.
+    const typeRankOf = (it: GridItem) =>
+      it.kind === "folder" ? -1 : (TYPE_ORDER[it.media.type] ?? 9);
 
-  const handleDelete = async (id: number) => {
-    if (
-      !confirm("Apakah Anda yakin ingin menghapus media ini secara permanen?")
-    )
-      return;
+    const cmp = (a: GridItem, b: GridItem) => {
+      switch (sortKey) {
+        case "size":
+          return (sizeOf(a) - sizeOf(b)) * dirMul;
+        case "created":
+          return (dateOf(a, "created") - dateOf(b, "created")) * dirMul;
+        case "updated":
+          return (dateOf(a, "updated") - dateOf(b, "updated")) * dirMul;
+        case "type":
+          return (
+            (typeRankOf(a) - typeRankOf(b)) * dirMul ||
+            nameOf(a).localeCompare(nameOf(b))
+          );
+        case "name":
+        default:
+          return nameOf(a).localeCompare(nameOf(b)) * dirMul;
+      }
+    };
+    return items.sort(cmp);
+  }, [visibleFolders, filteredMedias, sortKey, dirMul, folderAgg]);
 
-    const result = await deleteMedia(id);
-    if (result.success) {
-      setMedias(medias.filter((m) => m.id !== id));
-      toast.success("Media berhasil dihapus");
-      router.refresh();
-    } else {
-      toast.error(result.message || "Gagal menghapus media");
-    }
+  const handleDelete = (id: number) => {
+    setConfirm({
+      message: "Hapus media ini secara permanen?",
+      onConfirm: async () => {
+        const result = await deleteMedia(id);
+        if (result.success) {
+          setMedias((prev) => prev.filter((m) => m.id !== id));
+          toast.success("Media berhasil dihapus");
+          router.refresh();
+        } else {
+          toast.error(result.message || "Gagal menghapus media");
+        }
+      },
+    });
   };
 
-  const handleBatchDelete = async () => {
-    const folderCount = selectedFolders.size;
-    const mediaCount = selectedMedias.size;
-    const total = folderCount + mediaCount;
-
+  const handleBatchDelete = () => {
+    const total = selectedFolders.size + selectedMedias.size;
     if (total === 0) return;
-    if (!confirm(`Hapus ${total} item yang dipilih? (Folder harus kosong)`))
-      return;
+    setConfirm({
+      message: `Hapus ${total} item terpilih? Folder harus kosong.`,
+      onConfirm: async () => {
+        let successCount = 0;
+        const errors: string[] = [];
 
-    let successCount = 0;
-    const errors: string[] = [];
+        for (const id of Array.from(selectedMedias)) {
+          const res = await deleteMedia(id);
+          if (res.success) {
+            setMedias((prev) => prev.filter((m) => m.id !== id));
+            successCount++;
+          } else {
+            errors.push(res.message || `Media #${id}`);
+          }
+        }
+        for (const id of Array.from(selectedFolders)) {
+          const res = await deleteFolder(id);
+          if (res.success) successCount++;
+          else errors.push(res.message || `Folder #${id}`);
+        }
 
-    // Delete Medias
-    for (const id of Array.from(selectedMedias)) {
-      const res = await deleteMedia(id);
-      if (res.success) {
-        setMedias((prev) => prev.filter((m) => m.id !== id));
-        successCount++;
-      } else {
-        errors.push(`Media #${id}: ${res.message}`);
-      }
-    }
-
-    // Delete Folders
-    for (const path of Array.from(selectedFolders)) {
-      const res = await deletePhysicalFolder(path);
-      if (res.success) {
-        setPhysicalFolders((prev) => prev.filter((p) => p !== path));
-        successCount++;
-      } else {
-        errors.push(`Folder ${path}: ${res.message}`);
-      }
-    }
-
-    setSelectedFolders(new Set());
-    setSelectedMedias(new Set());
-
-    if (successCount > 0)
-      toast.success(`Berhasil menghapus ${successCount} item.`);
-    if (errors.length > 0)
-      toast.error(`Gagal menghapus beberapa item: ${errors[0]}`);
-    router.refresh();
+        setSelectedFolders(new Set());
+        setSelectedMedias(new Set());
+        await reloadFolders();
+        if (successCount > 0)
+          toast.success(`Berhasil menghapus ${successCount} item.`);
+        if (errors.length > 0) toast.error(errors[0]);
+        router.refresh();
+      },
+    });
   };
 
-  const toggleFolderSelection = (path: string, e: React.MouseEvent) => {
+  const toggleFolderSelection = (id: number, e: React.MouseEvent) => {
     e.stopPropagation();
-    const newSet = new Set(selectedFolders);
-    if (newSet.has(path)) newSet.delete(path);
-    else newSet.add(path);
-    setSelectedFolders(newSet);
+    setSelectedFolders((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
   };
 
   const toggleMediaSelection = (id: number, e?: React.MouseEvent) => {
     e?.stopPropagation();
-    const newSet = new Set(selectedMedias);
-
-    if (allowSelection) {
-      if (selectionMode === "multiple") {
-        if (newSet.has(id)) newSet.delete(id);
-        else newSet.add(id);
-      } else {
-        // Single selection for picker mode
-        if (newSet.has(id)) newSet.clear();
-        else {
-          newSet.clear();
-          newSet.add(id);
-        }
-      }
-    } else {
-      // Multi selection for admin mode
-      if (newSet.has(id)) newSet.delete(id);
-      else newSet.add(id);
-    }
-    setSelectedMedias(newSet);
+    setSelectedMedias((prev) => {
+      const next = new Set(prev);
+      if (allowSelection && selectionMode === "single") {
+        next.clear();
+        if (!prev.has(id)) next.add(id);
+      } else if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
   };
 
-  const handleSync = async () => {
-    setIsRefreshing(true);
-    const result = await syncCloudinaryMedias();
-    const folders = await getPhysicalFolders();
-    setPhysicalFolders(folders);
-    setIsRefreshing(false);
-
-    if (result.success) {
-      toast.success(result.message || "Sinkronisasi berhasil");
-      router.refresh();
-    } else if (result.message) {
-      toast.error(result.message);
-    }
-  };
-
-  const handleMoveConfirm = async (targetFolder: string | null) => {
+  const handleMoveConfirm = async (targetFolderId: number | null) => {
     if (!mediaToMove) return;
-    const result = await updateMediaFolder(mediaToMove.id, targetFolder);
+    const result = await updateMediaFolder(mediaToMove.id, targetFolderId);
     if (result.success) {
+      setMedias((prev) =>
+        prev.map((m) =>
+          m.id === mediaToMove.id ? { ...m, folderId: targetFolderId } : m,
+        ),
+      );
       toast.success("Media berhasil dipindahkan");
       router.refresh();
     } else {
@@ -367,48 +398,51 @@ export function MediaLibrary({
   };
 
   const handleCreateFolder = async (name: string) => {
-    const fullPath = currentFolder ? `${currentFolder}/${name}` : name;
-
-    const result = await createPhysicalFolder(fullPath);
-
+    const result = await createFolder(name, currentFolderId);
     if (result.success) {
       toast.success(result.message || "Folder berhasil dibuat");
-      setPhysicalFolders((prev) => [...prev, fullPath]);
-      // Do not auto-navigate to keep user in context
-      // setCurrentFolder(fullPath);
+      await reloadFolders();
     } else {
       toast.error(result.message || "Gagal membuat folder");
     }
   };
 
-  const handleMediaClick = (m: DBMedia) => {
-    if (allowSelection) {
-      toggleMediaSelection(m.id);
+  const submitRename = async () => {
+    if (!folderToRename) return;
+    const result = await renameFolder(folderToRename.id, renameValue.trim());
+    if (result.success) {
+      toast.success(result.message || "Folder diperbarui");
+      await reloadFolders();
     } else {
-      setDetailMedia(m);
+      toast.error(result.message || "Gagal mengganti nama folder");
     }
+    setFolderToRename(null);
+  };
+
+  const handleMediaClick = (m: DBMedia) => {
+    if (allowSelection) toggleMediaSelection(m.id);
+    else setDetailMedia(m);
   };
 
   const handleConfirmSelection = () => {
-    if (selectedMedias.size === 0) return;
-    if (!onSelect) return;
-
+    if (selectedMedias.size === 0 || !onSelect) return;
     if (selectionMode === "multiple") {
-      const selectedList = medias.filter((m) => selectedMedias.has(m.id));
-      if (selectedList.length > 0) {
-        onSelect(selectedList);
+      const list = medias.filter((m) => selectedMedias.has(m.id));
+      if (list.length > 0) {
+        onSelect(list);
         setSelectedMedias(new Set());
       }
       return;
     }
-
-    const selectedId = Array.from(selectedMedias)[0];
-    const selectedMedia = medias.find((m) => m.id === selectedId);
-    if (selectedMedia) {
-      onSelect(selectedMedia);
+    const selected = medias.find((m) => selectedMedias.has(m.id));
+    if (selected) {
+      onSelect(selected);
       setSelectedMedias(new Set());
     }
   };
+
+  const currentFolder =
+    currentFolderId != null ? foldersById.get(currentFolderId) : undefined;
 
   return (
     <div className="relative flex min-h-125 flex-col gap-6">
@@ -416,24 +450,96 @@ export function MediaLibrary({
         isOpen={isFolderDialogOpen}
         onClose={() => setIsFolderDialogOpen(false)}
         onCreate={handleCreateFolder}
-        currentPath={currentFolder}
+        currentPath={currentFolder?.path ?? null}
       />
 
       <MoveMediaDialog
+        key={mediaToMove?.id ?? "move-media"}
         isOpen={!!mediaToMove}
         onClose={() => setMediaToMove(null)}
         onMove={handleMoveConfirm}
-        existingFolders={allFolders}
-        currentFolder={currentFolder}
+        folders={folders}
+        currentFolderId={mediaToMove?.folderId ?? null}
       />
 
       <MediaDetailsModal
         isOpen={!!detailMedia}
         onClose={() => setDetailMedia(null)}
         media={detailMedia}
+        folderPath={
+          detailMedia?.folderId != null
+            ? (foldersById.get(detailMedia.folderId)?.path ?? null)
+            : null
+        }
         onDelete={handleDelete}
         onMove={setMediaToMove}
       />
+
+      {/* Rename folder dialog */}
+      <Modal
+        isOpen={!!folderToRename}
+        onClose={() => setFolderToRename(null)}
+        title="Ganti Nama Folder"
+      >
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (renameValue.trim()) submitRename();
+          }}
+          className="flex flex-col gap-4"
+        >
+          <input
+            autoFocus
+            type="text"
+            className="rounded-lg border p-2.5 text-sm md:text-base"
+            value={renameValue}
+            onChange={(e) => setRenameValue(e.target.value)}
+          />
+          <div className="flex justify-end gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setFolderToRename(null)}
+            >
+              Batal
+            </Button>
+            <Button type="submit" size="sm" disabled={!renameValue.trim()}>
+              Simpan
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Confirm dialog (replaces native confirm) */}
+      <Modal
+        isOpen={!!confirm}
+        onClose={() => setConfirm(null)}
+        title="Konfirmasi"
+      >
+        <div className="flex flex-col gap-5">
+          <p className="text-sm text-neutral-600">{confirm?.message}</p>
+          <div className="flex justify-end gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setConfirm(null)}
+            >
+              Batal
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => {
+                confirm?.onConfirm();
+                setConfirm(null);
+              }}
+            >
+              Hapus
+            </Button>
+          </div>
+        </div>
+      </Modal>
 
       <div
         className="sticky z-20 -mx-4 border-b border-neutral-200 bg-neutral-50 px-4 py-3 transition-all duration-300 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8"
@@ -442,26 +548,21 @@ export function MediaLibrary({
         <div className="mx-auto max-w-7xl">
           <div className="flex flex-col items-center justify-between gap-4 rounded-xl border border-neutral-200 bg-white p-3 shadow-sm">
             <div className="w-full">
-              <div
-                ref={breadcrumbRef}
-                className="no-scrollbar flex items-center gap-1.5 overflow-x-auto pb-0.5 text-[11px] font-bold whitespace-nowrap text-neutral-400"
-              >
+              <div className="no-scrollbar flex items-center gap-1.5 overflow-x-auto pb-0.5 text-[11px] font-bold whitespace-nowrap text-neutral-400">
                 <button
-                  onClick={() => setCurrentFolder(null)}
-                  className={`flex items-center gap-1 transition-colors hover:text-brand-green ${!currentFolder ? "text-brand-green" : ""}`}
+                  onClick={() => goToFolder(null)}
+                  className={`flex items-center gap-1 transition-colors hover:text-brand-green ${!currentFolderId ? "text-brand-green" : ""}`}
                 >
                   <Folder size={14} /> Root
                 </button>
-                {currentFolder?.split("/").map((part, i, arr) => (
-                  <div key={i} className="flex items-center gap-2">
+                {ancestors.map((f, i) => (
+                  <div key={f.id} className="flex items-center gap-2">
                     <ChevronRight size={12} className="shrink-0" />
                     <button
-                      onClick={() =>
-                        setCurrentFolder(arr.slice(0, i + 1).join("/"))
-                      }
-                      className={`transition-colors hover:text-brand-green ${i === arr.length - 1 ? "text-brand-green" : ""}`}
+                      onClick={() => goToFolder(f.id)}
+                      className={`transition-colors hover:text-brand-green ${i === ancestors.length - 1 ? "text-brand-green" : ""}`}
                     >
-                      {part}
+                      {f.name}
                     </button>
                   </div>
                 ))}
@@ -484,12 +585,16 @@ export function MediaLibrary({
             </div>
 
             <div className="flex w-full flex-col items-center justify-evenly gap-2 align-middle md:flex-row md:justify-between">
-              <div className="flex w-full items-center justify-between gap-2 md:w-auto">
-                <Filter className="w-16 text-neutral-400 sm:w-8 md:w-4" />
+              <div className="flex w-full items-center gap-2 md:w-auto">
+                <Filter
+                  size={16}
+                  className="hidden shrink-0 text-neutral-400 sm:block"
+                />
                 <select
                   className="w-full min-w-30 cursor-pointer rounded-lg border bg-white p-2.5 text-sm outline-none focus:ring-2 focus:ring-brand-green/20 md:w-auto md:text-base"
                   value={typeFilter}
                   onChange={(e) => setTypeFilter(e.target.value)}
+                  aria-label="Saring berdasarkan tipe"
                 >
                   <option value="all">Semua Tipe</option>
                   <option value="image">Gambar</option>
@@ -501,38 +606,45 @@ export function MediaLibrary({
                   className="w-full cursor-pointer rounded-lg border bg-white p-2.5 text-sm outline-none focus:ring-2 focus:ring-brand-green/20 sm:w-auto md:text-base"
                   value={sortKey}
                   onChange={(e) => setSortKey(e.target.value)}
+                  aria-label="Urutkan berdasarkan"
                 >
                   <option value="name">Urutkan: Nama</option>
-                  <option value="created">Urutkan: Dibuat</option>
-                  <option value="updated">Urutkan: Diubah</option>
+                  <option value="created">Urutkan: Tanggal Unggah</option>
+                  <option value="updated">Urutkan: Terakhir Diubah</option>
+                  <option value="size">Urutkan: Ukuran File</option>
+                  <option value="type">Urutkan: Tipe Media</option>
                 </select>
-                <select
-                  className="w-full cursor-pointer rounded-lg border bg-white p-2.5 text-sm outline-none focus:ring-2 focus:ring-brand-green/20 sm:w-auto md:text-base"
-                  value={sortDir}
-                  onChange={(e) => setSortDir(e.target.value)}
+                <button
+                  type="button"
+                  onClick={() =>
+                    setSortDir((d) => (d === "asc" ? "desc" : "asc"))
+                  }
+                  title="Ubah arah urutan"
+                  aria-label="Ubah arah urutan"
+                  className="flex shrink-0 items-center gap-1.5 rounded-lg border bg-white p-2.5 text-sm font-medium text-neutral-600 transition-colors hover:bg-neutral-50 md:text-base"
                 >
-                  <option value="asc">Asc</option>
-                  <option value="desc">Desc</option>
-                </select>
+                  {sortDir === "asc" ? (
+                    <ArrowUp size={16} />
+                  ) : (
+                    <ArrowDown size={16} />
+                  )}
+                  <span className="whitespace-nowrap">
+                    {sortKey === "name"
+                      ? sortDir === "asc"
+                        ? "A–Z"
+                        : "Z–A"
+                      : sortKey === "size"
+                        ? sortDir === "asc"
+                          ? "Kecil"
+                          : "Besar"
+                        : sortDir === "asc"
+                          ? "Terlama"
+                          : "Terbaru"}
+                  </span>
+                </button>
               </div>
 
               <div className="flex w-full items-center justify-around gap-2 md:w-auto">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={handleSync}
-                  disabled={isRefreshing}
-                  className="w-full gap-2 border-neutral-200 text-neutral-600 lg:w-auto"
-                >
-                  <RefreshCcw
-                    size={16}
-                    className={isRefreshing ? "animate-spin" : ""}
-                  />
-                  <span className="hidden sm:inline md:hidden lg:inline">
-                    Sinkron Assets
-                  </span>
-                </Button>
                 <Button
                   type="button"
                   variant="outline"
@@ -545,7 +657,7 @@ export function MediaLibrary({
                     Folder Baru
                   </span>
                 </Button>
-                <MediaUploadButton currentFolder={currentFolder} />
+                <MediaUploadButton currentFolderId={currentFolderId} />
               </div>
             </div>
           </div>
@@ -553,17 +665,17 @@ export function MediaLibrary({
       </div>
 
       {/* Grid */}
-      {filteredMedias.length === 0 && visibleFolders.length === 0 ? (
+      {gridItems.length === 0 ? (
         <div className="rounded-xl border border-dashed border-neutral-200 bg-white py-24 text-center">
           <Folder size={48} className="mx-auto mb-4 text-neutral-100" />
           <p className="font-medium text-neutral-400">
             Folder ini masih kosong.
           </p>
-          {currentFolder && (
+          {currentFolderId && (
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setCurrentFolder(null)}
+              onClick={() => goToFolder(null)}
               className="mt-4"
             >
               Kembali ke Root
@@ -572,56 +684,77 @@ export function MediaLibrary({
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-4 pb-20 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8">
-          {/* Folders */}
-          {visibleFolders.map((f) => {
-            const isSelected = selectedFolders.has(f);
-            return (
-              <div
-                key={f}
-                onClick={() => setCurrentFolder(f)}
-                className={`group relative flex aspect-square cursor-pointer flex-col items-center justify-center gap-3 overflow-hidden rounded-xl border p-4 transition-all ${isSelected ? "border-brand-green bg-brand-light/10 ring-2 ring-brand-green ring-offset-2" : "border-neutral-200 bg-white hover:border-brand-green hover:shadow-md"} `}
-              >
-                {!allowSelection && (
-                  <div
-                    className={`absolute top-2 right-2 z-10 transition-opacity ${isSelected ? "opacity-100" : "opacity-100 md:opacity-0 md:group-hover:opacity-100"}`}
-                  >
-                    <button
-                      onClick={(e) => toggleFolderSelection(f, e)}
-                      className={`rounded-full border p-1 transition-colors ${isSelected ? "border-brand-green bg-brand-green text-white" : "border-neutral-200 bg-white text-neutral-400 hover:border-brand-green"}`}
-                    >
-                      <Check
-                        size={14}
-                        className={isSelected ? "stroke-[3px]" : ""}
-                      />
-                    </button>
-                  </div>
-                )}
+          {gridItems.map((item) => {
+            if (item.kind === "folder") {
+              const f = item.folder;
+              const isSelected = selectedFolders.has(f.id);
+              const count = folderItemCount.get(f.id) ?? 0;
+              return (
+                <div
+                  key={`folder-${f.id}`}
+                  onClick={() => goToFolder(f.id)}
+                  className={`group relative flex aspect-square cursor-pointer flex-col items-center justify-center gap-3 overflow-hidden rounded-xl border p-4 transition-all ${isSelected ? "border-brand-green bg-brand-light/10 ring-2 ring-brand-green ring-offset-2" : "border-neutral-200 bg-white hover:border-brand-green hover:shadow-md"} `}
+                >
+                  {!allowSelection && (
+                    <>
+                      <div
+                        className={`absolute top-2 right-2 z-10 transition-opacity ${isSelected ? "opacity-100" : "opacity-60 md:opacity-0 md:group-hover:opacity-100"}`}
+                      >
+                        <button
+                          onClick={(e) => toggleFolderSelection(f.id, e)}
+                          title="Pilih folder"
+                          className={`rounded-full border p-1 transition-colors ${isSelected ? "border-brand-green bg-brand-green text-white" : "border-neutral-200 bg-white text-neutral-400 hover:border-brand-green"}`}
+                        >
+                          <Check
+                            size={14}
+                            className={isSelected ? "stroke-[3px]" : ""}
+                          />
+                        </button>
+                      </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setRenameValue(f.name);
+                          setFolderToRename(f);
+                        }}
+                        title="Ganti nama folder"
+                        className="absolute top-2 left-2 z-10 rounded-full border border-neutral-200 bg-white p-1 text-neutral-400 opacity-0 transition-all hover:border-brand-green hover:text-brand-green md:group-hover:opacity-100"
+                      >
+                        <Pencil size={12} />
+                      </button>
+                    </>
+                  )}
 
-                <div className="relative">
-                  <Folder
-                    size={56}
-                    className={`transition-colors ${isSelected ? "fill-brand-green/20 text-brand-green" : "fill-brand-light stroke-brand-green/20 text-brand-light group-hover:stroke-brand-green/40"}`}
-                  />
-                  <div className="absolute inset-0 flex items-center justify-center pt-1">
-                    <span className="text-[10px] font-black text-brand-green opacity-40">
-                      DIR
+                  <div className="relative">
+                    <Folder
+                      size={56}
+                      className={`transition-colors ${isSelected ? "fill-brand-green/20 text-brand-green" : "fill-brand-light stroke-brand-green/20 text-brand-light group-hover:stroke-brand-green/40"}`}
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center pt-1">
+                      <span className="text-[10px] font-black text-brand-green opacity-40">
+                        DIR
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex w-full flex-col items-center">
+                    <span className="w-full truncate text-center text-xs font-bold tracking-tighter text-neutral-600">
+                      {f.name}
+                    </span>
+                    <span className="text-[10px] text-neutral-400">
+                      {count} item ·{" "}
+                      {formatBytes(folderAgg.get(f.id)?.bytes ?? 0)}
                     </span>
                   </div>
                 </div>
-                <span className="w-full truncate text-center text-xs font-bold tracking-tighter text-neutral-600">
-                  {f.split("/").pop()}
-                </span>
-              </div>
-            );
-          })}
+              );
+            }
 
-          {/* Medias */}
-          {sortedMedias.map((m) => {
+            const m = item.media;
             const isSelected = selectedMedias.has(m.id);
 
             return (
               <div
-                key={m.id}
+                key={`media-${m.id}`}
                 className={`group relative aspect-square overflow-hidden rounded-xl border transition-all ${
                   isSelected
                     ? "border-brand-green bg-brand-light/10 ring-2 ring-brand-green ring-offset-2"
@@ -633,10 +766,11 @@ export function MediaLibrary({
               >
                 {/* Selection Checkbox */}
                 <div
-                  className={`absolute top-2 right-2 z-10 transition-opacity ${isSelected ? "opacity-100" : "opacity-100 md:opacity-0 md:group-hover:opacity-100"}`}
+                  className={`absolute top-2 right-2 z-10 transition-opacity ${isSelected ? "opacity-100" : "opacity-60 md:opacity-0 md:group-hover:opacity-100"}`}
                 >
                   <button
                     onClick={(e) => toggleMediaSelection(m.id, e)}
+                    title="Pilih media"
                     className={`rounded-full border p-1 transition-colors ${isSelected ? "border-brand-green bg-brand-green text-white" : "border-neutral-200 bg-white text-neutral-400 hover:border-brand-green"}`}
                   >
                     <Check
