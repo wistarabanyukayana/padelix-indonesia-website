@@ -53,6 +53,10 @@ const TYPE_ORDER: Record<string, number> = {
   other: 4,
 };
 
+type GridItem =
+  | { kind: "folder"; folder: DBMediaFolder }
+  | { kind: "media"; media: DBMedia };
+
 const formatBytes = (bytes: number) => {
   if (!bytes) return "0 B";
   const units = ["B", "KB", "MB", "GB", "TB"];
@@ -207,37 +211,10 @@ export function MediaLibrary({
 
   const dirMul = sortDir === "asc" ? 1 : -1;
 
-  const visibleFolders = useMemo(() => {
-    if (search) return [];
-    const list = folders.filter((f) => f.parentId === currentFolderId);
-    const cmp = (a: DBMediaFolder, b: DBMediaFolder) => {
-      switch (sortKey) {
-        case "size":
-          return (
-            ((folderTotalBytes.get(a.id) ?? 0) -
-              (folderTotalBytes.get(b.id) ?? 0)) *
-            dirMul
-          );
-        case "created":
-          return (
-            (new Date(a.createdAt).getTime() -
-              new Date(b.createdAt).getTime()) *
-            dirMul
-          );
-        case "updated":
-          return (
-            (new Date(a.updatedAt).getTime() -
-              new Date(b.updatedAt).getTime()) *
-            dirMul
-          );
-        case "type": // folders have no type → fall back to name
-        case "name":
-        default:
-          return a.name.localeCompare(b.name) * dirMul;
-      }
-    };
-    return [...list].sort(cmp);
-  }, [folders, currentFolderId, search, sortKey, dirMul, folderTotalBytes]);
+  const visibleFolders = useMemo(
+    () => (search ? [] : folders.filter((f) => f.parentId === currentFolderId)),
+    [folders, currentFolderId, search],
+  );
 
   const filteredMedias = medias.filter((m) => {
     const inCurrentFolder = search
@@ -248,34 +225,52 @@ export function MediaLibrary({
     return inCurrentFolder && matchesSearch && matchesType;
   });
 
-  const sortedMedias = [...filteredMedias].sort((a, b) => {
+  // Folders and media are sorted together in ONE stream — folders follow the
+  // active sort like any item, not pinned to the top.
+  const gridItems = useMemo(() => {
     const normalizeDate = (value: Date | string | null) => {
       if (!value) return 0;
       const raw = value instanceof Date ? value.toISOString() : value;
       const normalized = /Z$|[+-]\d{2}:\d{2}$/.test(raw) ? raw : `${raw}Z`;
       return new Date(normalized).getTime();
     };
-    switch (sortKey) {
-      case "created":
-        return (
-          (normalizeDate(a.createdAt) - normalizeDate(b.createdAt)) * dirMul
-        );
-      case "updated":
-        return (
-          (normalizeDate(a.updatedAt) - normalizeDate(b.updatedAt)) * dirMul
-        );
-      case "size":
-        return ((a.fileSize ?? 0) - (b.fileSize ?? 0)) * dirMul;
-      case "type":
-        return (
-          ((TYPE_ORDER[a.type] ?? 9) - (TYPE_ORDER[b.type] ?? 9)) * dirMul ||
-          a.name.localeCompare(b.name)
-        );
-      case "name":
-      default:
-        return a.name.localeCompare(b.name) * dirMul;
-    }
-  });
+    const items: GridItem[] = [
+      ...visibleFolders.map((folder) => ({ kind: "folder" as const, folder })),
+      ...filteredMedias.map((media) => ({ kind: "media" as const, media })),
+    ];
+    const nameOf = (it: GridItem) =>
+      it.kind === "folder" ? it.folder.name : it.media.name;
+    const sizeOf = (it: GridItem) =>
+      it.kind === "folder"
+        ? (folderTotalBytes.get(it.folder.id) ?? 0)
+        : (it.media.fileSize ?? 0);
+    const dateOf = (it: GridItem, field: "createdAt" | "updatedAt") =>
+      normalizeDate(it.kind === "folder" ? it.folder[field] : it.media[field]);
+    // Folders share one rank for the type sort (they have no media type), so
+    // they group together and still move as a block with the direction toggle.
+    const typeRankOf = (it: GridItem) =>
+      it.kind === "folder" ? -1 : (TYPE_ORDER[it.media.type] ?? 9);
+
+    const cmp = (a: GridItem, b: GridItem) => {
+      switch (sortKey) {
+        case "size":
+          return (sizeOf(a) - sizeOf(b)) * dirMul;
+        case "created":
+          return (dateOf(a, "createdAt") - dateOf(b, "createdAt")) * dirMul;
+        case "updated":
+          return (dateOf(a, "updatedAt") - dateOf(b, "updatedAt")) * dirMul;
+        case "type":
+          return (
+            (typeRankOf(a) - typeRankOf(b)) * dirMul ||
+            nameOf(a).localeCompare(nameOf(b))
+          );
+        case "name":
+        default:
+          return nameOf(a).localeCompare(nameOf(b)) * dirMul;
+      }
+    };
+    return items.sort(cmp);
+  }, [visibleFolders, filteredMedias, sortKey, dirMul, folderTotalBytes]);
 
   const handleDelete = (id: number) => {
     setConfirm({
@@ -636,7 +631,7 @@ export function MediaLibrary({
       </div>
 
       {/* Grid */}
-      {filteredMedias.length === 0 && visibleFolders.length === 0 ? (
+      {gridItems.length === 0 ? (
         <div className="rounded-xl border border-dashed border-neutral-200 bg-white py-24 text-center">
           <Folder size={48} className="mx-auto mb-4 text-neutral-100" />
           <p className="font-medium text-neutral-400">
@@ -655,77 +650,77 @@ export function MediaLibrary({
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-4 pb-20 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8">
-          {/* Folders */}
-          {visibleFolders.map((f) => {
-            const isSelected = selectedFolders.has(f.id);
-            const count = folderItemCount.get(f.id) ?? 0;
-            return (
-              <div
-                key={f.id}
-                onClick={() => goToFolder(f.id)}
-                className={`group relative flex aspect-square cursor-pointer flex-col items-center justify-center gap-3 overflow-hidden rounded-xl border p-4 transition-all ${isSelected ? "border-brand-green bg-brand-light/10 ring-2 ring-brand-green ring-offset-2" : "border-neutral-200 bg-white hover:border-brand-green hover:shadow-md"} `}
-              >
-                {!allowSelection && (
-                  <>
-                    <div
-                      className={`absolute top-2 right-2 z-10 transition-opacity ${isSelected ? "opacity-100" : "opacity-60 md:opacity-0 md:group-hover:opacity-100"}`}
-                    >
-                      <button
-                        onClick={(e) => toggleFolderSelection(f.id, e)}
-                        title="Pilih folder"
-                        className={`rounded-full border p-1 transition-colors ${isSelected ? "border-brand-green bg-brand-green text-white" : "border-neutral-200 bg-white text-neutral-400 hover:border-brand-green"}`}
+          {gridItems.map((item) => {
+            if (item.kind === "folder") {
+              const f = item.folder;
+              const isSelected = selectedFolders.has(f.id);
+              const count = folderItemCount.get(f.id) ?? 0;
+              return (
+                <div
+                  key={`folder-${f.id}`}
+                  onClick={() => goToFolder(f.id)}
+                  className={`group relative flex aspect-square cursor-pointer flex-col items-center justify-center gap-3 overflow-hidden rounded-xl border p-4 transition-all ${isSelected ? "border-brand-green bg-brand-light/10 ring-2 ring-brand-green ring-offset-2" : "border-neutral-200 bg-white hover:border-brand-green hover:shadow-md"} `}
+                >
+                  {!allowSelection && (
+                    <>
+                      <div
+                        className={`absolute top-2 right-2 z-10 transition-opacity ${isSelected ? "opacity-100" : "opacity-60 md:opacity-0 md:group-hover:opacity-100"}`}
                       >
-                        <Check
-                          size={14}
-                          className={isSelected ? "stroke-[3px]" : ""}
-                        />
+                        <button
+                          onClick={(e) => toggleFolderSelection(f.id, e)}
+                          title="Pilih folder"
+                          className={`rounded-full border p-1 transition-colors ${isSelected ? "border-brand-green bg-brand-green text-white" : "border-neutral-200 bg-white text-neutral-400 hover:border-brand-green"}`}
+                        >
+                          <Check
+                            size={14}
+                            className={isSelected ? "stroke-[3px]" : ""}
+                          />
+                        </button>
+                      </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setRenameValue(f.name);
+                          setFolderToRename(f);
+                        }}
+                        title="Ganti nama folder"
+                        className="absolute top-2 left-2 z-10 rounded-full border border-neutral-200 bg-white p-1 text-neutral-400 opacity-0 transition-all hover:border-brand-green hover:text-brand-green md:group-hover:opacity-100"
+                      >
+                        <Pencil size={12} />
                       </button>
-                    </div>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setRenameValue(f.name);
-                        setFolderToRename(f);
-                      }}
-                      title="Ganti nama folder"
-                      className="absolute top-2 left-2 z-10 rounded-full border border-neutral-200 bg-white p-1 text-neutral-400 opacity-0 transition-all hover:border-brand-green hover:text-brand-green md:group-hover:opacity-100"
-                    >
-                      <Pencil size={12} />
-                    </button>
-                  </>
-                )}
+                    </>
+                  )}
 
-                <div className="relative">
-                  <Folder
-                    size={56}
-                    className={`transition-colors ${isSelected ? "fill-brand-green/20 text-brand-green" : "fill-brand-light stroke-brand-green/20 text-brand-light group-hover:stroke-brand-green/40"}`}
-                  />
-                  <div className="absolute inset-0 flex items-center justify-center pt-1">
-                    <span className="text-[10px] font-black text-brand-green opacity-40">
-                      DIR
+                  <div className="relative">
+                    <Folder
+                      size={56}
+                      className={`transition-colors ${isSelected ? "fill-brand-green/20 text-brand-green" : "fill-brand-light stroke-brand-green/20 text-brand-light group-hover:stroke-brand-green/40"}`}
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center pt-1">
+                      <span className="text-[10px] font-black text-brand-green opacity-40">
+                        DIR
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex w-full flex-col items-center">
+                    <span className="w-full truncate text-center text-xs font-bold tracking-tighter text-neutral-600">
+                      {f.name}
+                    </span>
+                    <span className="text-[10px] text-neutral-400">
+                      {count} item ·{" "}
+                      {formatBytes(folderTotalBytes.get(f.id) ?? 0)}
                     </span>
                   </div>
                 </div>
-                <div className="flex w-full flex-col items-center">
-                  <span className="w-full truncate text-center text-xs font-bold tracking-tighter text-neutral-600">
-                    {f.name}
-                  </span>
-                  <span className="text-[10px] text-neutral-400">
-                    {count} item ·{" "}
-                    {formatBytes(folderTotalBytes.get(f.id) ?? 0)}
-                  </span>
-                </div>
-              </div>
-            );
-          })}
+              );
+            }
 
-          {/* Medias */}
-          {sortedMedias.map((m) => {
+            const m = item.media;
             const isSelected = selectedMedias.has(m.id);
 
             return (
               <div
-                key={m.id}
+                key={`media-${m.id}`}
                 className={`group relative aspect-square overflow-hidden rounded-xl border transition-all ${
                   isSelected
                     ? "border-brand-green bg-brand-light/10 ring-2 ring-brand-green ring-offset-2"
