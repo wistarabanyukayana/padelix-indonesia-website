@@ -10,7 +10,7 @@ A unified fullstack web application for Padelix Indonesia, built with Next.js 16
 
 - **Live:** [https://padelix.co.id](https://padelix.co.id)
 - **Current Version:** 3.0.1 (Bug Fixes and QoL updates)
-- **Previous Version:** 2.2.3 (Unified Fullstack)
+- **Previous Version:** 3.0.0 (Unified Fullstack & Court-side Design)
 
 ---
 
@@ -186,6 +186,8 @@ This project runs `lint`, `check`, and `build` in CI. The build step is **condit
 
 Without `DATABASE_URL`, CI will still run lint and type checks but skip the build step.
 
+Additionally, the CI pipeline is reused by the automated release workflow (`release.yml`) which runs the same checks on version tags and auto-publishes the matching GitHub Release.
+
 ### Full-Reload Redirects After Server Actions (Legacy Workaround)
 
 On the previous shared-hosting setup (cPanel + LiteSpeed) we observed intermittent client-side exceptions after auth or form submits caused by stale chunk IDs. The workaround is still in place:
@@ -214,9 +216,13 @@ Admin users with the `view_audit_logs` permission can view these records in the 
 
 ## 🚀 Recent Updates
 
-**Latest Version: [v3.0.1]** (2026-07-1)
+**Latest Version: [v3.0.1]** (2026-07-01)
 
-- Fixed multiple bugs regarding media uploads.
-- Added multiple UI/UX improvements for low internet speed cases.
+- **Route-level loading skeletons:** added skeleton layouts across admin and public pages for smoother navigation.
+- **Top navigation progress bar:** displays transition progress (NProgress-style) during active page changes.
+- **Robust CI/CD pipeline:** configured `ci.yml` with pnpm support and added automated tag-based releases (`release.yml`).
+- **Form state preservation:** resolved an issue where uploading media in admin forms would wipe unsaved product/portfolio details.
+- **Centralized upload utilities:** consolidated upload error handling across all dashboard forms.
+- **Layout & navigation fixes:** fixed audit log detail popover clipping and public header scroll-on-navigation behaviors.
 
 > 📄 **View the full history in [CHANGELOG.md](./CHANGELOG.md)**

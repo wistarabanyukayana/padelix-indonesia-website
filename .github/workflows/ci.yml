@@ -15,6 +15,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      NEXT_PUBLIC_SITE_URL: ${{ secrets.NEXT_PUBLIC_SITE_URL }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -38,8 +41,5 @@ jobs:
         run: pnpm check
 
       - name: Build
-        if: ${{ secrets.DATABASE_URL != '' }}
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          NEXT_PUBLIC_SITE_URL: ${{ secrets.NEXT_PUBLIC_SITE_URL }}
+        if: ${{ env.DATABASE_URL != '' }}
         run: pnpm build
