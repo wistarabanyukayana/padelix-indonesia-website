@@ -1,4 +1,4 @@
-# Padelix Indonesia Website v3.0.0
+# Padelix Indonesia Website
 
 A unified fullstack web application for Padelix Indonesia, built with Next.js 16, Drizzle ORM, and Neon PostgreSQL, deployed on Vercel. This version represents a complete architectural shift from the previous Next.js/Strapi decoupled setup to a more efficient, single-repo fullstack solution.
 
@@ -9,7 +9,7 @@ A unified fullstack web application for Padelix Indonesia, built with Next.js 16
 ## Production Status
 
 - **Live:** [https://padelix.co.id](https://padelix.co.id)
-- **Current Version:** 3.0.0 (Court-Side UI Revamp)
+- **Current Version:** 3.0.1 (Bug Fixes and QoL updates)
 - **Previous Version:** 2.2.3 (Unified Fullstack)
 
 ---
@@ -28,7 +28,7 @@ A unified fullstack web application for Padelix Indonesia, built with Next.js 16
 
 ---
 
-## Architecture Update (v2.0.0)
+## Previous Architecture Update History (v2.0.0)
 
 Version 2.0.0 marks a significant milestone in the project's evolution. We have migrated from a decoupled architecture (Next.js frontend + Strapi CMS) to a **unified fullstack Next.js application**.
 
@@ -214,11 +214,9 @@ Admin users with the `view_audit_logs` permission can view these records in the 
 
 ## 🚀 Recent Updates
 
-**Latest Version: [v3.0.0]** (2026-06-12)
+**Latest Version: [v3.0.1]** (2026-07-1)
 
-- Complete public UI revamp: "court-side athletic editorial" design language (Anton/Archivo type, dark court surfaces, lime accents, court-line motifs).
-- Conversion-focused UX: split hero CTAs, data-driven stats, WhatsApp-first product flows with a mobile sticky order bar.
-- Catalog upgrades: live debounced search, faceted category/brand counts, descendant category filtering, removable filter chips, sticky mobile filter bar.
-- Skeleton loading states for catalog and product pages (no more white flash).
+- Fixed multiple bugs regarding media uploads.
+- Added multiple UI/UX improvements for low internet speed cases.
 
 > 📄 **View the full history in [CHANGELOG.md](./CHANGELOG.md)**
