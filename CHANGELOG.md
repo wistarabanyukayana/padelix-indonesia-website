@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 
 The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/)**, and this project adheres to **[Semantic Versioning](https://semver.org/spec/v2.0.0.html)**.
 
+## [3.0.1] - 2026-07-01
+
+### Added
+
+- **Route-level loading skeletons:** every admin dashboard route (dashboard, brands, categories, portfolios, products, roles, users, media, audit logs) and the public site now stream in over layout-matching skeletons (`DashboardSkeleton`, `FormSkeleton`, `ListSkeleton`, `MediaGridSkeleton`, `TreeSkeleton`) instead of a blank screen during navigation.
+- **Navigation progress bar:** admin and public headers show an NProgress-style top progress bar while a route transition is in flight.
+- **CI/CD pipeline:** `ci.yml` now installs with pnpm instead of a broken `npm ci`; a new `release.yml` runs the same checks on version tags and auto-publishes the matching GitHub Release from this changelog.
+
+### Fixed
+
+- **Unsaved edits wiped on media upload:** uploading media while editing a Product or Portfolio no longer discards unsaved form changes (removed an over-eager `revalidatePath` and fixed an effect dependency that was resyncing on every render instead of only on record change).
+- **Duplicated upload/error handling:** Brand, Category, and Media Library upload flows now share the same `@/lib/upload` and `handleUploadError` helpers instead of separately duplicated raw XHR logic.
+- **Audit log details popover:** no longer pushes page layout or gets clipped; renders as a properly positioned floating panel.
+- **Public header scroll-to-top:** route changes now jump to the top instantly instead of an interrupted smooth-scroll that could leave the new page scrolled to the old page's position.
+
 ## [3.0.0] - 2026-06-12
 
 ### Infrastructure (Breaking)

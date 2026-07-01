@@ -8,6 +8,7 @@ import { MediaSelector } from "@/components/admin/medias/MediaSelector";
 import { AppImage } from "@/components/general/AppImage";
 import { Button } from "@/components/ui/Button";
 import { CollapsibleTree, TreeNode } from "@/components/ui/CollapsibleTree";
+import { uploadFileToCloudinary } from "@/lib/upload";
 import { getDisplayUrl, handleUploadError } from "@/lib/utils";
 import { ActionState, CategoryFormProps, DBCategory, DBMedia } from "@/types";
 import {
@@ -79,59 +80,18 @@ export function CategoryForm({
     if (!file) return;
     setIsUploading(true);
 
-    const formData = new FormData();
-    formData.append("file", file);
-
     try {
-      const xhr = new XMLHttpRequest();
-      xhrRef.current = xhr;
-
-      const uploadPromise = new Promise<DBMedia>((resolve, reject) => {
-        xhr.open("POST", "/api/media/upload");
-        xhr.onload = () => {
-          const payload = xhr.responseText
-            ? (JSON.parse(xhr.responseText) as
-                | { ok: true; data: DBMedia }
-                | { ok: false; error: { message: string } })
-            : null;
-          if (xhr.status >= 200 && xhr.status < 300) {
-            if (payload && "ok" in payload && payload.ok) {
-              resolve(payload.data);
-              return;
-            }
-            if (payload && "error" in payload) {
-              reject(new Error(payload.error.message));
-              return;
-            }
-            reject(new Error("Upload gagal."));
-            return;
-          }
-          if (payload && "error" in payload) {
-            reject(new Error(payload.error.message));
-            return;
-          }
-          reject(new Error(xhr.statusText || "Upload gagal."));
-        };
-        xhr.onerror = () => reject(new Error("Network error"));
-        xhr.onabort = () => reject("ABORTED");
-        xhr.send(formData);
-      });
-
-      const result = await uploadPromise;
-      xhrRef.current = null;
-      setIsUploading(false);
-
-      if (result.url) {
-        setImageUrl(result.url);
-      }
+      const result = await uploadFileToCloudinary(file, { xhrRef });
+      setImageUrl(result.url);
     } catch (error) {
       if (error === "ABORTED") return;
-      setIsUploading(false);
-      xhrRef.current = null;
       const message = handleUploadError(error, "Gagal mengunggah gambar.", {
         suppressPattern: /Sesi berakhir/i,
       });
       toast.error(message);
+    } finally {
+      setIsUploading(false);
+      xhrRef.current = null;
     }
   };
 

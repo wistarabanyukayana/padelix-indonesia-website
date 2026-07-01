@@ -1,3 +1,6 @@
+// Self-hosted deploy path only: bundles a standalone Node server for a VPS/box.
+// Vercel and Netlify build from source via their own Git integration and never
+// run this script — see CHANGELOG.md [3.0.0] Infrastructure.
 import { execSync } from "child_process";
 import fs from "fs";
 import path from "path";
@@ -50,7 +53,7 @@ async function confirmEnv() {
 }
 
 async function main() {
-  console.log("🚀 Starting Release Preparation...");
+  console.log("🚀 Starting Release Preparation (self-hosted deploy path)...");
   await confirmEnv();
 
   if (fs.existsSync(BUILD_DIR)) {

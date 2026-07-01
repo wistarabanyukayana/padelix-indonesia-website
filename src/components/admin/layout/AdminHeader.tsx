@@ -30,13 +30,89 @@ export function AdminHeader({ user, navStructure }: AdminHeaderProps) {
 
   // Reset menus on route change
   const [lastPathname, setLastPathname] = useState(pathname);
+  const [navPhase, setNavPhase] = useState<"idle" | "pending" | "done">(
+    "idle",
+  );
+  const [navProgress, setNavProgress] = useState(0);
   if (pathname !== lastPathname) {
     setLastPathname(pathname);
     setOpenDropdown(null);
     setIsMobileMenuOpen(false);
     setMobileExpandedGroups([]);
     setIsMobileUserMenuOpen(false);
+    if (navPhase === "pending") {
+      setNavPhase("done");
+      setNavProgress(100);
+    }
   }
+
+  // Clicking a nav link only starts showing feedback once the target route's
+  // data streams in (loading.tsx). On a cold, not-yet-prefetched navigation
+  // that can take a while, so flag "navigating" the instant the click fires
+  // and drive a determinate top progress bar (NProgress-style trickle) until
+  // the pathname actually changes.
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (e.button !== 0) return;
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      const link = (e.target as HTMLElement).closest("a");
+      if (
+        !link ||
+        link.target === "_blank" ||
+        link.hasAttribute("download") ||
+        link.origin !== window.location.origin ||
+        link.pathname === window.location.pathname
+      ) {
+        return;
+      }
+      setNavPhase("pending");
+      setNavProgress(15);
+    };
+    document.addEventListener("click", handleClick);
+    return () => document.removeEventListener("click", handleClick);
+  }, []);
+
+  // Trickle toward 90% while waiting — never reaches 100% on its own, so it
+  // always visibly "completes" once the route actually finishes loading.
+  useEffect(() => {
+    if (navPhase !== "pending") return;
+    const interval = setInterval(() => {
+      setNavProgress((p) => (p >= 90 ? p : p + (90 - p) * 0.15));
+    }, 200);
+    return () => clearInterval(interval);
+  }, [navPhase]);
+
+  // Hold the completed bar briefly, then fade it out and reset.
+  useEffect(() => {
+    if (navPhase !== "done") return;
+    const timeout = setTimeout(() => {
+      setNavPhase("idle");
+      setNavProgress(0);
+    }, 250);
+    return () => clearTimeout(timeout);
+  }, [navPhase]);
+
+  // ponytail: safety-net ceiling in case a navigation errors out and the
+  // pathname never changes to clear the bar naturally.
+  useEffect(() => {
+    if (navPhase !== "pending") return;
+    const timeout = setTimeout(() => {
+      setNavPhase("idle");
+      setNavProgress(0);
+    }, 10000);
+    return () => clearTimeout(timeout);
+  }, [navPhase]);
+
+  // globals.css sets `scroll-behavior: smooth` on <html>, which also makes
+  // Next's scroll-to-top on route change animate — and the page swap cuts
+  // that animation short, leaving the new page scrolled wherever the old
+  // one was. Force an instant jump on real navigations (skip if the target
+  // has a hash, letting the browser's native smooth anchor-scroll handle it).
+  useEffect(() => {
+    if (!window.location.hash) {
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    }
+  }, [pathname]);
 
   const toggleMobileGroup = (label: string) => {
     setMobileExpandedGroups((prev) =>
@@ -168,6 +244,19 @@ export function AdminHeader({ user, navStructure }: AdminHeaderProps) {
       ref={headerRef}
       className="sticky top-0 z-50 border-b border-neutral-200 bg-white pt-[env(safe-area-inset-top)]"
     >
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 z-10 h-1"
+      >
+        <div
+          className={`h-full bg-brand-green shadow-[0_0_8px_rgba(163,230,53,0.8)] transition-all ease-out ${
+            navPhase === "done"
+              ? "duration-300 opacity-0"
+              : "duration-200 opacity-100"
+          }`}
+          style={{ width: `${navProgress}%` }}
+        />
+      </div>
       {isMobileMenuOpen && (
         <button
           type="button"

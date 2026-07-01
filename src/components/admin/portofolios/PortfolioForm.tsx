@@ -112,7 +112,10 @@ export function PortfolioForm({
       // eslint-disable-next-line react-hooks/set-state-in-effect -- Reset editable media rows when loading a different portfolio.
       setMedias(normalizeMedias(initialData.medias));
     }
-  }, [initialData?.medias]);
+    // ponytail: keyed on id, not the medias array reference, so a background
+    // router refresh of the same portfolio doesn't stomp unsaved local edits.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialData?.id]);
 
   const { isDirty } = useFormDirty(formRef, {
     resetDeps: [initialData],

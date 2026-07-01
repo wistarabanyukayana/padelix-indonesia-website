@@ -193,7 +193,10 @@ export function ProductForm({
       // eslint-disable-next-line react-hooks/set-state-in-effect -- Reset editable media rows when loading a different product.
       setMedias(normalizeMedias(initialData.medias));
     }
-  }, [initialData?.medias]);
+    // ponytail: keyed on id, not the medias array reference, so a background
+    // router refresh of the same product doesn't stomp unsaved local edits.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialData?.id]);
 
   const addMediaFromFiles = async (files: FileList) => {
     const list = Array.from(files);

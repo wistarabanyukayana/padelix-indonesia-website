@@ -90,6 +90,9 @@ export function MediaLibrary({
     new Set(),
   );
   const [selectedMedias, setSelectedMedias] = useState<Set<number>>(new Set());
+  const [loadedMediaIds, setLoadedMediaIds] = useState<Set<number>>(
+    new Set(),
+  );
 
   // Dialog States
   const [isFolderDialogOpen, setIsFolderDialogOpen] = useState(false);
@@ -783,12 +786,19 @@ export function MediaLibrary({
                 {/* Media Content */}
                 {m.type === "image" || m.type === "video" ? (
                   <div className="relative h-full w-full">
+                    {!loadedMediaIds.has(m.id) && (
+                      <div className="absolute inset-0 animate-pulse bg-brand-green/60" />
+                    )}
                     <AppImage
                       src={getDisplayUrl(m)}
                       alt={m.name}
                       fill
                       sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, (max-width: 1280px) 16vw, 12vw"
-                      className="object-cover"
+                      className={`object-cover transition-opacity duration-300 ${loadedMediaIds.has(m.id) ? "opacity-100" : "opacity-0"}`}
+                      disableLoadingAnimation
+                      onLoad={() =>
+                        setLoadedMediaIds((prev) => new Set(prev).add(m.id))
+                      }
                     />
                     {m.type === "video" && (
                       <div className="absolute inset-0 flex items-center justify-center bg-black/10">

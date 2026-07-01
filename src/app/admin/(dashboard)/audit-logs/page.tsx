@@ -239,12 +239,12 @@ export default async function AuditLogsPage({ searchParams }: PageProps) {
                     <td className="px-6 py-3 text-neutral-400">
                       {log.ipAddress}
                     </td>
-                    <td className="px-6 py-3 text-right">
+                    <td className="relative px-6 py-3 text-right">
                       <details className="inline-block text-xs text-neutral-500">
                         <summary className="cursor-pointer font-bold tracking-wider text-neutral-400 uppercase">
                           Lihat
                         </summary>
-                        <div className="wrap-break-words mt-2 w-56 max-w-56 space-y-1 text-left text-xs whitespace-normal text-neutral-600">
+                        <div className="wrap-break-words absolute top-full right-6 z-20 mt-1 w-64 max-w-[80vw] space-y-1 rounded-lg border border-neutral-200 bg-white p-3 text-left text-xs whitespace-normal text-neutral-600 shadow-lg">
                           <p className="wrap-break-words">
                             {log.details || "-"}
                           </p>

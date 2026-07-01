@@ -33,6 +33,82 @@ export function Header() {
     return pathname.startsWith(href);
   };
 
+  // Top progress bar: fills toward 90% while a click-triggered navigation is
+  // in flight, then snaps to 100% and fades once the pathname actually
+  // changes. See AdminHeader.tsx for the identical mechanism.
+  const [lastPathname, setLastPathname] = useState(pathname);
+  const [navPhase, setNavPhase] = useState<"idle" | "pending" | "done">(
+    "idle",
+  );
+  const [navProgress, setNavProgress] = useState(0);
+  if (pathname !== lastPathname) {
+    setLastPathname(pathname);
+    if (navPhase === "pending") {
+      setNavPhase("done");
+      setNavProgress(100);
+    }
+  }
+
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (e.button !== 0) return;
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      const link = (e.target as HTMLElement).closest("a");
+      if (
+        !link ||
+        link.target === "_blank" ||
+        link.hasAttribute("download") ||
+        link.origin !== window.location.origin ||
+        link.pathname === window.location.pathname
+      ) {
+        return;
+      }
+      setNavPhase("pending");
+      setNavProgress(15);
+    };
+    document.addEventListener("click", handleClick);
+    return () => document.removeEventListener("click", handleClick);
+  }, []);
+
+  useEffect(() => {
+    if (navPhase !== "pending") return;
+    const interval = setInterval(() => {
+      setNavProgress((p) => (p >= 90 ? p : p + (90 - p) * 0.15));
+    }, 200);
+    return () => clearInterval(interval);
+  }, [navPhase]);
+
+  useEffect(() => {
+    if (navPhase !== "done") return;
+    const timeout = setTimeout(() => {
+      setNavPhase("idle");
+      setNavProgress(0);
+    }, 250);
+    return () => clearTimeout(timeout);
+  }, [navPhase]);
+
+  useEffect(() => {
+    if (navPhase !== "pending") return;
+    const timeout = setTimeout(() => {
+      setNavPhase("idle");
+      setNavProgress(0);
+    }, 10000);
+    return () => clearTimeout(timeout);
+  }, [navPhase]);
+
+  // globals.css sets `scroll-behavior: smooth` on <html> for in-page anchor
+  // nav (e.g. "/#activities"). That also makes Next's own scroll-to-top on
+  // page navigation animate instead of jump — and the animation gets cut
+  // short by the page swap, leaving the new page scrolled to wherever the
+  // old page was. Force an instant jump for real route changes only; a
+  // hash in the URL means this navigation is targeting an anchor, so leave
+  // that to the browser's native (smooth) hash scroll.
+  useEffect(() => {
+    if (!window.location.hash) {
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    }
+  }, [pathname]);
+
   useEffect(() => {
     window.dispatchEvent(
       new CustomEvent("mobileMenuToggle", { detail: { isOpen } }),
@@ -130,6 +206,19 @@ export function Header() {
       ref={headerRef}
       className="sticky top-0 z-50 w-full border-b border-neutral-200 bg-white/90 pt-[env(safe-area-inset-top)] backdrop-blur-md"
     >
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 z-10 h-1"
+      >
+        <div
+          className={`h-full bg-brand-green shadow-[0_0_8px_rgba(163,230,53,0.8)] transition-all ease-out ${
+            navPhase === "done"
+              ? "duration-300 opacity-0"
+              : "duration-200 opacity-100"
+          }`}
+          style={{ width: `${navProgress}%` }}
+        />
+      </div>
       {isOpen && (
         <button
           type="button"

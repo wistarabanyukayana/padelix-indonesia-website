@@ -401,7 +401,10 @@ export async function registerUploadedMedia(
       `Uploaded file: ${name} (cloudinary)`,
     );
 
-    revalidatePath("/admin");
+    // ponytail: no revalidatePath here — this fires per-file mid-edit on the
+    // product/portfolio forms and was wiping their unsaved local media state
+    // via router refresh. Callers that need a fresh list (media library)
+    // already call router.refresh() themselves.
     return { url: resource.secure_url, id: result.id };
   } catch (error: unknown) {
     console.error("Register upload error:", error);
