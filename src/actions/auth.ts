@@ -2,7 +2,7 @@
 
 import { permissions, rolesPermissions, users, usersRoles } from "@/db/schema";
 import { db } from "@/lib/db";
-import { createSession, deleteSession } from "@/lib/session";
+import { createSession, deleteSession, updateSession } from "@/lib/session";
 import { compare } from "bcryptjs";
 import { eq } from "drizzle-orm";
 import { headers } from "next/headers";
@@ -119,4 +119,8 @@ export async function logout() {
   await createAuditLog("AUTH_LOGOUT");
   await deleteSession();
   return { success: true, redirectTo: "/admin/login" };
+}
+
+export async function refreshAdminSession() {
+  await updateSession();
 }

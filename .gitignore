@@ -36,9 +36,14 @@ yarn-error.log*
 .env.l*
 .env.d*
 .env.o*
+.dev.vars
 
-# vercel
+# misscallaneous
 .vercel
+.serena
+.open-next
+.wrangler
+.claude
 
 # typescript
 *.tsbuildinfo

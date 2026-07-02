@@ -2,7 +2,6 @@
 
 import {
   createFolder,
-  deleteFolder,
   deleteMedia,
   getFolders,
   renameFolder,
@@ -90,6 +89,7 @@ export function MediaLibrary({
     new Set(),
   );
   const [selectedMedias, setSelectedMedias] = useState<Set<number>>(new Set());
+  const [deletingMediaIds, setDeletingMediaIds] = useState<Set<number>>(new Set());
   const [loadedMediaIds, setLoadedMediaIds] = useState<Set<number>>(
     new Set(),
   );
@@ -309,81 +309,62 @@ export function MediaLibrary({
     return items.sort(cmp);
   }, [visibleFolders, filteredMedias, sortKey, dirMul, folderAgg]);
 
-  const handleDelete = (id: number) => {
-    setConfirm({
-      message: "Hapus media ini secara permanen?",
-      onConfirm: async () => {
+    const handleDelete = async (id: number) => {
+    setDeletingMediaIds((prev) => new Set(prev).add(id));
+
+    try {
+      const result = await deleteMedia(id);
+      if (result.success) {
+        setMedias((prev) => prev.filter((m) => m.id !== id));
+        setDetailMedia((media) => (media?.id === id ? null : media));
+        setSelectedMedias((prev) => {
+          const next = new Set(prev);
+          next.delete(id);
+          return next;
+        });
+        toast.success("Media berhasil dihapus");
+      } else {
+        toast.error(result.message || "Gagal menghapus media");
+      }
+    } finally {
+      setDeletingMediaIds((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
+    }
+  };
+
+  const handleBatchDelete = async () => {
+    if (selectedMedias.size === 0) return;
+    const ids = Array.from(selectedMedias);
+    setDeletingMediaIds((prev) => {
+      const next = new Set(prev);
+      ids.forEach((id) => next.add(id));
+      return next;
+    });
+
+    try {
+      for (const id of ids) {
         const result = await deleteMedia(id);
         if (result.success) {
           setMedias((prev) => prev.filter((m) => m.id !== id));
-          toast.success("Media berhasil dihapus");
-          router.refresh();
         } else {
           toast.error(result.message || "Gagal menghapus media");
         }
-      },
-    });
+      }
+      setSelectedMedias(new Set());
+      toast.success("Media terpilih berhasil dihapus");
+    } finally {
+      setDeletingMediaIds((prev) => {
+        const next = new Set(prev);
+        ids.forEach((id) => next.delete(id));
+        return next;
+      });
+    }
   };
 
-  const handleBatchDelete = () => {
-    const total = selectedFolders.size + selectedMedias.size;
-    if (total === 0) return;
-    setConfirm({
-      message: `Hapus ${total} item terpilih? Folder harus kosong.`,
-      onConfirm: async () => {
-        let successCount = 0;
-        const errors: string[] = [];
-
-        for (const id of Array.from(selectedMedias)) {
-          const res = await deleteMedia(id);
-          if (res.success) {
-            setMedias((prev) => prev.filter((m) => m.id !== id));
-            successCount++;
-          } else {
-            errors.push(res.message || `Media #${id}`);
-          }
-        }
-        for (const id of Array.from(selectedFolders)) {
-          const res = await deleteFolder(id);
-          if (res.success) successCount++;
-          else errors.push(res.message || `Folder #${id}`);
-        }
-
-        setSelectedFolders(new Set());
-        setSelectedMedias(new Set());
-        await reloadFolders();
-        if (successCount > 0)
-          toast.success(`Berhasil menghapus ${successCount} item.`);
-        if (errors.length > 0) toast.error(errors[0]);
-        router.refresh();
-      },
-    });
-  };
-
-  const toggleFolderSelection = (id: number, e: React.MouseEvent) => {
-    e.stopPropagation();
-    setSelectedFolders((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  };
-
-  const toggleMediaSelection = (id: number, e?: React.MouseEvent) => {
-    e?.stopPropagation();
-    setSelectedMedias((prev) => {
-      const next = new Set(prev);
-      if (allowSelection && selectionMode === "single") {
-        next.clear();
-        if (!prev.has(id)) next.add(id);
-      } else if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  };
-
-  const handleMoveConfirm = async (targetFolderId: number | null) => {
+const handleMoveConfirm = async (targetFolderId: number | null) => {
     if (!mediaToMove) return;
     const result = await updateMediaFolder(mediaToMove.id, targetFolderId);
     if (result.success) {
@@ -420,6 +401,26 @@ export function MediaLibrary({
       toast.error(result.message || "Gagal mengganti nama folder");
     }
     setFolderToRename(null);
+  };
+
+  const toggleMediaSelection = (id: number, event?: React.MouseEvent) => {
+    event?.stopPropagation();
+    setSelectedMedias((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleFolderSelection = (id: number, event?: React.MouseEvent) => {
+    event?.stopPropagation();
+    setSelectedFolders((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
   };
 
   const handleMediaClick = (m: DBMedia) => {
@@ -468,14 +469,15 @@ export function MediaLibrary({
       <MediaDetailsModal
         isOpen={!!detailMedia}
         onClose={() => setDetailMedia(null)}
-        media={detailMedia}
+        media={detailMedia as DBMedia | null}
         folderPath={
           detailMedia?.folderId != null
             ? (foldersById.get(detailMedia.folderId)?.path ?? null)
             : null
         }
         onDelete={handleDelete}
-        onMove={setMediaToMove}
+        onMove={(media) => setMediaToMove(media as DBMedia)}
+        isDeleting={detailMedia ? deletingMediaIds.has(detailMedia.id) : false}
       />
 
       {/* Rename folder dialog */}
@@ -846,10 +848,11 @@ export function MediaLibrary({
           ) : (
             <button
               onClick={handleBatchDelete}
-              className="flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-bold text-red-600 transition-colors hover:bg-red-50"
+              disabled={deletingMediaIds.size > 0}
+              className="flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-bold text-red-600 transition-colors hover:bg-red-50 disabled:cursor-wait disabled:opacity-60"
             >
               <Trash2 size={16} />
-              Hapus
+              {deletingMediaIds.size > 0 ? "Menghapus..." : "Hapus"}
             </button>
           )}
 
@@ -858,6 +861,7 @@ export function MediaLibrary({
               setSelectedFolders(new Set());
               setSelectedMedias(new Set());
             }}
+            disabled={deletingMediaIds.size > 0}
             className="flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-bold text-neutral-500 transition-colors hover:bg-neutral-100"
           >
             Batal

@@ -1,12 +1,14 @@
 {
   "name": "padelix-indonesia-website",
-  "version": "3.0.1",
+  "version": "3.1.0",
   "private": true,
   "packageManager": "pnpm@11.1.0",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
+    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
     "lint": "eslint",
     "check": "tsc --noEmit",
     "check:watch": "tsc --noEmit --watch",
@@ -20,6 +22,7 @@
   "dependencies": {
     "@icons-pack/react-simple-icons": "^13.8.0",
     "@neondatabase/serverless": "^1.1.0",
+    "@opennextjs/cloudflare": "^1.20.1",
     "@typescript-eslint/eslint-plugin": "^8.61.0",
     "@typescript-eslint/parser": "^8.61.0",
     "bcryptjs": "^3.0.3",
@@ -59,7 +62,8 @@
     "stylelint-config-tailwindcss": "^1.0.1",
     "tailwindcss": "^4.1.18",
     "tsx": "^4.22.4",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "wrangler": "^4.106.0"
   },
   "resolutions": {
     "esbuild": ">=0.25.0"

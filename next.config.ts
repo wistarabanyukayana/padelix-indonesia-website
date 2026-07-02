@@ -1,4 +1,7 @@
+import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
 import type { NextConfig } from "next";
+
+initOpenNextCloudflareForDev();
 
 const isDev = process.env.NODE_ENV === "development";
 
@@ -63,7 +66,6 @@ if (process.env.NODE_ENV === "production") {
 
 const nextConfig: NextConfig = {
   allowedDevOrigins: ["192.168.1.*"],
-  cacheComponents: true,
   experimental: {
     serverActions: {
       bodySizeLimit: "25mb",

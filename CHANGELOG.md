@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/)**, and this project adheres to **[Semantic Versioning](https://semver.org/spec/v2.0.0.html)**.
 
+## [3.1.0] - 2026-07-02
+
+### Changed (Infrastructure & Routing)
+
+- **Hosting Target migrated to Cloudflare Workers:** Migrated hosting target from Vercel to Cloudflare Workers (using `@opennextjs/cloudflare` / OpenNext).
+- **Cloudflare configuration:** Configured R2-backed incremental cache (`NEXT_INC_CACHE_R2_BUCKET`), worker self-references (`WORKER_SELF_REFERENCE`), and Cloudflare Images (`IMAGES`) bindings in `wrangler.jsonc` and `open-next.config.ts`.
+- **Edge Routing / Auth Refactoring:** Removed Next.js middleware-based routing (`src/proxy.ts`) to avoid Edge runtime redirect loops on Cloudflare. Replaced it with a client-side pathname watcher (`AdminSessionRefresh` component) that calls a Server Action to throttle-refresh sessions, and a Server-side redirect inside a Suspense/Connection boundary on `/admin/login`.
+- **Sitemap Automation:** Standardized `src/app/sitemap.ts` to dynamically render `/privacy` and `/terms` along with active products, providing zero-maintenance dynamic sitemaps.
+
 ## [3.0.1] - 2026-07-01
 
 ### Added
@@ -250,6 +259,9 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
   - Strapi CMS backend
 - Baseline support for B2B, B2C, and planned advertising features.
 
+[3.1.0]: https://github.com/wistarabanyukayana/padelix-indonesia-website/compare/v3.0.1...v3.1.0
+[3.0.1]: https://github.com/wistarabanyukayana/padelix-indonesia-website/compare/v3.0.0...v3.0.1
+[3.0.0]: https://github.com/wistarabanyukayana/padelix-indonesia-website/compare/v2.2.3...v3.0.0
 [2.2.3]: https://github.com/wistarabanyukayana/padelix-indonesia-website/compare/v2.2.2...v2.2.3
 [2.2.2]: https://github.com/wistarabanyukayana/padelix-indonesia-website/compare/v2.2.1...v2.2.2
 [2.2.1]: https://github.com/wistarabanyukayana/padelix-indonesia-website/compare/v2.2.0...v2.2.1

@@ -1,0 +1,38 @@
+{
+	"name": "padelix-indonesia-website",
+	"main": ".open-next/worker.js",
+	"compatibility_date": "2026-07-02",
+	"compatibility_flags": [
+		"nodejs_compat"
+	],
+	"assets": {
+		"directory": ".open-next/assets",
+		"binding": "ASSETS"
+	},
+	"services": [
+		{
+			"binding": "WORKER_SELF_REFERENCE",
+			"service": "padelix-indonesia-website"
+		}
+	],
+	"r2_buckets": [
+		{
+			"binding": "NEXT_INC_CACHE_R2_BUCKET",
+			"bucket_name": "padelix-indonesia-website-opennext-cache"
+		},
+		{
+			"bucket_name": "padelix-indonesia-website-opennext-cache",
+			"binding": "padelix_indonesia_website_opennext_cache"
+		}
+	],
+	"images": {
+		"binding": "IMAGES"
+	},
+	"vars": {
+		"CLOUDINARY_CLOUD_NAME": "padelix",
+		"EMAIL_FROM": "website@padelix.co.id",
+		"BUSINESS_EMAIL": "business@padelix.co.id",
+		"NEXT_PUBLIC_SITE_URL": "https://padelix.co.id",
+		"NEXT_PUBLIC_META_PIXEL_ID": "25235534326149044",
+	},
+}

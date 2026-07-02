@@ -5,7 +5,9 @@ import { PERMISSIONS, Permission } from "@/config/permissions";
 import { verifySession } from "@/lib/dal";
 import { NavSection } from "@/types";
 import { Metadata } from "next";
+import { connection } from "next/server";
 import { Suspense } from "react";
+import { AdminSessionRefresh } from "./AdminSessionRefresh";
 
 export const metadata: Metadata = {
   title: "Admin Dashboard",
@@ -29,6 +31,8 @@ export const metadata: Metadata = {
 };
 
 async function AdminShell({ children }: { children: React.ReactNode }) {
+  await connection();
+
   const session = await verifySession();
   const { user } = session;
 
@@ -133,6 +137,7 @@ async function AdminShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col bg-neutral-50">
       <AdminStickyBarWatcher />
+      <AdminSessionRefresh />
       <AdminHeader user={user} navStructure={filteredNav} />
       <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
         {children}

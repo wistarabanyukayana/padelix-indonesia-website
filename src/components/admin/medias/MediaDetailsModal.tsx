@@ -27,6 +27,7 @@ interface MediaDetailsModalProps {
   folderPath?: string | null;
   onMove?: (media: DBMedia) => void;
   onDelete?: (id: number) => void;
+  isDeleting?: boolean;
 }
 
 export function MediaDetailsModal({
@@ -36,6 +37,7 @@ export function MediaDetailsModal({
   folderPath,
   onMove,
   onDelete,
+  isDeleting = false,
 }: MediaDetailsModalProps) {
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
 
@@ -162,15 +164,15 @@ export function MediaDetailsModal({
             {onDelete && (
               <Button
                 variant="outline"
-                onClick={() => {
-                  onDelete(media.id);
-                  onClose();
-                }}
-                size="sm"
-                className="justify-start gap-2 border-red-200 text-red-600 hover:bg-red-50"
-              >
-                <Trash2 size={16} /> Hapus Permanen
-              </Button>
+              onClick={() => {
+                onDelete(media.id);
+              }}
+              disabled={isDeleting}
+              size="sm"
+              className="justify-start gap-2 border-red-200 text-red-600 hover:bg-red-50 disabled:cursor-wait disabled:opacity-60"
+            >
+              <Trash2 size={16} /> {isDeleting ? "Menghapus..." : "Hapus Permanen"}
+            </Button>
             )}
           </div>
           <div className="flex justify-end gap-2">

@@ -1,6 +1,6 @@
 # Padelix Indonesia Website
 
-A unified fullstack web application for Padelix Indonesia, built with Next.js 16, Drizzle ORM, and Neon PostgreSQL, deployed on Vercel. This version represents a complete architectural shift from the previous Next.js/Strapi decoupled setup to a more efficient, single-repo fullstack solution.
+A unified fullstack web application for Padelix Indonesia, built with Next.js 16, Drizzle ORM, and Neon PostgreSQL, deployed on Cloudflare Workers (via OpenNext). This version represents a complete architectural shift from the previous Next.js/Strapi decoupled setup to a more efficient, single-repo fullstack solution.
 
 > **Note:** This project was commissioned by Padelix Indonesia and was fully designed, developed, and deployed by Wistara Banyu Kayana. It is featured in my professional portfolio.
 
@@ -9,8 +9,8 @@ A unified fullstack web application for Padelix Indonesia, built with Next.js 16
 ## Production Status
 
 - **Live:** [https://padelix.co.id](https://padelix.co.id)
-- **Current Version:** 3.0.1 (Bug Fixes and QoL updates)
-- **Previous Version:** 3.0.0 (Unified Fullstack & Court-side Design)
+- **Current Version:** 3.1.0 (Cloudflare Workers Migration & QoL)
+- **Previous Version:** 3.0.1 (Bug Fixes and QoL updates)
 
 ---
 
@@ -63,7 +63,7 @@ This project provides a comprehensive digital platform for Padelix Indonesia:
 - **Media:** Cloudinary (Images/Video/Documents)
 - **Email:** Resend (Contact form)
 - **Notifications:** Sonner (Toasts)
-- **Hosting:** Vercel
+- **Hosting:** Cloudflare Workers (via OpenNext)
 
 ---
 
@@ -165,11 +165,23 @@ All media (images, video, documents) is stored and delivered via **Cloudinary**.
 
 ## Deployment
 
-The site is deployed on **Vercel** (with Neon PostgreSQL, Cloudinary, and Resend; DNS via Cloudflare):
+The site is deployed on **Cloudflare Workers** (via OpenNext, with Neon PostgreSQL, Cloudinary, and Resend; DNS via Cloudflare):
 
-1. Push to `main` — Vercel builds and deploys automatically.
-2. Preview deployments are created for branches/PRs.
-3. Environment variables are managed in the Vercel project settings (same keys as `.env.example`).
+1. **Deploying to production:**
+   ```bash
+   pnpm deploy
+   ```
+2. **Local Preview:**
+   To test the production-built bundle locally using Wrangler/Miniflare:
+   ```bash
+   pnpm preview
+   ```
+3. **Environment Variables:**
+   For local development/preview, variables are read from `.dev.vars` (same keys as `.env.example`).
+   For production deployment, upload variables/secrets using:
+   ```bash
+   pnpm wrangler secret put <SECRET_NAME>
+   ```
 
 > **Note:** See [docs/MIGRATION-RUNBOOK.md](./docs/MIGRATION-RUNBOOK.md) for the full infrastructure migration history (Rumahweb → Vercel/Neon/Cloudinary).
 
@@ -216,7 +228,15 @@ Admin users with the `view_audit_logs` permission can view these records in the 
 
 ## 🚀 Recent Updates
 
-**Latest Version: [v3.0.1]** (2026-07-01)
+**Latest Version: [v3.1.0]** (2026-07-02)
+
+- **Cloudflare Workers Migration:** Migrated hosting target from Vercel to Cloudflare Workers using OpenNext.
+- **Optimized Caching & Bindings:** Configured R2-backed incremental cache, worker self-references, and Cloudflare Images bindings.
+- **Edge Routing compatibility:** Replaced legacy middleware routing with client-side pathname session refreshes to eliminate Edge redirect loops.
+- **Automated Sitemap expansion:** Included static pages (`/privacy`, `/terms`) in the automated Next.js dynamic sitemap.
+- **Dynamic login route handling:** Configured `/admin/login` page to handle runtime cookies safely during builds.
+
+**Previous Version: [v3.0.1]** (2026-07-01)
 
 - **Route-level loading skeletons:** added skeleton layouts across admin and public pages for smoother navigation.
 - **Top navigation progress bar:** displays transition progress (NProgress-style) during active page changes.

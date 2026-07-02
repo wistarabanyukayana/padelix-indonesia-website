@@ -2,7 +2,7 @@
 
 import { MEDIA_CAPS, kindFromMediaType } from "@/config/media";
 import { PERMISSIONS } from "@/config/permissions";
-import { mediaFolders, medias } from "@/db/schema";
+import { mediaFolders, medias, portfolioMedias, productMedias } from "@/db/schema";
 import { createAuditLog } from "@/lib/audit";
 import { checkPermission, getSession } from "@/lib/auth";
 import { cloudinary } from "@/lib/cloudinary";
@@ -435,28 +435,19 @@ export async function deleteMedia(id: number): Promise<ActionState> {
 
     if (!media) return { message: "Media tidak ditemukan" };
 
+    await db.delete(productMedias).where(eq(productMedias.mediaId, id));
+    await db.delete(portfolioMedias).where(eq(portfolioMedias.mediaId, id));
+    await db.delete(medias).where(eq(medias.id, id));
+
     if (media.provider === "cloudinary") {
-      const resourceType = cloudinaryResourceType(media.type);
-      // Verify the asset is actually gone before deleting the DB row — a silent
-      // failure would orphan the Cloudinary asset and waste free-tier storage.
       try {
-        const res = (await cloudinary.uploader.destroy(media.fileKey, {
-          resource_type: resourceType,
-        })) as { result?: string };
-        if (res.result !== "ok" && res.result !== "not found") {
-          return {
-            message: `Gagal menghapus aset di Cloudinary (${res.result ?? "unknown"}). Coba lagi.`,
-          };
-        }
-      } catch (err) {
-        console.error("Failed to delete Cloudinary asset:", err);
-        return {
-          message: "Gagal menghapus aset di Cloudinary. Coba lagi nanti.",
-        };
+        await cloudinary.uploader.destroy(media.fileKey, {
+          resource_type: cloudinaryResourceType(media.type),
+        });
+      } catch (error) {
+        console.error("Failed to delete Cloudinary resource", error);
       }
     }
-
-    await db.delete(medias).where(eq(medias.id, id));
     await createAuditLog("MEDIA_DELETE", id, `Deleted media: ${media.name}`);
     revalidatePath("/admin");
     return { success: true, message: "Media berhasil dihapus" };

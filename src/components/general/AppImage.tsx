@@ -25,6 +25,7 @@ export function AppImage({
 }: AppImageProps) {
   const [hasError, setHasError] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
+
   if (!src) return null;
   const isLocalUpload = src.startsWith("/uploads/");
   const isDev = process.env.NODE_ENV === "development";
@@ -88,6 +89,7 @@ export function AppImage({
       }}
       onError={(event) => {
         setHasError(true);
+        setIsLoaded(true);
         onError?.(event);
       }}
       {...props}

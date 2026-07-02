@@ -21,17 +21,12 @@ import {
 } from "@/types";
 import { and, asc, count, desc, eq, ilike, inArray } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
-import { cacheTag } from "next/cache";
 
 const logPublicError = (scope: string, error: unknown) => {
   console.error(`[PublicData] ${scope} failed`, error);
 };
 
 export async function getFeaturedProducts(): Promise<FeaturedProduct[]> {
-  "use cache";
-  cacheTag("public");
-  cacheTag("featured-products");
-  cacheTag("products");
 
   try {
     const productList = await db
@@ -114,10 +109,6 @@ export interface PublicStats {
 }
 
 export async function getPublicStats(): Promise<PublicStats> {
-  "use cache";
-  cacheTag("public");
-  cacheTag("portfolios");
-  cacheTag("products");
 
   try {
     const [[projectRow], [productRow], [brandRow]] = await Promise.all([
@@ -141,10 +132,6 @@ export async function getPublicStats(): Promise<PublicStats> {
 }
 
 export async function getFeaturedPortfolios(): Promise<FeaturedPortfolio[]> {
-  "use cache";
-  cacheTag("public");
-  cacheTag("featured-portfolios");
-  cacheTag("portfolios");
 
   try {
     const portfolioList = await db
@@ -267,9 +254,6 @@ async function getCategoryProductCountsCached(
   query: string,
   brandId: number | null,
 ): Promise<{ categoryId: number | null; count: number }[]> {
-  "use cache";
-  cacheTag("public");
-  cacheTag("products");
 
   try {
     return await db
@@ -306,9 +290,6 @@ async function getBrandProductCountsCached(
   query: string,
   categoryId: number | null,
 ): Promise<{ brandId: number | null; count: number }[]> {
-  "use cache";
-  cacheTag("public");
-  cacheTag("products");
 
   try {
     const categoryIds = categoryId
@@ -361,9 +342,6 @@ async function getAllProductsCached(
   categoryId: number | null,
   brandId: number | null,
 ): Promise<FeaturedProduct[]> {
-  "use cache";
-  cacheTag("public");
-  cacheTag("products");
 
   try {
     const categoryIds = categoryId
@@ -450,9 +428,6 @@ async function getAllProductsCached(
 }
 
 export async function getCategories(): Promise<DBCategory[]> {
-  "use cache";
-  cacheTag("public");
-  cacheTag("categories");
 
   try {
     return await db.select().from(categories);
@@ -463,9 +438,6 @@ export async function getCategories(): Promise<DBCategory[]> {
 }
 
 export async function getBrands(): Promise<DBBrand[]> {
-  "use cache";
-  cacheTag("public");
-  cacheTag("brands");
 
   try {
     return await db.select().from(brands);
@@ -484,10 +456,6 @@ export async function getProductBySlug(
 async function getProductBySlugCached(
   slug: string,
 ): Promise<DetailedProduct | null> {
-  "use cache";
-  cacheTag("public");
-  cacheTag("products");
-  cacheTag(`product:${slug}`);
 
   try {
     const parentCategories = alias(categories, "parent_categories");
