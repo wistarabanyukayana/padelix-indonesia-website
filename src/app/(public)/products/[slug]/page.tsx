@@ -70,18 +70,26 @@ async function ProductDetailContent({ params }: PageProps) {
       : `${siteConfig.url}${product.medias[0].url}`
     : undefined;
 
+  const isService = !product.showPrice;
+
   const productJsonLd: Record<string, unknown> = {
     "@context": "https://schema.org",
-    "@type": "Product",
+    "@type": isService ? "Service" : "Product",
     name: product.name,
     description: product.description || siteConfig.description,
     image: productImage ? [productImage] : undefined,
-    brand: product.brandName
-      ? { "@type": "Brand", name: product.brandName }
-      : undefined,
   };
 
-  if (product.showPrice) {
+  if (isService) {
+    productJsonLd.provider = {
+      "@type": "LocalBusiness",
+      name: "Padelix Indonesia",
+      url: siteConfig.url,
+    };
+  } else {
+    if (product.brandName) {
+      productJsonLd.brand = { "@type": "Brand", name: product.brandName };
+    }
     productJsonLd.offers = {
       "@type": "Offer",
       priceCurrency: "IDR",

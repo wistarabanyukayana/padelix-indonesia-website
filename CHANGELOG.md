@@ -13,6 +13,10 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
 - **Edge Routing / Auth Refactoring:** Removed Next.js middleware-based routing (`src/proxy.ts`) to avoid Edge runtime redirect loops on Cloudflare. Replaced it with a client-side pathname watcher (`AdminSessionRefresh` component) that calls a Server Action to throttle-refresh sessions, and a Server-side redirect inside a Suspense/Connection boundary on `/admin/login`.
 - **Sitemap Automation:** Standardized `src/app/sitemap.ts` to dynamically render `/privacy` and `/terms` along with active products, providing zero-maintenance dynamic sitemaps.
 
+### Fixed
+
+- **Google Rich Results schema error:** Dynamically fallback from `Product` to `Service` schema when price display is disabled (e.g., for custom court installations). This resolves the Search Console error "Either 'offers', 'review' or 'aggregateRating' should be specified" without outputting placeholder/invalid prices.
+
 ## [3.0.1] - 2026-07-01
 
 ### Added
