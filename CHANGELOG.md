@@ -15,7 +15,7 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
 
 ### Fixed
 
-- **Google Rich Results schema error:** Conditionally omit the `Product` JSON-LD schema block on products where price display is disabled (e.g., for custom court installations) while keeping the `Breadcrumbs` schema active. This resolves the Search Console error "Either 'offers', 'review' or 'aggregateRating' should be specified" without outputting fake ratings or exposing prices.
+- **Google Rich Results schema error:** Dynamically fallback from `Product` to `Service` schema when price display is disabled (e.g., for custom court installations). This resolves the Search Console error "Either 'offers', 'review' or 'aggregateRating' should be specified" by categorizing negotiable court builds as services rather than retail products.
 
 ## [3.0.1] - 2026-07-01
 
