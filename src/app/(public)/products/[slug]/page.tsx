@@ -70,34 +70,25 @@ async function ProductDetailContent({ params }: PageProps) {
       : `${siteConfig.url}${product.medias[0].url}`
     : undefined;
 
-  const isService = !product.showPrice;
-
-  const productJsonLd: Record<string, unknown> = {
-    "@context": "https://schema.org",
-    "@type": isService ? "Service" : "Product",
-    name: product.name,
-    description: product.description || siteConfig.description,
-    image: productImage ? [productImage] : undefined,
-  };
-
-  if (isService) {
-    productJsonLd.provider = {
-      "@type": "LocalBusiness",
-      name: "Padelix Indonesia",
-      url: siteConfig.url,
-    };
-  } else {
-    if (product.brandName) {
-      productJsonLd.brand = { "@type": "Brand", name: product.brandName };
-    }
-    productJsonLd.offers = {
-      "@type": "Offer",
-      priceCurrency: "IDR",
-      price: product.basePrice?.toString?.() ?? undefined,
-      availability: "https://schema.org/InStock",
-      url: `${siteConfig.url}/products/${product.slug}`,
-    };
-  }
+  const productJsonLd = product.showPrice
+    ? {
+        "@context": "https://schema.org",
+        "@type": "Product",
+        name: product.name,
+        description: product.description || siteConfig.description,
+        image: productImage ? [productImage] : undefined,
+        brand: product.brandName
+          ? { "@type": "Brand", name: product.brandName }
+          : undefined,
+        offers: {
+          "@type": "Offer",
+          priceCurrency: "IDR",
+          price: product.basePrice?.toString?.() ?? undefined,
+          availability: "https://schema.org/InStock",
+          url: `${siteConfig.url}/products/${product.slug}`,
+        },
+      }
+    : null;
 
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
@@ -129,10 +120,9 @@ async function ProductDetailContent({ params }: PageProps) {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify([productJsonLd, breadcrumbJsonLd]).replace(
-            /</g,
-            "\\u003c",
-          ),
+          __html: JSON.stringify(
+            [productJsonLd, breadcrumbJsonLd].filter(Boolean),
+          ).replace(/</g, "\\u003c"),
         }}
       />
       <div className="mx-auto flex max-w-7xl flex-col gap-12 px-6 py-12 lg:flex-row lg:gap-20 lg:py-20">
