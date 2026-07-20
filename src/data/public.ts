@@ -21,13 +21,13 @@ import {
 } from "@/types";
 import { and, asc, count, desc, eq, ilike, inArray } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
+import { cache } from "react";
 
 const logPublicError = (scope: string, error: unknown) => {
   console.error(`[PublicData] ${scope} failed`, error);
 };
 
 export async function getFeaturedProducts(): Promise<FeaturedProduct[]> {
-
   try {
     const productList = await db
       .select({
@@ -109,7 +109,6 @@ export interface PublicStats {
 }
 
 export async function getPublicStats(): Promise<PublicStats> {
-
   try {
     const [[projectRow], [productRow], [brandRow]] = await Promise.all([
       db.select({ value: count() }).from(portfolios),
@@ -132,7 +131,6 @@ export async function getPublicStats(): Promise<PublicStats> {
 }
 
 export async function getFeaturedPortfolios(): Promise<FeaturedPortfolio[]> {
-
   try {
     const portfolioList = await db
       .select({
@@ -254,7 +252,6 @@ async function getCategoryProductCountsCached(
   query: string,
   brandId: number | null,
 ): Promise<{ categoryId: number | null; count: number }[]> {
-
   try {
     return await db
       .select({ categoryId: products.categoryId, count: count() })
@@ -290,7 +287,6 @@ async function getBrandProductCountsCached(
   query: string,
   categoryId: number | null,
 ): Promise<{ brandId: number | null; count: number }[]> {
-
   try {
     const categoryIds = categoryId
       ? await getDescendantCategoryIds(categoryId)
@@ -314,7 +310,7 @@ async function getBrandProductCountsCached(
 }
 
 /** A category filter matches the category itself plus all its descendants. */
-async function getDescendantCategoryIds(categoryId: number): Promise<number[]> {
+const getDescendantCategoryIds = cache(async (categoryId: number) => {
   const allCategories = await db
     .select({ id: categories.id, parentId: categories.parentId })
     .from(categories);
@@ -335,14 +331,13 @@ async function getDescendantCategoryIds(categoryId: number): Promise<number[]> {
     queue.push(...(childrenByParent.get(id) ?? []));
   }
   return ids;
-}
+});
 
 async function getAllProductsCached(
   query: string,
   categoryId: number | null,
   brandId: number | null,
 ): Promise<FeaturedProduct[]> {
-
   try {
     const categoryIds = categoryId
       ? await getDescendantCategoryIds(categoryId)
@@ -370,47 +365,27 @@ async function getAllProductsCached(
     if (productList.length === 0) return [];
 
     const productIds = productList.map((p) => p.id);
-    const mediaLinks = await db
+    const mediaRows = await db
       .select({
         productId: productMedias.productId,
-        mediaId: productMedias.mediaId,
-        isPrimary: productMedias.isPrimary,
-        sortOrder: productMedias.sortOrder,
+        url: medias.url,
+        type: medias.type,
+        metadata: medias.metadata,
       })
       .from(productMedias)
+      .innerJoin(medias, eq(productMedias.mediaId, medias.id))
       .where(inArray(productMedias.productId, productIds))
       .orderBy(desc(productMedias.isPrimary), asc(productMedias.sortOrder));
 
-    const mediaIds = Array.from(
-      new Set(mediaLinks.map((link) => link.mediaId)),
-    );
-    const mediaMap = new Map<
-      number,
-      { url: string; type: string; metadata: unknown }
-    >();
-    if (mediaIds.length > 0) {
-      const mediaRows = await db
-        .select({
-          id: medias.id,
-          url: medias.url,
-          type: medias.type,
-          metadata: medias.metadata,
-        })
-        .from(medias)
-        .where(inArray(medias.id, mediaIds));
-      mediaRows.forEach((m) => mediaMap.set(m.id, m));
-    }
-
-    const productMediaMap = new Map<number, number>();
-    mediaLinks.forEach((link) => {
-      if (!productMediaMap.has(link.productId)) {
-        productMediaMap.set(link.productId, link.mediaId);
+    const productMediaMap = new Map<number, (typeof mediaRows)[number]>();
+    mediaRows.forEach((media) => {
+      if (!productMediaMap.has(media.productId)) {
+        productMediaMap.set(media.productId, media);
       }
     });
 
     return productList.map((p) => {
-      const mediaId = productMediaMap.get(p.id);
-      const media = mediaId ? mediaMap.get(mediaId) : undefined;
+      const media = productMediaMap.get(p.id);
       return {
         id: p.id,
         name: p.name,
@@ -428,7 +403,6 @@ async function getAllProductsCached(
 }
 
 export async function getCategories(): Promise<DBCategory[]> {
-
   try {
     return await db.select().from(categories);
   } catch (error) {
@@ -438,7 +412,6 @@ export async function getCategories(): Promise<DBCategory[]> {
 }
 
 export async function getBrands(): Promise<DBBrand[]> {
-
   try {
     return await db.select().from(brands);
   } catch (error) {
@@ -447,16 +420,9 @@ export async function getBrands(): Promise<DBBrand[]> {
   }
 }
 
-export async function getProductBySlug(
+export const getProductBySlug = cache(async function getProductBySlug(
   slug: string,
 ): Promise<DetailedProduct | null> {
-  return getProductBySlugCached(slug);
-}
-
-async function getProductBySlugCached(
-  slug: string,
-): Promise<DetailedProduct | null> {
-
   try {
     const parentCategories = alias(categories, "parent_categories");
 
@@ -485,48 +451,45 @@ async function getProductBySlugCached(
       brandLogo,
     } = productResult[0];
 
-    // Fetch all medias
-    const items = await db
-      .select({
-        id: medias.id,
-        url: medias.url,
-        type: medias.type,
-        metadata: medias.metadata,
-        altText: productMedias.altText,
-        isPrimary: productMedias.isPrimary,
-        sortOrder: productMedias.sortOrder,
-      })
-      .from(productMedias)
-      .innerJoin(medias, eq(productMedias.mediaId, medias.id))
-      .where(eq(productMedias.productId, p.id))
-      .orderBy(desc(productMedias.isPrimary), asc(productMedias.sortOrder));
-
-    // Fetch specs
-    const specs = await db
-      .select({
-        key: productSpecifications.specKey,
-        value: productSpecifications.specValue,
-      })
-      .from(productSpecifications)
-      .where(eq(productSpecifications.productId, p.id));
-
-    // Fetch variants
-    const variants = await db
-      .select({
-        id: productVariants.id,
-        name: productVariants.name,
-        priceAdjustment: productVariants.priceAdjustment,
-        sku: productVariants.sku,
-        stock: productVariants.stockQuantity,
-        isUnlimited: productVariants.isUnlimitedStock,
-      })
-      .from(productVariants)
-      .where(
-        and(
-          eq(productVariants.productId, p.id),
-          eq(productVariants.isActive, true),
+    const [items, specs, variants] = await Promise.all([
+      db
+        .select({
+          id: medias.id,
+          url: medias.url,
+          type: medias.type,
+          metadata: medias.metadata,
+          altText: productMedias.altText,
+          isPrimary: productMedias.isPrimary,
+          sortOrder: productMedias.sortOrder,
+        })
+        .from(productMedias)
+        .innerJoin(medias, eq(productMedias.mediaId, medias.id))
+        .where(eq(productMedias.productId, p.id))
+        .orderBy(desc(productMedias.isPrimary), asc(productMedias.sortOrder)),
+      db
+        .select({
+          key: productSpecifications.specKey,
+          value: productSpecifications.specValue,
+        })
+        .from(productSpecifications)
+        .where(eq(productSpecifications.productId, p.id)),
+      db
+        .select({
+          id: productVariants.id,
+          name: productVariants.name,
+          priceAdjustment: productVariants.priceAdjustment,
+          sku: productVariants.sku,
+          stock: productVariants.stockQuantity,
+          isUnlimited: productVariants.isUnlimitedStock,
+        })
+        .from(productVariants)
+        .where(
+          and(
+            eq(productVariants.productId, p.id),
+            eq(productVariants.isActive, true),
+          ),
         ),
-      );
+    ]);
 
     return {
       ...p,
@@ -551,7 +514,7 @@ async function getProductBySlugCached(
       })),
     };
   } catch (error) {
-    logPublicError("getProductBySlugCached", error);
+    logPublicError("getProductBySlug", error);
     return null;
   }
-}
+});
