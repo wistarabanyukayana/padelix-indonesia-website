@@ -1,3 +1,4 @@
+import { MetaPixel } from "@/components/analytics/MetaPixel";
 import { Footer } from "@/components/public/layout/Footer";
 import { Header } from "@/components/public/layout/Header";
 import { WAButton } from "@/components/ui/WAButton";
@@ -22,6 +23,9 @@ export default function PublicLayout({
       {children}
       <Footer />
       <WAButton />
+      <Suspense fallback={null}>
+        <MetaPixel />
+      </Suspense>
     </>
   );
 }

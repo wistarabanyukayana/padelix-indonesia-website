@@ -1,6 +1,5 @@
 import { registerUploadedMedia, signMediaUpload } from "@/actions/media";
 import { MEDIA_CAPS, resolveMediaKind } from "@/config/media";
-import imageCompression from "browser-image-compression";
 
 interface CloudinaryUploadResponse {
   public_id: string;
@@ -40,6 +39,8 @@ export async function uploadFileToCloudinary(
   let toUpload = file;
   if (kind === "image" && isCompressibleImage(file)) {
     try {
+      const { default: imageCompression } =
+        await import("browser-image-compression");
       const compressed = await imageCompression(file, {
         maxWidthOrHeight: 2000,
         maxSizeMB: 1.5,

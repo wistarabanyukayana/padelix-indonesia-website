@@ -14,9 +14,7 @@ const anton = Anton({
   weight: "400",
 });
 
-import { MetaPixel } from "@/components/analytics/MetaPixel";
 import { Toaster } from "@/components/ui/sonner";
-import { Suspense } from "react";
 
 export const metadata: Metadata = {
   title: {
@@ -85,9 +83,6 @@ export default function RootLayout({
       >
         {children}
         <Toaster />
-        <Suspense fallback={null}>
-          <MetaPixel />
-        </Suspense>
       </body>
     </html>
   );
