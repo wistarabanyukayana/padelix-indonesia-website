@@ -5,6 +5,7 @@ import { eq, inArray, sql } from "drizzle-orm";
 import { JWTPayload, SignJWT, jwtVerify } from "jose";
 import { cookies, headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
+import { cache } from "react";
 import "server-only";
 
 const secretKey = process.env.SESSION_SECRET;
@@ -111,11 +112,11 @@ export async function getSessionFromCookie(
   }
 }
 
-export async function getSession(): Promise<SessionPayload | null> {
+export const getSession = cache(async (): Promise<SessionPayload | null> => {
   const cookieStore = await cookies();
   const session = cookieStore.get("session")?.value;
   return getSessionFromCookie(session);
-}
+});
 
 export async function updateSession(request: NextRequest) {
   const session = request.cookies.get("session")?.value;

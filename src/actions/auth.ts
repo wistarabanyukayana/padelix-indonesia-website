@@ -3,8 +3,7 @@
 import { permissions, rolesPermissions, users, usersRoles } from "@/db/schema";
 import { db } from "@/lib/db";
 import { createSession, deleteSession, updateSession } from "@/lib/session";
-import { compare } from "bcryptjs";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { headers } from "next/headers";
 import { z } from "zod";
 
@@ -49,7 +48,14 @@ export async function login(
 
   // Find user
   const userResult = await db
-    .select()
+    .select({
+      id: users.id,
+      username: users.username,
+      email: users.email,
+      isActive: users.isActive,
+      sessionVersion: users.sessionVersion,
+      passwordMatches: sql<boolean>`crypt(${password}, ${users.passwordHash}) = ${users.passwordHash}`,
+    })
     .from(users)
     .where(eq(users.email, email))
     .limit(1);
@@ -64,9 +70,7 @@ export async function login(
     return { message: "Email atau password salah" };
   }
 
-  // Verify password
-  const passwordsMatch = await compare(password, user.passwordHash);
-  if (!passwordsMatch) {
+  if (!user.passwordMatches) {
     await createAuditLog(
       "AUTH_LOGIN_FAILED",
       user.id,

@@ -40,5 +40,8 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile
 
+      - name: Migrate database
+        run: pnpm exec drizzle-kit migrate
+
       - name: Deploy to Cloudflare Workers
         run: pnpm run deploy

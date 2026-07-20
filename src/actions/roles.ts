@@ -23,7 +23,7 @@ export async function createRole(
   if (!session) return { message: "Sesi berakhir, silakan login kembali" };
 
   try {
-    await checkPermission(PERMISSIONS.MANAGE_USERS);
+    await checkPermission(PERMISSIONS.MANAGE_USERS, session);
   } catch {
     return { message: "Anda tidak memiliki izin untuk mengelola peran" };
   }
@@ -65,7 +65,12 @@ export async function createRole(
       );
     }
 
-    await createAuditLog("ROLE_CREATE", newId!, `Created role: ${data.name}`);
+    await createAuditLog(
+      "ROLE_CREATE",
+      newId!,
+      `Created role: ${data.name}`,
+      session.user,
+    );
   } catch (error: unknown) {
     console.error(error);
     const message =
@@ -87,7 +92,7 @@ export async function updateRole(
   if (!session) return { message: "Sesi berakhir, silakan login kembali" };
 
   try {
-    await checkPermission(PERMISSIONS.MANAGE_USERS);
+    await checkPermission(PERMISSIONS.MANAGE_USERS, session);
   } catch {
     return { message: "Anda tidak memiliki izin untuk mengelola peran" };
   }
@@ -138,7 +143,12 @@ export async function updateRole(
       await bumpSessionVersion(affectedUserIds);
     }
 
-    await createAuditLog("ROLE_UPDATE", id, `Updated role: ${data.name}`);
+    await createAuditLog(
+      "ROLE_UPDATE",
+      id,
+      `Updated role: ${data.name}`,
+      session.user,
+    );
   } catch (error: unknown) {
     console.error(error);
     const message =
@@ -157,7 +167,7 @@ export async function deleteRole(id: number): Promise<ActionState> {
     return { success: false, message: "Sesi berakhir, silakan login kembali" };
 
   try {
-    await checkPermission(PERMISSIONS.MANAGE_USERS);
+    await checkPermission(PERMISSIONS.MANAGE_USERS, session);
 
     // Check if it's super_admin
     const role = await db.select().from(roles).where(eq(roles.id, id)).limit(1);
@@ -178,7 +188,12 @@ export async function deleteRole(id: number): Promise<ActionState> {
     if (affectedUserIds.length > 0) {
       await bumpSessionVersion(affectedUserIds);
     }
-    await createAuditLog("ROLE_DELETE", id, `Deleted role ID: ${id}`);
+    await createAuditLog(
+      "ROLE_DELETE",
+      id,
+      `Deleted role ID: ${id}`,
+      session.user,
+    );
     revalidatePath("/admin/roles");
     return { success: true };
   } catch {

@@ -35,7 +35,7 @@ export async function createCategory(
   if (!session) return { message: "Sesi berakhir, silakan login kembali" };
 
   try {
-    await checkPermission(PERMISSIONS.MANAGE_CATEGORIES);
+    await checkPermission(PERMISSIONS.MANAGE_CATEGORIES, session);
   } catch {
     return { message: "Anda tidak memiliki izin untuk mengelola kategori" };
   }
@@ -74,6 +74,7 @@ export async function createCategory(
       "CATEGORY_CREATE",
       newId,
       `Created category: ${validated.data.name}`,
+      session.user,
     );
   } catch (error: unknown) {
     const message =
@@ -101,7 +102,7 @@ export async function updateCategory(
   if (!session) return { message: "Sesi berakhir, silakan login kembali" };
 
   try {
-    await checkPermission(PERMISSIONS.MANAGE_CATEGORIES);
+    await checkPermission(PERMISSIONS.MANAGE_CATEGORIES, session);
   } catch {
     return { message: "Anda tidak memiliki izin untuk mengelola kategori" };
   }
@@ -137,6 +138,7 @@ export async function updateCategory(
       "CATEGORY_UPDATE",
       id,
       `Updated category: ${validated.data.name}`,
+      session.user,
     );
   } catch (error: unknown) {
     const message =
@@ -161,9 +163,14 @@ export async function deleteCategory(id: number): Promise<ActionState> {
     return { success: false, message: "Sesi berakhir, silakan login kembali" };
 
   try {
-    await checkPermission(PERMISSIONS.MANAGE_CATEGORIES);
+    await checkPermission(PERMISSIONS.MANAGE_CATEGORIES, session);
     await db.delete(categories).where(eq(categories.id, id));
-    await createAuditLog("CATEGORY_DELETE", id, `Deleted category ID: ${id}`);
+    await createAuditLog(
+      "CATEGORY_DELETE",
+      id,
+      `Deleted category ID: ${id}`,
+      session.user,
+    );
     revalidatePath("/admin/categories");
     revalidatePath("/admin/products");
     revalidatePath("/products");

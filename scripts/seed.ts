@@ -13,7 +13,6 @@ import {
   users,
   usersRoles,
 } from "@/db/schema";
-import { hash } from "bcryptjs";
 import "dotenv/config";
 import { sql } from "drizzle-orm";
 import { db } from "../src/lib/db";
@@ -121,7 +120,7 @@ async function seed() {
 
   // 2. Admin User
   console.log("...Creating Admin User");
-  const passwordHash = await hash("password123", 10);
+  const passwordHash = sql<string>`crypt(${"password123"}, gen_salt('bf', 10))`;
 
   await db
     .insert(users)

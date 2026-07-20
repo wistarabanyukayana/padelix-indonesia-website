@@ -26,7 +26,7 @@ export async function createBrand(
   if (!session) return { message: "Sesi berakhir, silakan login kembali" };
 
   try {
-    await checkPermission(PERMISSIONS.MANAGE_BRANDS);
+    await checkPermission(PERMISSIONS.MANAGE_BRANDS, session);
   } catch {
     return { message: "Anda tidak memiliki izin untuk mengelola brand" };
   }
@@ -61,6 +61,7 @@ export async function createBrand(
       "BRAND_CREATE",
       newId,
       `Created brand: ${validated.data.name}`,
+      session.user,
     );
   } catch (error: unknown) {
     const message =
@@ -88,7 +89,7 @@ export async function updateBrand(
   if (!session) return { message: "Sesi berakhir, silakan login kembali" };
 
   try {
-    await checkPermission(PERMISSIONS.MANAGE_BRANDS);
+    await checkPermission(PERMISSIONS.MANAGE_BRANDS, session);
   } catch {
     return { message: "Anda tidak memiliki izin untuk mengelola brand" };
   }
@@ -120,6 +121,7 @@ export async function updateBrand(
       "BRAND_UPDATE",
       id,
       `Updated brand: ${validated.data.name}`,
+      session.user,
     );
   } catch (error: unknown) {
     const message =
@@ -144,9 +146,14 @@ export async function deleteBrand(id: number): Promise<ActionState> {
     return { success: false, message: "Sesi berakhir, silakan login kembali" };
 
   try {
-    await checkPermission(PERMISSIONS.MANAGE_BRANDS);
+    await checkPermission(PERMISSIONS.MANAGE_BRANDS, session);
     await db.delete(brands).where(eq(brands.id, id));
-    await createAuditLog("BRAND_DELETE", id, `Deleted brand ID: ${id}`);
+    await createAuditLog(
+      "BRAND_DELETE",
+      id,
+      `Deleted brand ID: ${id}`,
+      session.user,
+    );
     revalidatePath("/admin/brands");
     revalidatePath("/admin/products");
     revalidatePath("/products");

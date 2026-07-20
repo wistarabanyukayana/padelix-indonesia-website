@@ -60,7 +60,7 @@ export async function createProduct(
   if (!session) return { message: "Sesi berakhir, silakan login kembali" };
 
   try {
-    await checkPermission(PERMISSIONS.MANAGE_PRODUCTS);
+    await checkPermission(PERMISSIONS.MANAGE_PRODUCTS, session);
   } catch {
     return { message: "Anda tidak memiliki izin untuk membuat produk" };
   }
@@ -166,6 +166,7 @@ export async function createProduct(
       "PRODUCT_CREATE",
       newId!,
       `Created product: ${data.name}`,
+      session.user,
     );
   } catch (error: unknown) {
     console.error(error);
@@ -191,7 +192,7 @@ export async function updateProduct(
   if (!session) return { message: "Sesi berakhir, silakan login kembali" };
 
   try {
-    await checkPermission(PERMISSIONS.MANAGE_PRODUCTS);
+    await checkPermission(PERMISSIONS.MANAGE_PRODUCTS, session);
   } catch {
     return { message: "Anda tidak memiliki izin untuk mengubah produk" };
   }
@@ -294,7 +295,12 @@ export async function updateProduct(
       );
     }
 
-    await createAuditLog("PRODUCT_UPDATE", id, `Updated product: ${data.name}`);
+    await createAuditLog(
+      "PRODUCT_UPDATE",
+      id,
+      `Updated product: ${data.name}`,
+      session.user,
+    );
   } catch (error: unknown) {
     console.error(error);
     const errorMessage =
@@ -315,12 +321,15 @@ export async function toggleProductFeatured(
   isFeatured: boolean,
 ): Promise<ActionState> {
   try {
-    await checkPermission(PERMISSIONS.MANAGE_PRODUCTS);
+    const session = await getSession();
+    if (!session) throw new Error("Unauthorized: Missing session");
+    await checkPermission(PERMISSIONS.MANAGE_PRODUCTS, session);
     await db.update(products).set({ isFeatured }).where(eq(products.id, id));
     await createAuditLog(
       "PRODUCT_TOGGLE_FEATURED",
       id,
       `Set featured to: ${isFeatured}`,
+      session.user,
     );
     revalidatePath("/admin/products");
     revalidatePath("/");
@@ -337,9 +346,16 @@ export async function toggleProductFeatured(
 
 export async function deleteProduct(id: number): Promise<ActionState> {
   try {
-    await checkPermission(PERMISSIONS.MANAGE_PRODUCTS);
+    const session = await getSession();
+    if (!session) throw new Error("Unauthorized: Missing session");
+    await checkPermission(PERMISSIONS.MANAGE_PRODUCTS, session);
     await db.delete(products).where(eq(products.id, id));
-    await createAuditLog("PRODUCT_DELETE", id, `Deleted product ID: ${id}`);
+    await createAuditLog(
+      "PRODUCT_DELETE",
+      id,
+      `Deleted product ID: ${id}`,
+      session.user,
+    );
     revalidatePath("/admin/products");
     revalidatePath("/");
     revalidatePath("/products");

@@ -6,8 +6,7 @@ import { createAuditLog } from "@/lib/audit";
 import { bumpSessionVersion, checkPermission, getSession } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { ActionState } from "@/types";
-import { hash } from "bcryptjs";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
@@ -37,7 +36,7 @@ export async function createUser(
   if (!session) return { message: "Sesi berakhir, silakan login kembali" };
 
   try {
-    await checkPermission(PERMISSIONS.MANAGE_USERS);
+    await checkPermission(PERMISSIONS.MANAGE_USERS, session);
   } catch {
     return { message: "Anda tidak memiliki izin untuk membuat pengguna" };
   }
@@ -68,7 +67,7 @@ export async function createUser(
   let newId: number | null = null;
 
   try {
-    const passwordHash = await hash(data.password, 10);
+    const passwordHash = sql<string>`crypt(${data.password}, gen_salt('bf', 10))`;
 
     const [result] = await db
       .insert(users)
@@ -96,6 +95,7 @@ export async function createUser(
       "USER_CREATE",
       newId!,
       `Created user: ${data.username}`,
+      session.user,
     );
   } catch (error: unknown) {
     console.error(error);
@@ -117,7 +117,7 @@ export async function updateUser(
   if (!session) return { message: "Sesi berakhir, silakan login kembali" };
 
   try {
-    await checkPermission(PERMISSIONS.MANAGE_USERS);
+    await checkPermission(PERMISSIONS.MANAGE_USERS, session);
   } catch {
     return { message: "Anda tidak memiliki izin untuk mengubah pengguna" };
   }
@@ -167,20 +167,15 @@ export async function updateUser(
       selectedRoles = currentRoleIds;
     }
 
-    const updateData: {
-      username: string;
-      email: string;
-      isActive: boolean;
-      passwordHash?: string;
-    } = {
+    const passwordChanged = Boolean(data.password && data.password.length >= 6);
+    const updateData = {
       username: data.username,
       email: data.email,
       isActive: data.isActive,
+      ...(passwordChanged && {
+        passwordHash: sql<string>`crypt(${data.password!}, gen_salt('bf', 10))`,
+      }),
     };
-
-    if (data.password && data.password.length >= 6) {
-      updateData.passwordHash = await hash(data.password, 10);
-    }
 
     await db.update(users).set(updateData).where(eq(users.id, id));
 
@@ -197,12 +192,16 @@ export async function updateUser(
 
     const rolesChanged = !areRolesEqual(currentRoleIds, selectedRoles);
     const isActiveChanged = currentUser.isActive !== data.isActive;
-    const passwordChanged = Boolean(updateData.passwordHash);
     if (rolesChanged || isActiveChanged || passwordChanged) {
       await bumpSessionVersion(id);
     }
 
-    await createAuditLog("USER_UPDATE", id, `Updated user: ${data.username}`);
+    await createAuditLog(
+      "USER_UPDATE",
+      id,
+      `Updated user: ${data.username}`,
+      session.user,
+    );
   } catch (error: unknown) {
     console.error(error);
     const message =
@@ -220,7 +219,7 @@ export async function deleteUser(id: number): Promise<ActionState> {
     return { success: false, message: "Sesi berakhir, silakan login kembali" };
 
   try {
-    await checkPermission(PERMISSIONS.MANAGE_USERS);
+    await checkPermission(PERMISSIONS.MANAGE_USERS, session);
 
     // Check if user is deleting themselves
     if (session.user.id === id) {
@@ -231,7 +230,12 @@ export async function deleteUser(id: number): Promise<ActionState> {
     }
 
     await db.delete(users).where(eq(users.id, id));
-    await createAuditLog("USER_DELETE", id, `Deleted user ID: ${id}`);
+    await createAuditLog(
+      "USER_DELETE",
+      id,
+      `Deleted user ID: ${id}`,
+      session.user,
+    );
     revalidatePath("/admin/users");
     return { success: true };
   } catch (error) {
