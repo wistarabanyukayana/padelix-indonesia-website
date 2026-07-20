@@ -5,7 +5,7 @@ import { PERMISSIONS } from "@/config/permissions";
 import { roles, rolesPermissions } from "@/db/schema";
 import { hasPermission } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { and, asc, count, desc, eq, ilike, or } from "drizzle-orm";
+import { and, asc, count, desc, ilike, inArray, or } from "drizzle-orm";
 import { Edit, Key, Plus, ShieldCheck, Users } from "lucide-react";
 import Link from "next/link";
 
@@ -51,20 +51,28 @@ export default async function AdminRolesPage({ searchParams }: PageProps) {
     sortDir === "asc" ? asc(sortColumn) : desc(sortColumn),
   );
 
-  // Fetch permissions count for each role
-  const rolesWithDetails = await Promise.all(
-    roleList.map(async (role) => {
-      const [permCount] = await db
-        .select({ value: count() })
+  const permissionCounts = roleList.length
+    ? await db
+        .select({
+          roleId: rolesPermissions.rolesId,
+          value: count(),
+        })
         .from(rolesPermissions)
-        .where(eq(rolesPermissions.rolesId, role.id));
-
-      return {
-        ...role,
-        permissionCount: permCount.value,
-      };
-    }),
+        .where(
+          inArray(
+            rolesPermissions.rolesId,
+            roleList.map((role) => role.id),
+          ),
+        )
+        .groupBy(rolesPermissions.rolesId)
+    : [];
+  const permissionCountByRoleId = new Map(
+    permissionCounts.map(({ roleId, value }) => [roleId, value]),
   );
+  const rolesWithDetails = roleList.map((role) => ({
+    ...role,
+    permissionCount: permissionCountByRoleId.get(role.id) ?? 0,
+  }));
 
   return (
     <div className="flex flex-col gap-6">

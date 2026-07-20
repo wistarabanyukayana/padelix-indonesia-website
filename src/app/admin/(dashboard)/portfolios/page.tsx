@@ -9,7 +9,7 @@ import { medias, portfolioMedias, portfolios } from "@/db/schema";
 import { hasPermission } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getDisplayUrl } from "@/lib/utils";
-import { and, asc, desc, eq, ilike, or } from "drizzle-orm";
+import { and, asc, desc, eq, ilike, inArray, or } from "drizzle-orm";
 import { Edit, Plus } from "lucide-react";
 import Link from "next/link";
 
@@ -55,10 +55,10 @@ export default async function AdminPortfoliosPage({ searchParams }: PageProps) {
     sortDir === "asc" ? asc(sortColumn) : desc(sortColumn),
   );
 
-  const portfoliosWithImages = await Promise.all(
-    portfolioList.map(async (p) => {
-      const media = await db
+  const primaryMedias = portfolioList.length
+    ? await db
         .select({
+          portfolioId: portfolioMedias.portfolioId,
           url: medias.url,
           type: medias.type,
           metadata: medias.metadata,
@@ -67,18 +67,25 @@ export default async function AdminPortfoliosPage({ searchParams }: PageProps) {
         .innerJoin(medias, eq(portfolioMedias.mediaId, medias.id))
         .where(
           and(
-            eq(portfolioMedias.portfolioId, p.id),
+            inArray(
+              portfolioMedias.portfolioId,
+              portfolioList.map((portfolio) => portfolio.id),
+            ),
             eq(portfolioMedias.isPrimary, true),
           ),
         )
-        .limit(1);
-
-      return {
-        ...p,
-        imageUrl: media[0] ? getDisplayUrl(media[0]) : "",
-      };
-    }),
-  );
+        .orderBy(asc(portfolioMedias.portfolioId), asc(portfolioMedias.id))
+    : [];
+  const imageByPortfolioId = new Map<number, string>();
+  for (const media of primaryMedias) {
+    if (!imageByPortfolioId.has(media.portfolioId)) {
+      imageByPortfolioId.set(media.portfolioId, getDisplayUrl(media));
+    }
+  }
+  const portfoliosWithImages = portfolioList.map((portfolio) => ({
+    ...portfolio,
+    imageUrl: imageByPortfolioId.get(portfolio.id) ?? "",
+  }));
 
   return (
     <div className="flex flex-col gap-6">

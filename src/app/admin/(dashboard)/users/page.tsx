@@ -5,7 +5,7 @@ import { PERMISSIONS } from "@/config/permissions";
 import { roles, users, usersRoles } from "@/db/schema";
 import { getSession, hasPermission } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { and, asc, desc, eq, ilike, or } from "drizzle-orm";
+import { and, asc, desc, eq, ilike, inArray, or } from "drizzle-orm";
 import { Clock, Edit, Plus, Shield } from "lucide-react";
 import Link from "next/link";
 
@@ -63,23 +63,32 @@ export default async function AdminUsersPage({ searchParams }: PageProps) {
     });
   };
 
-  // Fetch roles for each user
-  const usersWithRoles = await Promise.all(
-    userList.map(async (user) => {
-      const userRolesList = await db
+  const userRolesList = userList.length
+    ? await db
         .select({
+          userId: usersRoles.usersId,
           name: roles.name,
         })
         .from(usersRoles)
-        .leftJoin(roles, eq(usersRoles.rolesId, roles.id))
-        .where(eq(usersRoles.usersId, user.id));
-
-      return {
-        ...user,
-        roles: userRolesList.map((r) => r.name),
-      };
-    }),
-  );
+        .innerJoin(roles, eq(usersRoles.rolesId, roles.id))
+        .where(
+          inArray(
+            usersRoles.usersId,
+            userList.map((user) => user.id),
+          ),
+        )
+        .orderBy(asc(usersRoles.usersId), asc(usersRoles.rolesId))
+    : [];
+  const roleNamesByUserId = new Map<number, string[]>();
+  for (const { userId, name } of userRolesList) {
+    const names = roleNamesByUserId.get(userId);
+    if (names) names.push(name);
+    else roleNamesByUserId.set(userId, [name]);
+  }
+  const usersWithRoles = userList.map((user) => ({
+    ...user,
+    roles: roleNamesByUserId.get(user.id) ?? [],
+  }));
   const orderedUsers = [...usersWithRoles];
   if (currentUserId) {
     orderedUsers.sort((a, b) => {

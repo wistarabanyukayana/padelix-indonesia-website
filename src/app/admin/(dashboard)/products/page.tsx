@@ -9,7 +9,7 @@ import { categories, medias, productMedias, products } from "@/db/schema";
 import { hasPermission } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getDisplayUrl } from "@/lib/utils";
-import { and, asc, desc, eq, ilike, or } from "drizzle-orm";
+import { and, asc, desc, eq, ilike, inArray, or } from "drizzle-orm";
 import { Edit, Plus } from "lucide-react";
 import Link from "next/link";
 
@@ -69,10 +69,10 @@ export default async function AdminProductsPage({ searchParams }: PageProps) {
     sortDir === "asc" ? asc(sortColumn) : desc(sortColumn),
   );
 
-  const productsWithImages = await Promise.all(
-    productList.map(async (p) => {
-      const media = await db
+  const primaryMedias = productList.length
+    ? await db
         .select({
+          productId: productMedias.productId,
           url: medias.url,
           type: medias.type,
           metadata: medias.metadata,
@@ -81,18 +81,25 @@ export default async function AdminProductsPage({ searchParams }: PageProps) {
         .innerJoin(medias, eq(productMedias.mediaId, medias.id))
         .where(
           and(
-            eq(productMedias.productId, p.id),
+            inArray(
+              productMedias.productId,
+              productList.map((product) => product.id),
+            ),
             eq(productMedias.isPrimary, true),
           ),
         )
-        .limit(1);
-
-      return {
-        ...p,
-        imageUrl: media[0] ? getDisplayUrl(media[0]) : "",
-      };
-    }),
-  );
+        .orderBy(asc(productMedias.productId), asc(productMedias.id))
+    : [];
+  const imageByProductId = new Map<number, string>();
+  for (const media of primaryMedias) {
+    if (!imageByProductId.has(media.productId)) {
+      imageByProductId.set(media.productId, getDisplayUrl(media));
+    }
+  }
+  const productsWithImages = productList.map((product) => ({
+    ...product,
+    imageUrl: imageByProductId.get(product.id) ?? "",
+  }));
 
   return (
     <div className="flex flex-col gap-6">
