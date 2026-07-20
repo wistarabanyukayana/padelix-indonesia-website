@@ -35,8 +35,8 @@ export function MediaUploadButton({
     }
   };
 
-  const uploadSingle = async (file: File) => {
-    if (!file) return;
+  const uploadSingle = async (file: File): Promise<boolean> => {
+    if (!file) return false;
     setProgress(0);
 
     try {
@@ -49,13 +49,14 @@ export function MediaUploadButton({
       toast.success(
         isVideo ? "Video berhasil diunggah" : "File berhasil diunggah",
       );
-      router.refresh();
+      return true;
     } catch (error) {
-      if (error === "ABORTED") return;
+      if (error === "ABORTED") return false;
       const message = handleUploadError(error, "Gagal mengunggah file.", {
         suppressPattern: /Sesi berakhir/i,
       });
       toast.error(message);
+      return false;
     }
   };
 
@@ -67,10 +68,12 @@ export function MediaUploadButton({
     setQueueStatus({ current: 1, total: uploadList.length });
 
     try {
+      let uploadedAny = false;
       for (let i = 0; i < uploadList.length; i += 1) {
         setQueueStatus({ current: i + 1, total: uploadList.length });
-        await uploadSingle(uploadList[i]);
+        uploadedAny = (await uploadSingle(uploadList[i])) || uploadedAny;
       }
+      if (uploadedAny) router.refresh();
     } finally {
       setIsUploading(false);
       setProgress(0);

@@ -146,7 +146,7 @@ export async function getFeaturedPortfolios(): Promise<FeaturedPortfolio[]> {
       .where(
         and(eq(portfolios.isActive, true), eq(portfolios.isFeatured, true)),
       )
-      .orderBy(desc(portfolios.updatedAt));
+      .orderBy(desc(portfolios.createdAt));
 
     if (portfolioList.length === 0) return [];
 

@@ -166,8 +166,11 @@ export async function hasPermission(permission: string): Promise<boolean> {
   return allowed;
 }
 
-export async function checkPermission(permission: string) {
-  const session = await getSession();
+export async function checkPermission(
+  permission: string,
+  verifiedSession?: SessionPayload,
+) {
+  const session = verifiedSession ?? (await getSession());
   if (!session || !session.user || !session.user.permissions) {
     return false;
   }

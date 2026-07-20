@@ -2,8 +2,9 @@
 
 import { portfolioMedias, portfolios } from "@/db/schema";
 import { db } from "@/lib/db";
+import { getPortfolioDuplicateMessage } from "@/lib/portfolio-error";
 import { eq } from "drizzle-orm";
-import { revalidatePath, updateTag } from "next/cache";
+import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { PERMISSIONS } from "@/config/permissions";
@@ -39,7 +40,7 @@ export async function createPortfolio(
   if (!session) return { message: "Sesi berakhir, silakan login kembali" };
 
   try {
-    await checkPermission(PERMISSIONS.MANAGE_PORTFOLIOS);
+    await checkPermission(PERMISSIONS.MANAGE_PORTFOLIOS, session);
   } catch {
     return { message: "Anda tidak memiliki izin untuk mengelola portofolio" };
   }
@@ -105,25 +106,19 @@ export async function createPortfolio(
       "PORTFOLIO_CREATE",
       newId!,
       `Created portfolio: ${data.title}`,
+      session.user,
     );
   } catch (error: unknown) {
     console.error(error);
-    const err = error as { code?: string; sqlMessage?: string };
-    if (err.code === "ER_DUP_ENTRY") {
-      return { message: "Slug portofolio sudah digunakan." };
-    }
-    const message =
-      error instanceof Error
-        ? error.message
-        : "Terjadi kesalahan tidak dikenal";
-    return { message: "Gagal membuat portofolio: " + message };
+    const duplicateMessage = getPortfolioDuplicateMessage(error);
+    return {
+      message:
+        duplicateMessage ?? "Gagal membuat portofolio. Silakan coba lagi.",
+    };
   }
 
   revalidatePath("/admin/portfolios");
   revalidatePath("/");
-  updateTag("public");
-  updateTag("portfolios");
-  updateTag("featured-portfolios");
   return { success: true, redirectTo: `/admin/portfolios/${newId}/edit?new=1` };
 }
 
@@ -136,7 +131,7 @@ export async function updatePortfolio(
   if (!session) return { message: "Sesi berakhir, silakan login kembali" };
 
   try {
-    await checkPermission(PERMISSIONS.MANAGE_PORTFOLIOS);
+    await checkPermission(PERMISSIONS.MANAGE_PORTFOLIOS, session);
   } catch {
     return { message: "Anda tidak memiliki izin untuk mengelola portofolio" };
   }
@@ -199,21 +194,19 @@ export async function updatePortfolio(
       "PORTFOLIO_UPDATE",
       id,
       `Updated portfolio: ${data.title}`,
+      session.user,
     );
   } catch (error: unknown) {
     console.error(error);
-    const message =
-      error instanceof Error
-        ? error.message
-        : "Terjadi kesalahan tidak dikenal";
-    return { message: "Gagal mengupdate portofolio: " + message };
+    const duplicateMessage = getPortfolioDuplicateMessage(error);
+    return {
+      message:
+        duplicateMessage ?? "Gagal memperbarui portofolio. Silakan coba lagi.",
+    };
   }
 
   revalidatePath("/admin/portfolios");
   revalidatePath("/");
-  updateTag("public");
-  updateTag("portfolios");
-  updateTag("featured-portfolios");
   return { success: true, message: "Portofolio berhasil diperbarui" };
 }
 
@@ -221,8 +214,11 @@ export async function togglePortfolioFeatured(
   id: number,
   isFeatured: boolean,
 ): Promise<ActionState> {
+  const session = await getSession();
+  if (!session) return { message: "Sesi berakhir, silakan login kembali" };
+
   try {
-    await checkPermission(PERMISSIONS.MANAGE_PORTFOLIOS);
+    await checkPermission(PERMISSIONS.MANAGE_PORTFOLIOS, session);
 
     await db
       .update(portfolios)
@@ -233,13 +229,11 @@ export async function togglePortfolioFeatured(
       "PORTFOLIO_TOGGLE_FEATURED",
       id,
       `Set featured to: ${isFeatured}`,
+      session.user,
     );
 
     revalidatePath("/admin/portfolios");
     revalidatePath("/");
-    updateTag("public");
-    updateTag("portfolios");
-    updateTag("featured-portfolios");
     return { success: true };
   } catch (error) {
     const message =
@@ -252,18 +246,23 @@ export async function togglePortfolioFeatured(
 }
 
 export async function deletePortfolio(id: number): Promise<ActionState> {
+  const session = await getSession();
+  if (!session) return { message: "Sesi berakhir, silakan login kembali" };
+
   try {
-    await checkPermission(PERMISSIONS.MANAGE_PORTFOLIOS);
+    await checkPermission(PERMISSIONS.MANAGE_PORTFOLIOS, session);
 
     await db.delete(portfolios).where(eq(portfolios.id, id));
 
-    await createAuditLog("PORTFOLIO_DELETE", id, `Deleted portfolio ID: ${id}`);
+    await createAuditLog(
+      "PORTFOLIO_DELETE",
+      id,
+      `Deleted portfolio ID: ${id}`,
+      session.user,
+    );
 
     revalidatePath("/admin/portfolios");
     revalidatePath("/");
-    updateTag("public");
-    updateTag("portfolios");
-    updateTag("featured-portfolios");
     return { success: true };
   } catch (error) {
     const message =

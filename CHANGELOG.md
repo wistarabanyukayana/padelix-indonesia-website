@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/)**, and this project adheres to **[Semantic Versioning](https://semver.org/spec/v2.0.0.html)**.
 
+## [Unreleased]
+
+### Changed
+
+- **Newest portfolio spotlight:** Homepage portfolios now sort by creation date, placing the newest project in the primary layout position.
+- **Free-plan upload path:** Media actions reuse their already-verified session for permission checks and audit logs, and Media Library refreshes once after a batch instead of after every file.
+
+### Fixed
+
+- **Homepage cache invalidation:** Connected the existing Cloudflare KV tag cache so portfolio and featured-product changes invalidate the R2-cached homepage correctly.
+- **Portfolio duplicate errors:** PostgreSQL `23505` title and slug conflicts now return safe, specific messages through direct and Drizzle-wrapped errors.
+
 ## [3.1.0] - 2026-07-02
 
 ### Changed (Infrastructure & Routing)

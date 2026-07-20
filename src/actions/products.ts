@@ -17,7 +17,7 @@ import {
   ProductVariantUI,
 } from "@/types";
 import { eq } from "drizzle-orm";
-import { revalidatePath, updateTag } from "next/cache";
+import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 const productMediaSchema = z.object({
@@ -179,9 +179,6 @@ export async function createProduct(
   revalidatePath("/admin/products");
   revalidatePath("/");
   revalidatePath("/products");
-  updateTag("public");
-  updateTag("products");
-  updateTag("featured-products");
   return { success: true, redirectTo: `/admin/products/${newId}/edit?new=1` };
 }
 
@@ -310,10 +307,6 @@ export async function updateProduct(
   revalidatePath("/admin/products");
   revalidatePath("/");
   revalidatePath("/products");
-  updateTag("public");
-  updateTag("products");
-  updateTag("featured-products");
-  updateTag(`product:${data.slug}`);
   revalidatePath(`/products/${data.slug}`);
   return { success: true, message: "Produk berhasil diperbarui" };
 }
@@ -332,9 +325,6 @@ export async function toggleProductFeatured(
     revalidatePath("/admin/products");
     revalidatePath("/");
     revalidatePath("/products");
-    updateTag("public");
-    updateTag("products");
-    updateTag("featured-products");
     return { success: true };
   } catch (error) {
     const message =
@@ -353,9 +343,6 @@ export async function deleteProduct(id: number): Promise<ActionState> {
     revalidatePath("/admin/products");
     revalidatePath("/");
     revalidatePath("/products");
-    updateTag("public");
-    updateTag("products");
-    updateTag("featured-products");
     return { success: true };
   } catch (error) {
     const message =

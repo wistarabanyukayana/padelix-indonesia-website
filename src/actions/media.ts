@@ -2,7 +2,12 @@
 
 import { MEDIA_CAPS, kindFromMediaType } from "@/config/media";
 import { PERMISSIONS } from "@/config/permissions";
-import { mediaFolders, medias, portfolioMedias, productMedias } from "@/db/schema";
+import {
+  mediaFolders,
+  medias,
+  portfolioMedias,
+  productMedias,
+} from "@/db/schema";
 import { createAuditLog } from "@/lib/audit";
 import { checkPermission, getSession } from "@/lib/auth";
 import { cloudinary } from "@/lib/cloudinary";
@@ -87,7 +92,7 @@ export async function getFolders(): Promise<DBMediaFolder[]> {
   if (!session) return [];
 
   try {
-    await checkPermission(PERMISSIONS.MANAGE_MEDIA);
+    await checkPermission(PERMISSIONS.MANAGE_MEDIA, session);
     return await db.select().from(mediaFolders).orderBy(asc(mediaFolders.path));
   } catch (error) {
     console.error("Get folders error:", error);
@@ -103,7 +108,7 @@ export async function createFolder(
   if (!session) return { message: "Sesi berakhir, silakan login kembali" };
 
   try {
-    await checkPermission(PERMISSIONS.MANAGE_MEDIA);
+    await checkPermission(PERMISSIONS.MANAGE_MEDIA, session);
 
     const cleanName = name.trim();
     if (!isValidFolderName(cleanName)) {
@@ -138,6 +143,7 @@ export async function createFolder(
       "MEDIA_FOLDER_CREATE",
       created.id,
       `Created folder: ${path}`,
+      session.user,
     );
     revalidatePath("/admin");
     return { success: true, message: "Folder berhasil dibuat", id: created.id };
@@ -156,7 +162,7 @@ export async function renameFolder(
   if (!session) return { message: "Sesi berakhir, silakan login kembali" };
 
   try {
-    await checkPermission(PERMISSIONS.MANAGE_MEDIA);
+    await checkPermission(PERMISSIONS.MANAGE_MEDIA, session);
 
     const cleanName = name.trim();
     if (!isValidFolderName(cleanName)) {
@@ -205,6 +211,7 @@ export async function renameFolder(
       "MEDIA_FOLDER_RENAME",
       id,
       `Renamed folder: ${oldPath} → ${newPath}`,
+      session.user,
     );
     revalidatePath("/admin");
     return { success: true, message: "Folder berhasil diganti namanya" };
@@ -220,7 +227,7 @@ export async function deleteFolder(id: number): Promise<ActionState> {
   if (!session) return { message: "Sesi berakhir, silakan login kembali" };
 
   try {
-    await checkPermission(PERMISSIONS.MANAGE_MEDIA);
+    await checkPermission(PERMISSIONS.MANAGE_MEDIA, session);
 
     const [folder] = await db
       .select()
@@ -259,6 +266,7 @@ export async function deleteFolder(id: number): Promise<ActionState> {
       "MEDIA_FOLDER_DELETE",
       id,
       `Deleted folder: ${folder.path}`,
+      session.user,
     );
     revalidatePath("/admin");
     return { success: true, message: "Folder berhasil dihapus" };
@@ -293,7 +301,7 @@ export async function signMediaUpload(): Promise<
   if (!session) return { error: "Sesi berakhir, silakan login kembali" };
 
   try {
-    await checkPermission(PERMISSIONS.MANAGE_MEDIA);
+    await checkPermission(PERMISSIONS.MANAGE_MEDIA, session);
 
     const timestamp = Math.round(Date.now() / 1000);
     const signature = cloudinary.utils.api_sign_request(
@@ -332,7 +340,7 @@ export async function registerUploadedMedia(
   if (!session) return { error: "Sesi berakhir, silakan login kembali" };
 
   try {
-    await checkPermission(PERMISSIONS.MANAGE_MEDIA);
+    await checkPermission(PERMISSIONS.MANAGE_MEDIA, session);
 
     const resource = (await cloudinary.api.resource(publicId, {
       resource_type: resourceType,
@@ -399,6 +407,7 @@ export async function registerUploadedMedia(
       "MEDIA_UPLOAD",
       result.id,
       `Uploaded file: ${name} (cloudinary)`,
+      session.user,
     );
 
     // ponytail: no revalidatePath here — this fires per-file mid-edit on the
@@ -425,7 +434,7 @@ export async function deleteMedia(id: number): Promise<ActionState> {
   if (!session) return { message: "Sesi berakhir, silakan login kembali" };
 
   try {
-    await checkPermission(PERMISSIONS.MANAGE_MEDIA);
+    await checkPermission(PERMISSIONS.MANAGE_MEDIA, session);
     const mediaResult = await db
       .select()
       .from(medias)
@@ -448,7 +457,12 @@ export async function deleteMedia(id: number): Promise<ActionState> {
         console.error("Failed to delete Cloudinary resource", error);
       }
     }
-    await createAuditLog("MEDIA_DELETE", id, `Deleted media: ${media.name}`);
+    await createAuditLog(
+      "MEDIA_DELETE",
+      id,
+      `Deleted media: ${media.name}`,
+      session.user,
+    );
     revalidatePath("/admin");
     return { success: true, message: "Media berhasil dihapus" };
   } catch (error: unknown) {
@@ -466,7 +480,7 @@ export async function getMedias() {
   if (!session) return [];
 
   try {
-    await checkPermission(PERMISSIONS.MANAGE_MEDIA);
+    await checkPermission(PERMISSIONS.MANAGE_MEDIA, session);
     return await db.select().from(medias).orderBy(desc(medias.createdAt));
   } catch (error) {
     console.error("Get medias error:", error);
@@ -482,7 +496,7 @@ export async function updateMediaFolder(
   if (!session) return { message: "Sesi berakhir, silakan login kembali" };
 
   try {
-    await checkPermission(PERMISSIONS.MANAGE_MEDIA);
+    await checkPermission(PERMISSIONS.MANAGE_MEDIA, session);
 
     const [media] = await db
       .select()
@@ -506,7 +520,12 @@ export async function updateMediaFolder(
       .set({ folderId, updatedAt: new Date() })
       .where(eq(medias.id, id));
 
-    await createAuditLog("MEDIA_MOVE", id, `Moved media ${media.name}`);
+    await createAuditLog(
+      "MEDIA_MOVE",
+      id,
+      `Moved media ${media.name}`,
+      session.user,
+    );
     revalidatePath("/admin");
     return { success: true, message: "Media berhasil dipindahkan" };
   } catch (error: unknown) {
