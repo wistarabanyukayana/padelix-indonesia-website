@@ -6,10 +6,18 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
 
 ## [Unreleased]
 
+## [3.1.1] - 2026-07-24
+
 ### Changed
 
 - **Newest portfolio spotlight:** Homepage portfolios now sort by creation date, placing the newest project in the primary layout position.
 - **Free-plan upload path:** Media actions reuse their already-verified session for permission checks and audit logs, and Media Library refreshes once after a batch instead of after every file.
+- **Database-backed password hashing:** Login verification and cost-10 bcrypt generation now use PostgreSQL `pgcrypto`; the deployment migration validates existing hashes, converts compatible `$2b$` prefixes, and self-tests `crypt()` before deployment.
+- **Request-scoped sessions:** Admin mutations reuse one validated session for permission checks and audit identity; admin navigation refreshes sessions at most once every 12 hours per tab.
+- **Batched admin lists:** Product, portfolio, user, and role pages load related media, roles, and permission counts in one batched query instead of per-row queries.
+- **Faster public product data:** Product detail requests are memoized, related data loads concurrently, descendant-category lookup is reused, and catalog media loads through one joined query.
+- **Smaller client entries:** Image compression loads only when a compressible image is selected, while Meta Pixel code is limited to public routes.
+- **Migration-gated deployment:** Production database migrations run after dependency installation and before Cloudflare Worker deployment.
 
 ### Fixed
 
