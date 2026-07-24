@@ -9,8 +9,8 @@ A unified fullstack web application for Padelix Indonesia, built with Next.js 16
 ## Production Status
 
 - **Live:** [https://padelix.co.id](https://padelix.co.id)
-- **Current Version:** 3.1.0 (Cloudflare Workers Migration & QoL)
-- **Previous Version:** 3.0.1 (Bug Fixes and QoL updates)
+- **Current Version:** 3.1.1 (Performance, authentication, and deployment optimizations)
+- **Previous Version:** 3.1.0 (Cloudflare Workers migration and QoL)
 
 ---
 
@@ -56,7 +56,7 @@ This project provides a comprehensive digital platform for Padelix Indonesia:
 - **Framework:** Next.js 16+ (App Router, Cache Components / PPR)
 - **Database:** Neon PostgreSQL (serverless)
 - **ORM:** Drizzle ORM
-- **Authentication:** Custom JWT-based Auth (jose, bcryptjs)
+- **Authentication:** Custom JWT-based auth (`jose`) with PostgreSQL `pgcrypto` bcrypt
 - **Styling:** Tailwind CSS 4+
 - **Typography:** Anton (display) + Archivo (body) via `next/font`
 - **Icons:** Lucide React, Simple Icons
@@ -83,8 +83,8 @@ All tokens live in `src/app/globals.css` under `@theme`.
 
 ## Prerequisites
 
-- **Node.js v20+**
-- **pnpm** (Recommended package manager)
+- **Node.js v22+**
+- **pnpm 11**
 - **Neon PostgreSQL Database** (or any PostgreSQL connection string)
 
 ---
@@ -131,9 +131,11 @@ NEXT_PUBLIC_META_PIXEL_ID=your-meta-pixel-id
 ### 4. Initialize Database
 
 ```bash
-pnpm db:reset # Warning: This drops all tables
-pnpm db:seed  # Seeds initial roles, admin user, and sample data
+pnpm exec drizzle-kit migrate
+pnpm db:seed # Seeds initial roles, admin user, and sample data
 ```
+
+Use `pnpm db:reset` only when you intentionally want to drop and recreate all tables.
 
 ### 5. Run Development Server
 
@@ -152,6 +154,10 @@ pnpm dev
 - `pnpm build`: Create a production build.
 - `pnpm start`: Start the production server.
 - `pnpm lint`: Run ESLint checks.
+- `pnpm check`: Run TypeScript checks.
+- `pnpm preview`: Build and preview the Cloudflare Worker locally.
+- `pnpm deploy`: Build and deploy the Cloudflare Worker.
+- `pnpm exec drizzle-kit migrate`: Apply pending PostgreSQL migrations.
 - `pnpm db:reset`: Clear and re-push the database schema.
 - `pnpm db:seed`: Seed the database with initial data.
 
@@ -165,10 +171,11 @@ All media (images, video, documents) is stored and delivered via **Cloudinary**.
 
 ## Deployment
 
-The site is deployed on **Cloudflare Workers** (via OpenNext, with Neon PostgreSQL, Cloudinary, and Resend; DNS via Cloudflare):
+The site is deployed on **Cloudflare Workers** through GitHub Actions. A push to `main` runs CI, applies pending Neon PostgreSQL migrations, then deploys the OpenNext Worker. Migration failure stops deployment.
 
-1. **Deploying to production:**
+1. **Manual deployment:**
    ```bash
+   pnpm exec drizzle-kit migrate
    pnpm deploy
    ```
 2. **Local Preview:**
@@ -180,7 +187,7 @@ The site is deployed on **Cloudflare Workers** (via OpenNext, with Neon PostgreS
    For local development/preview, variables are read from `.dev.vars` (same keys as `.env.example`).
    For production deployment, upload variables/secrets using:
    ```bash
-   pnpm wrangler secret put <SECRET_NAME>
+   pnpm exec wrangler secret put <SECRET_NAME>
    ```
 
 > **Note:** See [docs/MIGRATION-RUNBOOK.md](./docs/MIGRATION-RUNBOOK.md) for the full infrastructure migration history (Rumahweb → Vercel/Neon/Cloudinary).
@@ -195,6 +202,7 @@ This project runs `lint`, `check`, and `build` in CI. The build step is **condit
 
 - `DATABASE_URL` (staging or read-only DB)
 - `NEXT_PUBLIC_SITE_URL`
+- `SESSION_SECRET`
 
 Without `DATABASE_URL`, CI will still run lint and type checks but skip the build step.
 
@@ -207,7 +215,7 @@ On the previous shared-hosting setup (cPanel + LiteSpeed) we observed intermitte
 - Server actions return `{ redirectTo: "/admin/..." }` instead of `redirect(...)`.
 - Client forms detect `redirectTo` and call `window.location.assign(...)`.
 
-It is harmless on Vercel; remove it only if you are confident no deployment target needs it.
+It is harmless on Cloudflare Workers; remove it only after verifying every server-action redirect path.
 
 ---
 
@@ -228,21 +236,20 @@ Admin users with the `view_audit_logs` permission can view these records in the 
 
 ## 🚀 Recent Updates
 
-**Latest Version: [v3.1.0]** (2026-07-02)
+**Latest Version: [v3.1.1](https://github.com/wistarabanyukayana/padelix-indonesia-website/releases/tag/v3.1.1)** (2026-07-24)
 
-- **Cloudflare Workers Migration:** Migrated hosting target from Vercel to Cloudflare Workers using OpenNext.
-- **Optimized Caching & Bindings:** Configured R2-backed incremental cache, worker self-references, and Cloudflare Images bindings.
-- **Edge Routing compatibility:** Replaced legacy middleware routing with client-side pathname session refreshes to eliminate Edge redirect loops.
-- **Automated Sitemap expansion:** Included static pages (`/privacy`, `/terms`) in the automated Next.js dynamic sitemap.
-- **Dynamic login route handling:** Configured `/admin/login` page to handle runtime cookies safely during builds.
+- **Database-backed bcrypt:** Login verification and password hashing now use PostgreSQL `pgcrypto`, with a guarded, self-testing migration.
+- **Lower session overhead:** Request-scoped session reuse avoids repeated validation, and admin refreshes are throttled to once every 12 hours per tab.
+- **Batched database access:** Admin lists and the public catalog replace N+1 and duplicate media queries with batched joins.
+- **Faster product pages:** Product detail data is request-memoized and related records load concurrently.
+- **Smaller client bundles:** Image compression loads on demand and Meta Pixel code is excluded from admin route entries.
+- **Safer deployment:** GitHub Actions applies migrations before deploying the Cloudflare Worker.
 
-**Previous Version: [v3.0.1]** (2026-07-01)
+**Previous Version: [v3.1.0](https://github.com/wistarabanyukayana/padelix-indonesia-website/releases/tag/v3.1.0)** (2026-07-02)
 
-- **Route-level loading skeletons:** added skeleton layouts across admin and public pages for smoother navigation.
-- **Top navigation progress bar:** displays transition progress (NProgress-style) during active page changes.
-- **Robust CI/CD pipeline:** configured `ci.yml` with pnpm support and added automated tag-based releases (`release.yml`).
-- **Form state preservation:** resolved an issue where uploading media in admin forms would wipe unsaved product/portfolio details.
-- **Centralized upload utilities:** consolidated upload error handling across all dashboard forms.
-- **Layout & navigation fixes:** fixed audit log detail popover clipping and public header scroll-on-navigation behaviors.
+- **Cloudflare Workers migration:** Moved hosting from Vercel to Cloudflare Workers using OpenNext.
+- **Optimized caching and bindings:** Added R2-backed incremental cache, worker self-references, and Cloudflare Images bindings.
+- **Cloudflare-compatible authentication routing:** Removed legacy middleware redirects and added safe runtime handling for `/admin/login`.
+- **Automated sitemap:** Included `/privacy`, `/terms`, and active product routes.
 
 > 📄 **View the full history in [CHANGELOG.md](./CHANGELOG.md)**
