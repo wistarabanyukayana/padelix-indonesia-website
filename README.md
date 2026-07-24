@@ -173,6 +173,8 @@ All media (images, video, documents) is stored and delivered via **Cloudinary**.
 
 The site is deployed on **Cloudflare Workers** through GitHub Actions. A push to `main` runs CI, applies pending Neon PostgreSQL migrations, then deploys the OpenNext Worker. Migration failure stops deployment.
 
+Follow [RELEASE.md](./RELEASE.md) for the required versioning, documentation, verification, tagging, smoke-test, and rollback process.
+
 1. **Manual deployment:**
    ```bash
    pnpm exec drizzle-kit migrate
